@@ -1,0 +1,531 @@
+# =============================================================================
+# VOYAGER - Docker Compose Development Stack
+# =============================================================================
+# Version: 1.0.0
+# Full development stack with all supporting services
+#
+# Usage:
+#   cd docker
+#   docker compose --env-file ../.env up -d
+#   docker compose --env-file ../.env logs -f voyager-api
+#
+# Services: voyager-api, postgres, redis, vault, keycloak, kafka, minio,
+#           clickhouse, elasticsearch, qdrant, celery-worker, celery-beat, nginx
+# =============================================================================
+
+name: voyager_cluster
+
+x-common: &common
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "100m"
+      max-file: "10"
+  networks:
+    - voyager-network
+
+x-healthcheck: &healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 60s
+
+services:
+  # ===========================================================================
+  # CORE: Voyager API (Django + Daphne)
+  # ===========================================================================
+  voyager-api:
+    <<: *common
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: voyager_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      VOYAGER_ENV: ${VOYAGER_ENV:-local}
+      VOYAGER_DEBUG: ${VOYAGER_DEBUG:-true}
+      VOYAGER_SECRET_KEY: ${VOYAGER_SECRET_KEY}
+      VOYAGER_ALLOWED_HOSTS: ${VOYAGER_ALLOWED_HOSTS:-localhost,127.0.0.1,*}
+      VOYAGER_DATABASE_URL: ${VOYAGER_DATABASE_URL}
+      VOYAGER_REDIS_URL: ${VOYAGER_REDIS_URL}
+      VOYAGER_CHANNELS_REDIS_URL: ${VOYAGER_CHANNELS_REDIS_URL}
+      VOYAGER_CELERY_BROKER_URL: ${VOYAGER_CELERY_BROKER_URL}
+      VOYAGER_CELERY_RESULT_BACKEND: ${VOYAGER_CELERY_RESULT_BACKEND}
+      VOYAGER_KAFKA_BOOTSTRAP_SERVERS: ${VOYAGER_KAFKA_BOOTSTRAP_SERVERS}
+      VOYAGER_VAULT_URL: ${VOYAGER_VAULT_URL:-http://voyager_vault:8200}
+      VOYAGER_VAULT_TOKEN: ${VOYAGER_VAULT_TOKEN:-dev-root-token}
+      VOYAGER_KEYCLOAK_URL: ${VOYAGER_KEYCLOAK_URL:-http://voyager_keycloak:8080}
+      VOYAGER_KEYCLOAK_REALM: ${VOYAGER_KEYCLOAK_REALM:-voyager}
+      VOYAGER_KEYCLOAK_CLIENT_ID: ${VOYAGER_KEYCLOAK_CLIENT_ID}
+      VOYAGER_KEYCLOAK_CLIENT_SECRET: ${VOYAGER_KEYCLOAK_CLIENT_SECRET}
+      VOYAGER_MINIO_ENDPOINT: ${VOYAGER_MINIO_ENDPOINT}
+      VOYAGER_MINIO_ACCESS_KEY: ${VOYAGER_MINIO_ACCESS_KEY}
+      VOYAGER_MINIO_SECRET_KEY: ${VOYAGER_MINIO_SECRET_KEY}
+      VOYAGER_CLICKHOUSE_HOST: ${VOYAGER_CLICKHOUSE_HOST:-voyager_clickhouse}
+      VOYAGER_ELASTICSEARCH_URL: ${VOYAGER_ELASTICSEARCH_URL:-http://voyager_elasticsearch:9200}
+      VOYAGER_QDRANT_URL: ${VOYAGER_QDRANT_URL:-http://voyager_qdrant:6333}
+      VOYAGER_VORTEX_URL: ${VOYAGER_VORTEX_URL:-http://vortex-core:11188}
+    depends_on:
+      voyager_postgres:
+        condition: service_healthy
+      voyager_redis:
+        condition: service_healthy
+      voyager_vault:
+        condition: service_healthy
+      voyager_keycloak:
+        condition: service_healthy
+      voyager_kafka:
+        condition: service_healthy
+      voyager_clickhouse:
+        condition: service_healthy
+      voyager_elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    volumes:
+      - ../apps:/app/apps:ro
+      - ../voyager_project:/app/voyager_project:ro
+      - ../manage.py:/app/manage.py:ro
+      - voyager_static:/app/static
+      - voyager_media:/app/media
+
+  # ===========================================================================
+  # CELERY: Background Task Workers
+  # ===========================================================================
+  celery-worker:
+    <<: *common
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: voyager_celery_worker
+    command: >
+      celery -A voyager_project worker -l info
+      --concurrency=${VOYAGER_CELERY_WORKER_CONCURRENCY:-4}
+      --queues=default,celery,ai,marketing,scraping
+    env_file:
+      - ../.env
+    environment:
+      VOYAGER_ENV: ${VOYAGER_ENV:-local}
+      VOYAGER_SECRET_KEY: ${VOYAGER_SECRET_KEY}
+      VOYAGER_DATABASE_URL: ${VOYAGER_DATABASE_URL}
+      VOYAGER_CELERY_BROKER_URL: ${VOYAGER_CELERY_BROKER_URL}
+      VOYAGER_CELERY_RESULT_BACKEND: ${VOYAGER_CELERY_RESULT_BACKEND}
+      VOYAGER_CELERY_TASK_ALWAYS_EAGER: "false"
+      VOYAGER_CELERY_TASK_ACKS_LATE: "true"
+      VOYAGER_CELERY_TASK_REJECT_ON_WORKER_LOST: "true"
+      VOYAGER_KAFKA_BOOTSTRAP_SERVERS: ${VOYAGER_KAFKA_BOOTSTRAP_SERVERS}
+      VOYAGER_VAULT_URL: ${VOYAGER_VAULT_URL:-http://voyager_vault:8200}
+      VOYAGER_VAULT_TOKEN: ${VOYAGER_VAULT_TOKEN:-dev-root-token}
+      VOYAGER_CLICKHOUSE_HOST: ${VOYAGER_CLICKHOUSE_HOST:-voyager_clickhouse}
+      VOYAGER_ELASTICSEARCH_URL: ${VOYAGER_ELASTICSEARCH_URL}
+      VOYAGER_QDRANT_URL: ${VOYAGER_QDRANT_URL}
+    depends_on:
+      voyager_redis:
+        condition: service_healthy
+      voyager_postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+  celery-beat:
+    <<: *common
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: voyager_celery_beat
+    command: >
+      celery -A voyager_project beat -l info
+      --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file:
+      - ../.env
+    environment:
+      VOYAGER_ENV: ${VOYAGER_ENV:-local}
+      VOYAGER_SECRET_KEY: ${VOYAGER_SECRET_KEY}
+      VOYAGER_DATABASE_URL: ${VOYAGER_DATABASE_URL}
+      VOYAGER_CELERY_BROKER_URL: ${VOYAGER_CELERY_BROKER_URL}
+      VOYAGER_CELERY_RESULT_BACKEND: ${VOYAGER_CELERY_RESULT_BACKEND}
+    depends_on:
+      voyager_redis:
+        condition: service_healthy
+      voyager_postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+
+  # ===========================================================================
+  # DATA: PostgreSQL
+  # ===========================================================================
+  voyager_postgres:
+    <<: *common
+    image: postgres:16-alpine
+    container_name: voyager_postgres
+    environment:
+      POSTGRES_DB: ${VOYAGER_POSTGRES_DB:-voyager}
+      POSTGRES_USER: ${VOYAGER_POSTGRES_USER:-voyager}
+      POSTGRES_PASSWORD: ${VOYAGER_POSTGRES_PASSWORD:-voyager}
+    ports:
+      - "5432:5432"
+    volumes:
+      - voyager_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "pg_isready -U ${VOYAGER_POSTGRES_USER:-voyager} -d ${VOYAGER_POSTGRES_DB:-voyager}"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # ===========================================================================
+  # CACHE: Redis
+  # ===========================================================================
+  voyager_redis:
+    <<: *common
+    image: redis:7-alpine
+    container_name: voyager_redis
+    command: >
+      redis-server
+      --requirepass ${VOYAGER_REDIS_PASSWORD:-voyager}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - voyager_redis_data:/data
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "redis-cli", "-a", "${VOYAGER_REDIS_PASSWORD:-voyager}", "ping"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ===========================================================================
+  # SECRETS: HashiCorp Vault (dev mode for local development)
+  # ===========================================================================
+  voyager_vault:
+    <<: *common
+    image: hashicorp/vault:latest
+    container_name: voyager_vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VOYAGER_VAULT_TOKEN:-dev-root-token}
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - voyager_vault_data:/vault/file
+      - ./vault-init.sh:/vault/init/vault-init.sh:ro
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "vault", "status"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ===========================================================================
+  # AUTH: Keycloak
+  # ===========================================================================
+  voyager_keycloak:
+    <<: *common
+    image: quay.io/keycloak/keycloak:24
+    container_name: voyager_keycloak
+    command: >
+      start-dev --import-realm
+      --features=token-exchange,admin-fine-grained-authz
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL_HOST: voyager_postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: ${VOYAGER_POSTGRES_USER:-voyager}
+      KC_DB_PASSWORD: ${VOYAGER_POSTGRES_PASSWORD:-voyager}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_FEATURES: token-exchange,admin-fine-grained-authz
+    volumes:
+      - ./nginx/voyager-keycloak-realm.json:/opt/keycloak/data/import/voyager-realm.json:ro
+    depends_on:
+      voyager_postgres:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "bash -c ':</dev/tcp/127.0.0.1/8080'"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+        reservations:
+          memory: 256M
+
+  # ===========================================================================
+  # MESSAGE BUS: Apache Kafka (KRaft - no Zookeeper)
+  # ===========================================================================
+  voyager_kafka:
+    <<: *common
+    image: apache/kafka:3.7.0
+    container_name: voyager_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_LISTENERS: CONTROLLER://:9093,INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: ${VOYAGER_KAFKA_ADVERTISED_LISTENERS:-EXTERNAL://localhost:9092,INTERNAL://voyager_kafka:29092}
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@voyager_kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: ${VOYAGER_KAFKA_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    volumes:
+      - voyager_kafka_data:/var/lib/kafka/data
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+        reservations:
+          memory: 256M
+
+  # ===========================================================================
+  # OBJECT STORAGE: MinIO
+  # ===========================================================================
+  voyager_minio:
+    <<: *common
+    image: minio/minio:latest
+    container_name: voyager_minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-voyageradmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-voyagerpassword}
+    volumes:
+      - voyager_minio_data:/data
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+        reservations:
+          memory: 64M
+
+  voyager_minio_init:
+    <<: *common
+    image: minio/mc
+    container_name: voyager_minio_init
+    depends_on:
+      voyager_minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        sleep 5;
+        mc alias set local http://voyager_minio:9000 $${MINIO_ROOT_USER:-voyageradmin} $${MINIO_ROOT_PASSWORD:-voyagerpassword};
+        mc mb local/voyager-assets --ignore-existing;
+        mc mb local/voyager-media --ignore-existing;
+        mc mb local/voyager-exports --ignore-existing;
+        mc mb local/voyager-logs --ignore-existing;
+        echo 'MinIO buckets created';
+        exit 0;
+      "
+
+  # ===========================================================================
+  # ANALYTICS: ClickHouse
+  # ===========================================================================
+  voyager_clickhouse:
+    <<: *common
+    image: clickhouse/clickhouse-server:latest
+    container_name: voyager_clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: ${VOYAGER_CLICKHOUSE_DB:-voyager}
+      CLICKHOUSE_USER: ${VOYAGER_CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${VOYAGER_CLICKHOUSE_PASSWORD:-}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - voyager_clickhouse_data:/var/lib/clickhouse
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          memory: 256M
+
+  # ===========================================================================
+  # SEARCH: Elasticsearch
+  # ===========================================================================
+  voyager_elasticsearch:
+    <<: *common
+    image: elasticsearch:8.11.0
+    container_name: voyager_elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      cluster.routing.allocation.disk.threshold_enabled: "false"
+    volumes:
+      - voyager_elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ===========================================================================
+  # VECTOR STORE: Qdrant
+  # ===========================================================================
+  voyager_qdrant:
+    <<: *common
+    image: qdrant/qdrant:latest
+    container_name: voyager_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    environment:
+      QDRANT__SERVICE__API_KEY: ${VOYAGER_QDRANT_API_KEY:-}
+    volumes:
+      - voyager_qdrant_data:/qdrant/storage
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:6333/healthz || exit 1"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # ===========================================================================
+  # GATEWAY: Nginx Reverse Proxy
+  # ===========================================================================
+  voyager_nginx:
+    <<: *common
+    image: nginx:alpine
+    container_name: voyager_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - voyager_static:/usr/share/nginx/html/static:ro
+      - voyager_media:/usr/share/nginx/html/media:ro
+    depends_on:
+      voyager-api:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          memory: 32M
+
+# =============================================================================
+# NETWORK
+# =============================================================================
+networks:
+  voyager-network:
+    driver: bridge
+    name: voyager-network
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  voyager_postgres_data:
+    name: voyager_postgres_data
+  voyager_redis_data:
+    name: voyager_redis_data
+  voyager_vault_data:
+    name: voyager_vault_data
+  voyager_kafka_data:
+    name: voyager_kafka_data
+  voyager_minio_data:
+    name: voyager_minio_data
+  voyager_clickhouse_data:
+    name: voyager_clickhouse_data
+  voyager_elasticsearch_data:
+    name: voyager_elasticsearch_data
+  voyager_qdrant_data:
+    name: voyager_qdrant_data
+  voyager_static:
+    name: voyager_static
+  voyager_media:
+    name: voyager_media

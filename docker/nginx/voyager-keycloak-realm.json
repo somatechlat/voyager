@@ -1,0 +1,385 @@
+{
+  "realm": "voyager",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespan": 5184000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanLogin": 1800,
+  "accessCodeLifespanUserAction": 300,
+  "passwordPolicy": "hashAlgorithm(pbkdf2-sha256) && length(12) && digits(1) && upperCase(1) && lowerCase(1)",
+
+  "roles": {
+    "realm": [
+      {
+        "name": "voyager-superadmin",
+        "description": "Full system access - super administrator with tenant management",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-tenant-admin",
+            "voyager-workspace-admin",
+            "voyager-creative-director",
+            "voyager-marketing-manager",
+            "voyager-content-creator",
+            "voyager-analyst",
+            "voyager-client-manager",
+            "voyager-billing-manager",
+            "voyager-compliance-officer",
+            "voyager-viewer",
+            "voyager-guest"
+          ]
+        }
+      },
+      {
+        "name": "voyager-tenant-admin",
+        "description": "Tenant administrator - manages workspaces, users, and tenant settings",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-workspace-admin",
+            "voyager-creative-director",
+            "voyager-marketing-manager",
+            "voyager-content-creator",
+            "voyager-analyst",
+            "voyager-client-manager",
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-workspace-admin",
+        "description": "Workspace administrator - manages workspace content and team members",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-content-creator",
+            "voyager-analyst",
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-creative-director",
+        "description": "Creative director - approves content and manages brand assets",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-content-creator",
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-marketing-manager",
+        "description": "Marketing manager - manages campaigns, publishing, and social media",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-content-creator",
+            "voyager-analyst",
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-content-creator",
+        "description": "Content creator - creates and edits content",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-analyst",
+        "description": "Analyst - views analytics, generates reports",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-client-manager",
+        "description": "Client manager - manages client accounts and relationships",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-billing-manager",
+        "description": "Billing manager - manages billing, invoices, and subscriptions",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-compliance-officer",
+        "description": "Compliance officer - manages governance, audit, and compliance",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "voyager-viewer"
+          ]
+        }
+      },
+      {
+        "name": "voyager-viewer",
+        "description": "Viewer - read-only access to dashboards and content"
+      },
+      {
+        "name": "voyager-guest",
+        "description": "Guest - limited access, time-bound permissions"
+      }
+    ]
+  },
+
+  "groups": [
+    {
+      "name": "Marketing Team",
+      "path": "/marketing",
+      "realmRoles": ["voyager-marketing-manager"]
+    },
+    {
+      "name": "Creative Team",
+      "path": "/creative",
+      "realmRoles": ["voyager-creative-director", "voyager-content-creator"]
+    },
+    {
+      "name": "Analytics Team",
+      "path": "/analytics",
+      "realmRoles": ["voyager-analyst"]
+    },
+    {
+      "name": "Clients",
+      "path": "/clients",
+      "realmRoles": ["voyager-client-manager"]
+    },
+    {
+      "name": "Admins",
+      "path": "/admins",
+      "realmRoles": ["voyager-superadmin", "voyager-tenant-admin"]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "voyager-api",
+      "name": "Voyager API",
+      "description": "Backend API server - confidential client for service-to-service auth",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${KEYCLOAK_CLIENT_SECRET_API:-voyager-api-secret}",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "bearerOnly": false,
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://voyager_api:8000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8000",
+        "http://voyager_api:8000"
+      ],
+      "attributes": {
+        "access.token.lifespan": "300",
+        "refresh.token.validity": "1800"
+      }
+    },
+    {
+      "clientId": "voyager-frontend",
+      "name": "Voyager Frontend",
+      "description": "Web frontend application - public client for browser-based auth",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:5173/*",
+        "http://localhost:8000/*",
+        "https://voyager.example.com/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8000",
+        "https://voyager.example.com"
+      ],
+      "attributes": {
+        "access.token.lifespan": "300",
+        "refresh.token.validity": "1800",
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "voyager-worker",
+      "name": "Voyager Celery Worker",
+      "description": "Backend worker service - confidential client for internal service auth",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${KEYCLOAK_CLIENT_SECRET_WORKER:-voyager-worker-secret}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "bearerOnly": true
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@voyager.local",
+      "emailVerified": true,
+      "firstName": "System",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_ADMIN_PASSWORD:-admin}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["voyager-superadmin"],
+      "groups": ["/admins"]
+    },
+    {
+      "username": "marketing",
+      "enabled": true,
+      "email": "marketing@voyager.local",
+      "emailVerified": true,
+      "firstName": "Marketing",
+      "lastName": "Manager",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-marketing-manager"],
+      "groups": ["/marketing"]
+    },
+    {
+      "username": "creator",
+      "enabled": true,
+      "email": "creator@voyager.local",
+      "emailVerified": true,
+      "firstName": "Content",
+      "lastName": "Creator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-content-creator"],
+      "groups": ["/creative"]
+    },
+    {
+      "username": "analyst",
+      "enabled": true,
+      "email": "analyst@voyager.local",
+      "emailVerified": true,
+      "firstName": "Data",
+      "lastName": "Analyst",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-analyst"],
+      "groups": ["/analytics"]
+    },
+    {
+      "username": "viewer",
+      "enabled": true,
+      "email": "viewer@voyager.local",
+      "emailVerified": true,
+      "firstName": "View",
+      "lastName": "Only",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-viewer"]
+    },
+    {
+      "username": "billing",
+      "enabled": true,
+      "email": "billing@voyager.local",
+      "emailVerified": true,
+      "firstName": "Billing",
+      "lastName": "Manager",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-billing-manager"]
+    },
+    {
+      "username": "compliance",
+      "enabled": true,
+      "email": "compliance@voyager.local",
+      "emailVerified": true,
+      "firstName": "Compliance",
+      "lastName": "Officer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_USER_PASSWORD:-voyager123}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["voyager-compliance-officer"]
+    }
+  ]
+}

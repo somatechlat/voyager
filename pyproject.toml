@@ -1,0 +1,127 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voyager"
+version = "1.0.0"
+description = "Enterprise Marketing Automation Platform"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "SomaTech", email = "dev@somatech.io" }
+]
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Marketing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    # Django / API
+    "Django>=5.0.0",
+    "django-ninja>=1.1.0",
+    "django-cors-headers>=4.3.0",
+    "django-oauth-toolkit>=2.3.0",
+    "uvicorn[standard]>=0.24.0",
+    "daphne>=4.0.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    # Database
+    "psycopg[binary]>=3.1.18",
+    # Cache / Channels
+    "redis>=5.0.0",
+    "django-channels>=4.0.0",
+    "channels-redis>=4.2.0",
+    # Task Queue
+    "celery[redis]>=5.3.0",
+    # HTTP
+    "httpx>=0.25.0",
+    "requests>=2.31.0",
+    # SQL Federation
+    "trino>=0.327.0",
+    # Object Storage
+    "minio>=7.2.0",
+    # Messaging
+    "confluent-kafka>=2.3.0",
+    # Secrets / Auth
+    "hvac>=2.1.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    # Image Processing
+    "Pillow>=10.0.0",
+    # Payments
+    "stripe>=8.0.0",
+    # AI / LLM
+    "openai>=1.12.0",
+    # Data Processing
+    "pandas>=2.1.0",
+    "pyarrow>=14.0.0",
+    "pyyaml>=6.0.0",
+    # Web Scraping
+    "playwright>=1.40.0",
+    "beautifulsoup4>=4.12.0",
+    "fake-useragent>=1.4.0",
+    # Observability
+    "prometheus-client>=0.19.0",
+    "opentelemetry-api>=1.21.0",
+    "opentelemetry-sdk>=1.21.0",
+    "opentelemetry-exporter-otlp>=1.21.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-django>=4.7.0",
+    "pytest-env>=1.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.7.0",
+    "django-types>=0.19.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["apps", "voyager_project", "vortex_bridge"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "voyager_project.settings"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --cov=apps --cov-report=term-missing --ds=voyager_project.settings"
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "benchmark: marks tests as benchmark tests (deselect with '-m \"not benchmark\"')",
+]
+env = [
+    "VOYAGER_ENV=local",
+    "VOYAGER_DATABASE_URL=postgresql://voyager:voyager@localhost:45432/voyager_test",
+    "VOYAGER_REDIS_URL=redis://:voyager@localhost:45379/1",
+    "VOYAGER_SECRET_KEY=test-secret-key-for-testing-only-min-50-chars-long-django-security-voyager",
+    "VOYAGER_DEBUG=false",
+    "VOYAGER_SECURITY_ENABLED=false",
+    'VOYAGER_ALLOWED_HOSTS=["*","localhost","127.0.0.1","testserver"]',
+    "VOYAGER_SECRETS_BACKEND=env",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true

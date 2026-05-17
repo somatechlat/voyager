@@ -1,0 +1,345 @@
+# =============================================================================
+# VOYAGER - Docker Compose Production Overrides
+# =============================================================================
+# Extends docker-compose.yml with production-specific settings
+#
+# Usage:
+#   cd docker
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file ../.env up -d
+# =============================================================================
+
+name: voyager_cluster
+
+x-common-prod: &common-prod
+  restart: always
+  logging:
+    driver: json-file
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+x-healthcheck-prod: &healthcheck-prod
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 60s
+
+services:
+  # ===========================================================================
+  # CORE: Voyager API - 3 Replicas
+  # ===========================================================================
+  voyager-api:
+    <<: *common-prod
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 15s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        failure_action: pause
+        order: stop-first
+    environment:
+      VOYAGER_ENV: production
+      VOYAGER_DEBUG: "false"
+      VOYAGER_ALLOWED_HOSTS: ${VOYAGER_ALLOWED_HOSTS}
+      VOYAGER_SECURE_SSL_REDIRECT: "true"
+      VOYAGER_SESSION_COOKIE_SECURE: "true"
+      VOYAGER_CSRF_COOKIE_SECURE: "true"
+    # In production, use external Vault - not dev mode
+    depends_on:
+      voyager_postgres:
+        condition: service_healthy
+      voyager_redis:
+        condition: service_healthy
+      voyager_kafka:
+        condition: service_healthy
+    # No voyager_vault dependency in production - external Vault is used
+    networks:
+      - voyager-network
+
+  # ===========================================================================
+  # CELERY WORKER - scaled
+  # ===========================================================================
+  celery-worker:
+    <<: *common-prod
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+  celery-beat:
+    <<: *common-prod
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # DATABASE - production limits
+  # ===========================================================================
+  voyager_postgres:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+  # ===========================================================================
+  # CACHE - production limits
+  # ===========================================================================
+  voyager_redis:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+  # ===========================================================================
+  # VAULT - Production: connect to external Vault (no dev mode)
+  # Uncomment the below service if running a Vault cluster
+  # ===========================================================================
+  # voyager_vault:
+  #   <<: *common-prod
+  #   environment:
+  #     VAULT_DEV_ROOT_TOKEN_ID: ""  # No dev token in production
+  #     VAULT_DEV_LISTEN_ADDRESS: ""  # No dev listener
+  #   cap_add:
+  #     - IPC_LOCK
+  #   volumes:
+  #     - voyager_vault_data:/vault/file
+  #     - ./config/vault:/vault/config:ro
+  #   command: server -config=/vault/config/vault.hcl
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "0.5"
+  #         memory: 256M
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 5
+
+  # ===========================================================================
+  # AUTH - production limits
+  # ===========================================================================
+  voyager_keycloak:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # KAFKA - production limits
+  # ===========================================================================
+  voyager_kafka:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # MINIO - production limits
+  # ===========================================================================
+  voyager_minio:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # CLICKHOUSE - production limits
+  # ===========================================================================
+  voyager_clickhouse:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # ELASTICSEARCH - production limits
+  # ===========================================================================
+  voyager_elasticsearch:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
+  # ===========================================================================
+  # QDRANT - production limits
+  # ===========================================================================
+  voyager_qdrant:
+    <<: *common-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ===========================================================================
+  # NGINX - SSL production config
+  # ===========================================================================
+  voyager_nginx:
+    <<: *common-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - voyager_static:/usr/share/nginx/html/static:ro
+      - voyager_media:/usr/share/nginx/html/media:ro
+      # SSL certificates (production)
+      - ${VOYAGER_SSL_CERT_PATH:-/dev/null}:/etc/ssl/certs/voyager.crt:ro
+      - ${VOYAGER_SSL_KEY_PATH:-/dev/null}:/etc/ssl/private/voyager.key:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.25"
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+
+# =============================================================================
+# NETWORK: Use external network in production
+# =============================================================================
+networks:
+  voyager-network:
+    external: true
+    name: voyager-network
+    # If the network doesn't exist, create it with:
+    # docker network create voyager-network --subnet=172.28.0.0/16
+
+# =============================================================================
+# VOLUMES: Named volumes persist across restarts
+# =============================================================================
+volumes:
+  voyager_postgres_data:
+    name: voyager_postgres_data
+  voyager_redis_data:
+    name: voyager_redis_data
+  voyager_vault_data:
+    name: voyager_vault_data
+  voyager_kafka_data:
+    name: voyager_kafka_data
+  voyager_minio_data:
+    name: voyager_minio_data
+  voyager_clickhouse_data:
+    name: voyager_clickhouse_data
+  voyager_elasticsearch_data:
+    name: voyager_elasticsearch_data
+  voyager_qdrant_data:
+    name: voyager_qdrant_data
+  voyager_static:
+    name: voyager_static
+  voyager_media:
+    name: voyager_media

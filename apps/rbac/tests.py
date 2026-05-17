@@ -7,8 +7,6 @@ plus Keycloak auth integration.
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestRoleEndpoints:
     """Tests for /roles CRUD operations."""

@@ -13,7 +13,7 @@ channel-layer groups for broadcast semantics.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
@@ -41,7 +41,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             }
     """
 
-    group_name: Optional[str] = None
+    group_name: str | None = None
 
     async def connect(self) -> None:
         """Accept connection and join user-specific notification group."""
@@ -58,12 +58,10 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, close_code: int) -> None:
         """Leave the notification group on disconnect."""
         if self.group_name:
-            await self.channel_layer.group_discard(
-                self.group_name, self.channel_name
-            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
         logger.debug("NotificationConsumer disconnected: code=%s", close_code)
 
-    async def receive_json(self, content: Dict[str, Any]) -> None:
+    async def receive_json(self, content: dict[str, Any]) -> None:
         """Handle incoming JSON messages from the client.
 
         Clients may send ``{"action": "mark_read", "notification_id": "..."}``
@@ -73,15 +71,11 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
         if action == "mark_read":
             notification_id = content.get("notification_id")
             logger.info("Notification marked read: %s", notification_id)
-            await self.send_json(
-                {"type": "ack", "notification_id": notification_id}
-            )
+            await self.send_json({"type": "ack", "notification_id": notification_id})
         else:
-            await self.send_json(
-                {"type": "error", "detail": f"Unknown action: {action}"}
-            )
+            await self.send_json({"type": "error", "detail": f"Unknown action: {action}"})
 
-    async def send_notification(self, event: Dict[str, Any]) -> None:
+    async def send_notification(self, event: dict[str, Any]) -> None:
         """Handler for channel-layer ``notification`` type messages.
 
         Called automatically when a message is broadcast to the group
@@ -112,7 +106,7 @@ class TaskProgressConsumer(AsyncJsonWebsocketConsumer):
             }
     """
 
-    group_name: Optional[str] = None
+    group_name: str | None = None
 
     async def connect(self) -> None:
         """Accept connection and join the global progress group."""
@@ -121,25 +115,23 @@ class TaskProgressConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_add(self.group_name, self.channel_name)
 
         # If client specifies a task_id in query string, also join that group.
-        task_id: Optional[str] = self.scope["query_string"].decode().get(
-            "task_id"
-        ) if hasattr(self.scope["query_string"], "get") else None
+        task_id: str | None = (
+            self.scope["query_string"].decode().get("task_id")
+            if hasattr(self.scope["query_string"], "get")
+            else None
+        )
         if task_id:
-            await self.channel_layer.group_add(
-                f"progress_{task_id}", self.channel_name
-            )
+            await self.channel_layer.group_add(f"progress_{task_id}", self.channel_name)
 
         logger.debug("TaskProgressConsumer connected")
 
     async def disconnect(self, close_code: int) -> None:
         """Leave all progress groups on disconnect."""
         if self.group_name:
-            await self.channel_layer.group_discard(
-                self.group_name, self.channel_name
-            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
         logger.debug("TaskProgressConsumer disconnected: code=%s", close_code)
 
-    async def receive_json(self, content: Dict[str, Any]) -> None:
+    async def receive_json(self, content: dict[str, Any]) -> None:
         """Handle incoming client messages.
 
         Clients may subscribe to specific tasks by sending::
@@ -150,23 +142,15 @@ class TaskProgressConsumer(AsyncJsonWebsocketConsumer):
         if action == "subscribe":
             task_id = content.get("task_id")
             if task_id:
-                await self.channel_layer.group_add(
-                    f"progress_{task_id}", self.channel_name
-                )
-                await self.send_json(
-                    {"type": "subscribed", "task_id": task_id}
-                )
+                await self.channel_layer.group_add(f"progress_{task_id}", self.channel_name)
+                await self.send_json({"type": "subscribed", "task_id": task_id})
         elif action == "unsubscribe":
             task_id = content.get("task_id")
             if task_id:
-                await self.channel_layer.group_discard(
-                    f"progress_{task_id}", self.channel_name
-                )
-                await self.send_json(
-                    {"type": "unsubscribed", "task_id": task_id}
-                )
+                await self.channel_layer.group_discard(f"progress_{task_id}", self.channel_name)
+                await self.send_json({"type": "unsubscribed", "task_id": task_id})
 
-    async def send_progress(self, event: Dict[str, Any]) -> None:
+    async def send_progress(self, event: dict[str, Any]) -> None:
         """Handler for channel-layer ``send.progress`` type messages."""
         await self.send_json(event)
 
@@ -218,7 +202,7 @@ class SocialFeedConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(group, self.channel_name)
         logger.debug("SocialFeedConsumer disconnected: code=%s", close_code)
 
-    async def receive_json(self, content: Dict[str, Any]) -> None:
+    async def receive_json(self, content: dict[str, Any]) -> None:
         """Handle incoming client messages.
 
         Clients may filter the feed by platform::
@@ -230,18 +214,12 @@ class SocialFeedConsumer(AsyncJsonWebsocketConsumer):
             platforms = content.get("platforms", [])
             # Leave existing groups and join platform-specific ones.
             for group in getattr(self, "groups", []):
-                await self.channel_layer.group_discard(
-                    group, self.channel_name
-                )
+                await self.channel_layer.group_discard(group, self.channel_name)
             self.groups = [f"social_{p}" for p in platforms]
             for group in self.groups:
-                await self.channel_layer.group_add(
-                    group, self.channel_name
-                )
-            await self.send_json(
-                {"type": "filtered", "platforms": platforms}
-            )
+                await self.channel_layer.group_add(group, self.channel_name)
+            await self.send_json({"type": "filtered", "platforms": platforms})
 
-    async def social_post(self, event: Dict[str, Any]) -> None:
+    async def social_post(self, event: dict[str, Any]) -> None:
         """Handler for channel-layer ``social.post`` type messages."""
         await self.send_json(event)

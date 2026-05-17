@@ -10,7 +10,7 @@ Tasks are routed to the ``content`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True, max_retries=3)
 def generate_content(
     self,
-    content_request: Dict[str, Any],
+    content_request: dict[str, Any],
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate marketing content using the AI content pipeline.
 
     Compiles the content request into a Vortex GraphDSL workflow,
@@ -39,7 +39,7 @@ def generate_content(
         tenant_id,
     )
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "content_id": "",
@@ -55,7 +55,7 @@ def apply_brand_voice(
     content_id: str,
     brand_kit_id: str,
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Apply brand voice guidelines to generated content.
 
     :param content_id: UUID of the content to process.
@@ -65,7 +65,7 @@ def apply_brand_voice(
     """
     logger.info("Applying brand voice: content=%s brand=%s", content_id, brand_kit_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "content_id": content_id,

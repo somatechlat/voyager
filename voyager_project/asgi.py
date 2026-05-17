@@ -16,9 +16,9 @@ django_asgi_app = get_asgi_application()
 # Import routing after Django setup to ensure apps are loaded
 from apps.core import routing as core_routing  # noqa: E402
 
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": AuthMiddlewareStack(
-        URLRouter(core_routing.websocket_urlpatterns)
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AuthMiddlewareStack(URLRouter(core_routing.websocket_urlpatterns)),
+    }
+)

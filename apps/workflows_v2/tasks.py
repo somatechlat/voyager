@@ -10,7 +10,7 @@ Tasks are routed to the ``workflows`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -22,8 +22,8 @@ def execute_workflow(
     self,
     workflow_id: str,
     tenant_id: str,
-    trigger_data: Dict[str, Any],
-) -> Dict[str, Any]:
+    trigger_data: dict[str, Any],
+) -> dict[str, Any]:
     """Execute a workflow definition via Vortex.
 
     :param workflow_id: UUID of the workflow.
@@ -31,11 +31,9 @@ def execute_workflow(
     :param trigger_data: Data that triggered the workflow.
     :returns: Result dict with ``workflow_id``, ``graph_id``, "run_id``.
     """
-    logger.info(
-        "Executing workflow %s for tenant %s", workflow_id, tenant_id
-    )
+    logger.info("Executing workflow %s for tenant %s", workflow_id, tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "workflow_id": workflow_id,
@@ -46,7 +44,7 @@ def execute_workflow(
 
 
 @shared_task(bind=True, max_retries=3)
-def cleanup_stale_workflow_runs(self) -> Dict[str, Any]:
+def cleanup_stale_workflow_runs(self) -> dict[str, Any]:
     """Clean up workflow runs stuck in non-terminal states.
 
     Finds runs that have been in ``running`` or ``pending`` state
@@ -56,7 +54,7 @@ def cleanup_stale_workflow_runs(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "runs_cleaned": 0,

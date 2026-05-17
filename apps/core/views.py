@@ -10,15 +10,12 @@ No mocks or stubs.
 
 from __future__ import annotations
 
-import asyncio
-import os
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from asgiref.sync import async_to_sync
-from django.http import JsonResponse
 from django.db import connection
+from django.http import JsonResponse
 
 from apps.core.config import get_settings
 from apps.vault_integration.client import vault_client
@@ -65,7 +62,7 @@ def health(_request) -> JsonResponse:
             "status": "healthy",
             "service": "voyager",
             "version": "1.0.0",
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         }
     )
 
@@ -87,6 +84,7 @@ def ready(_request) -> JsonResponse:
 
     # PostgreSQL check
     try:
+
         def _check_postgres():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
@@ -119,6 +117,7 @@ def ready(_request) -> JsonResponse:
 
     # Vault check
     try:
+
         def _check_vault():
             vault_client.is_authenticated()
 
@@ -159,7 +158,7 @@ def ready(_request) -> JsonResponse:
         {
             "status": "ready" if overall_ready else "not_ready",
             "service": "voyager",
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "checks": checks,
         },
         status=http_status,
@@ -183,7 +182,7 @@ def status_view(_request) -> JsonResponse:
         "service": "voyager",
         "version": "1.0.0",
         "environment": settings.env,
-        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "uptime_seconds": round(uptime_seconds, 2),
         "services": {},
     }

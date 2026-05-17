@@ -10,7 +10,7 @@ Tasks are routed to the ``analytics`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def sync_all_platform_metrics(self) -> Dict[str, Any]:
+def sync_all_platform_metrics(self) -> dict[str, Any]:
     """Synchronise metrics from all connected analytics platforms.
 
     Called by the beat scheduler every 5 minutes. Fetches metrics
@@ -30,7 +30,7 @@ def sync_all_platform_metrics(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "platforms_synced": [],
@@ -46,8 +46,8 @@ def sync_platform_metrics(
     self,
     platform: str,
     tenant_id: str,
-    date_range: Dict[str, str],
-) -> Dict[str, Any]:
+    date_range: dict[str, str],
+) -> dict[str, Any]:
     """Synchronise metrics for a single platform and tenant.
 
     :param platform: Platform identifier (``"ga4"``, ``"meta"``,
@@ -58,7 +58,7 @@ def sync_platform_metrics(
     """
     logger.info("Syncing %s metrics for tenant %s", platform, tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "platform": platform,
@@ -71,9 +71,9 @@ def sync_platform_metrics(
 @shared_task(bind=True, max_retries=3)
 def generate_report(
     self,
-    report_config: Dict[str, Any],
+    report_config: dict[str, Any],
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate an analytics report from configuration.
 
     :param report_config: Report definition with ``metrics``,
@@ -83,7 +83,7 @@ def generate_report(
     """
     logger.info("Generating report for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "report_id": "",

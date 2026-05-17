@@ -11,16 +11,15 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from ninja.errors import HttpError
 
 from apps.rbac.auth import (
     VoyagerUser,
-    VoyagerKeycloakAuth,
     get_auth,
-    get_optional_user,
 )
 
 logger = logging.getLogger(__name__)
@@ -76,9 +75,7 @@ class RBACMiddleware:
 
         elapsed_ms = (time.monotonic() - start_time) * 1000
         if elapsed_ms > 100:
-            logger.warning(
-                "RBACMiddleware token extraction took %.2fms (slow)", elapsed_ms
-            )
+            logger.warning("RBACMiddleware token extraction took %.2fms (slow)", elapsed_ms)
 
         response = self.get_response(request)
 
@@ -89,7 +86,7 @@ class RBACMiddleware:
 
         return response
 
-    def _extract_user_from_token(self, request: Any) -> Optional[VoyagerUser]:
+    def _extract_user_from_token(self, request: Any) -> VoyagerUser | None:
         """Extract and validate the JWT from the request headers.
 
         Args:
@@ -132,8 +129,7 @@ class RBACMiddleware:
         header_tenant = request.headers.get("X-Tenant-ID", user.tenant_id)
         if header_tenant != user.tenant_id and not user.is_superadmin():
             logger.warning(
-                "Tenant scope mismatch: user %s belongs to '%s' but "
-                "request targets '%s' on %s",
+                "Tenant scope mismatch: user %s belongs to '%s' but " "request targets '%s' on %s",
                 user.username,
                 user.tenant_id,
                 header_tenant,
@@ -169,7 +165,7 @@ class PermissionMiddleware:
     """
 
     # Default rules for Voyager modules — protect mutating operations
-    DEFAULT_RULES: List[Dict[str, Any]] = [
+    DEFAULT_RULES: list[dict[str, Any]] = [
         {
             "path_prefix": "/api/v1/content",
             "methods": ["POST", "PUT", "PATCH", "DELETE"],
@@ -211,7 +207,7 @@ class PermissionMiddleware:
         self.get_response = get_response
         self._rules = self._load_rules()
 
-    def _load_rules(self) -> List[Dict[str, Any]]:
+    def _load_rules(self) -> list[dict[str, Any]]:
         """Load permission rules from Django settings or use defaults.
 
         Returns:
@@ -219,9 +215,8 @@ class PermissionMiddleware:
         """
         try:
             from django.conf import settings as django_settings
-            return getattr(
-                django_settings, "PERMISSION_MIDDLEWARE_RULES", self.DEFAULT_RULES
-            )
+
+            return getattr(django_settings, "PERMISSION_MIDDLEWARE_RULES", self.DEFAULT_RULES)
         except Exception:
             return self.DEFAULT_RULES
 
@@ -255,8 +250,7 @@ class PermissionMiddleware:
             required_permission = matched_rule["permission"]
             if not user.has_permission(required_permission):
                 logger.warning(
-                    "PermissionMiddleware blocked %s %s for user %s: "
-                    "requires '%s'",
+                    "PermissionMiddleware blocked %s %s for user %s: " "requires '%s'",
                     request.method,
                     request.path,
                     user.username,
@@ -272,7 +266,7 @@ class PermissionMiddleware:
 
         return self.get_response(request)
 
-    def _match_rule(self, request: Any) -> Optional[Dict[str, Any]]:
+    def _match_rule(self, request: Any) -> dict[str, Any] | None:
         """Find the first rule matching the current request path and method.
 
         Args:

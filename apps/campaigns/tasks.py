@@ -10,7 +10,7 @@ Tasks are routed to the ``campaigns`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def check_budget_thresholds(self) -> Dict[str, Any]:
+def check_budget_thresholds(self) -> dict[str, Any]:
     """Check campaign budgets against configured thresholds.
 
     Called by the beat scheduler every 5 minutes. Evaluates each
@@ -31,7 +31,7 @@ def check_budget_thresholds(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "campaigns_checked": 0,
@@ -47,7 +47,7 @@ def execute_campaign(
     self,
     campaign_id: str,
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute a campaign via the Vortex workflow engine.
 
     Compiles the campaign definition to GraphDSL and submits it
@@ -59,7 +59,7 @@ def execute_campaign(
     """
     logger.info("Executing campaign %s for tenant %s", campaign_id, tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "campaign_id": campaign_id,

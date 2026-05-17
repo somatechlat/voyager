@@ -10,7 +10,7 @@ Tasks are routed to the ``audit`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def archive_old_logs(self) -> Dict[str, Any]:
+def archive_old_logs(self) -> dict[str, Any]:
     """Archive audit log entries older than the retention threshold.
 
     Called by the beat scheduler daily. Exports
@@ -30,7 +30,7 @@ def archive_old_logs(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "archived_count": 0,
@@ -41,7 +41,7 @@ def archive_old_logs(self) -> Dict[str, Any]:
 
 
 @shared_task(bind=True, max_retries=3)
-def verify_log_integrity(self) -> Dict[str, Any]:
+def verify_log_integrity(self) -> dict[str, Any]:
     """Verify the SHA-256 hash chain of audit log entries.
 
     Scans :class:`apps.audit.models.AuditLogEntry` records and
@@ -53,7 +53,7 @@ def verify_log_integrity(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "verified_count": 0,

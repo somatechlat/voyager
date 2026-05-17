@@ -6,8 +6,6 @@ Tests for audit log query, filtering, pagination, and export endpoints.
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestAuditLogQuery:
     """Tests for /audit-logs query operations."""

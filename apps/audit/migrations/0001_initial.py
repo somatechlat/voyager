@@ -213,7 +213,6 @@ class Migration(migrations.Migration):
                 name="voyager_audit_session_id_idx",
             ),
         ),
-
         # ── AuditLogArchive ───────────────────────────────────────────────
         migrations.CreateModel(
             name="AuditLogArchive",

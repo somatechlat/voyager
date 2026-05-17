@@ -182,9 +182,7 @@ ASGI_APPLICATION = "voyager_project.asgi.application"
 # Database connection is configured via a single DATABASE_URL environment variable.
 DATABASE_URL = app_settings.database_url
 if not DATABASE_URL:
-    if "pytest" in os.environ.get("_", "") or "test" in os.environ.get(
-        "VOYAGER_ENV", ""
-    ):
+    if "pytest" in os.environ.get("_", "") or "test" in os.environ.get("VOYAGER_ENV", ""):
         DATABASE_URL = "postgresql://voyager:voyager@localhost:45432/voyager_test"
     else:
         raise RuntimeError("DATABASE_URL must be configured")
@@ -211,9 +209,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Security Headers Configuration ---
-SECURE_HSTS_SECONDS = (
-    security_settings.hsts_max_age if security_settings.hsts_enabled else 0
-)
+SECURE_HSTS_SECONDS = security_settings.hsts_max_age if security_settings.hsts_enabled else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = security_settings.hsts_include_subdomains
 SECURE_HSTS_PRELOAD = security_settings.hsts_preload
 SECURE_CONTENT_TYPE_NOSNIFF = security_settings.security_enabled

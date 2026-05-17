@@ -8,8 +8,6 @@ requirements for an enterprise marketing automation platform.
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -39,12 +37,8 @@ class SecuritySettings(BaseSettings):
         default="RS256",
         description="JWT signing algorithm (RS256 recommended for production).",
     )
-    jwt_expiration_hours: int = Field(
-        default=8, description="JWT token expiration time in hours."
-    )
-    jwt_issuer: str = Field(
-        default="voyager-api", description="JWT token issuer (iss claim)."
-    )
+    jwt_expiration_hours: int = Field(default=8, description="JWT token expiration time in hours.")
+    jwt_issuer: str = Field(default="voyager-api", description="JWT token issuer (iss claim).")
     jwt_audience: str = Field(
         default="voyager-clients", description="JWT token audience (aud claim)."
     )
@@ -55,12 +49,8 @@ class SecuritySettings(BaseSettings):
     security_enabled: bool = Field(
         default=True, description="Enable security headers and protections."
     )
-    hsts_enabled: bool = Field(
-        default=True, description="Enable HTTP Strict Transport Security."
-    )
-    hsts_max_age: int = Field(
-        default=31536000, description="HSTS max age in seconds (1 year)."
-    )
+    hsts_enabled: bool = Field(default=True, description="Enable HTTP Strict Transport Security.")
+    hsts_max_age: int = Field(default=31536000, description="HSTS max age in seconds (1 year).")
     hsts_include_subdomains: bool = Field(
         default=True, description="Include subdomains in HSTS policy."
     )
@@ -72,9 +62,7 @@ class SecuritySettings(BaseSettings):
         ),
         description="Content Security Policy header.",
     )
-    x_frame_options: str = Field(
-        default="DENY", description="X-Frame-Options header value."
-    )
+    x_frame_options: str = Field(default="DENY", description="X-Frame-Options header value.")
     x_content_type_options: str = Field(
         default="nosniff", description="X-Content-Type-Options header value."
     )
@@ -103,14 +91,14 @@ class SecuritySettings(BaseSettings):
     # CORS Configuration
     # --------------------------------------------------------------------------
     cors_enabled: bool = Field(default=True, description="Enable CORS headers.")
-    cors_allow_origins: List[str] = Field(
+    cors_allow_origins: list[str] = Field(
         default=["*"], description="List of allowed CORS origins."
     )
-    cors_allow_methods: List[str] = Field(
+    cors_allow_methods: list[str] = Field(
         default=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         description="List of allowed HTTP methods.",
     )
-    cors_allow_headers: List[str] = Field(
+    cors_allow_headers: list[str] = Field(
         default=["*"], description="List of allowed HTTP headers."
     )
     cors_allow_credentials: bool = Field(
@@ -124,13 +112,13 @@ class SecuritySettings(BaseSettings):
     database_ssl_require: bool = Field(
         default=True, description="Require SSL for database connections."
     )
-    database_ssl_cert: Optional[str] = Field(
+    database_ssl_cert: str | None = Field(
         default=None, description="Path to SSL certificate for database connections."
     )
-    database_ssl_key: Optional[str] = Field(
+    database_ssl_key: str | None = Field(
         default=None, description="Path to SSL key for database connections."
     )
-    database_ssl_root_cert: Optional[str] = Field(
+    database_ssl_root_cert: str | None = Field(
         default=None,
         description="Path to SSL root certificate for database connections.",
     )
@@ -141,29 +129,23 @@ class SecuritySettings(BaseSettings):
     secrets_backend: str = Field(
         default="env", description="Secrets backend: 'env', 'k8s', 'vault', 'file'."
     )
-    secrets_vault_url: Optional[str] = Field(
-        default=None, description="HashiCorp Vault URL."
-    )
-    secrets_vault_token: Optional[str] = Field(
-        default=None, description="HashiCorp Vault token."
-    )
+    secrets_vault_url: str | None = Field(default=None, description="HashiCorp Vault URL.")
+    secrets_vault_token: str | None = Field(default=None, description="HashiCorp Vault token.")
     secrets_vault_mount_point: str = Field(
         default="voyager", description="Vault secrets mount point."
     )
-    secrets_encryption_key: Optional[str] = Field(
+    secrets_encryption_key: str | None = Field(
         default=None, description="Fernet encryption key for file-based secrets."
     )
 
     # --------------------------------------------------------------------------
     # Audit Logging
     # --------------------------------------------------------------------------
-    audit_log_enabled: bool = Field(
-        default=True, description="Enable comprehensive audit logging."
-    )
+    audit_log_enabled: bool = Field(default=True, description="Enable comprehensive audit logging.")
     audit_log_level: str = Field(
         default="INFO", description="Audit log level (DEBUG, INFO, WARNING, ERROR)."
     )
-    audit_log_file: Optional[str] = Field(
+    audit_log_file: str | None = Field(
         default="/var/log/voyager/audit.log", description="Path to audit log file."
     )
     audit_log_retention_days: int = Field(
@@ -238,9 +220,7 @@ class SecuritySettings(BaseSettings):
     def validate_secrets_backend(cls, v, info: ValidationInfo):
         """Validate secrets backend configuration."""
         if v == "vault":
-            vault_url = (
-                info.data.get("secrets_vault_url") or get_settings().secrets_vault_url
-            )
+            vault_url = info.data.get("secrets_vault_url") or get_settings().secrets_vault_url
             if not vault_url:
                 raise ValueError("Vault URL required when using vault backend")
         return v
@@ -252,9 +232,7 @@ class SecuritySettings(BaseSettings):
         if v and not info.data.get("database_ssl_cert"):
             import warnings
 
-            warnings.warn(
-                "Database SSL required but certificate not configured", UserWarning
-            )
+            warnings.warn("Database SSL required but certificate not configured", UserWarning)
         return v
 
     def get_security_headers(self) -> dict:

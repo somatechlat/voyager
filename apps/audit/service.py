@@ -10,7 +10,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +22,8 @@ def log_audit_event(
     resource_type: str,
     resource_id: str,
     outcome: str,
-    details: Optional[Dict] = None,
-    ip_address: Optional[str] = None,
+    details: dict | None = None,
+    ip_address: str | None = None,
     user_agent: str = "",
     request_id: str = "",
     previous_hash: str = "",
@@ -52,20 +51,23 @@ def log_audit_event(
     """
     try:
         # Compute hash of this record for chain integrity
-        record_data = json.dumps({
-            "tenant_id": tenant_id,
-            "actor_id": actor_id,
-            "actor_type": actor_type,
-            "action": action,
-            "resource_type": resource_type,
-            "resource_id": resource_id,
-            "outcome": outcome,
-            "details": details or {},
-            "ip_address": ip_address,
-            "user_agent": user_agent,
-            "request_id": request_id,
-            "previous_hash": previous_hash,
-        }, sort_keys=True)
+        record_data = json.dumps(
+            {
+                "tenant_id": tenant_id,
+                "actor_id": actor_id,
+                "actor_type": actor_type,
+                "action": action,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "outcome": outcome,
+                "details": details or {},
+                "ip_address": ip_address,
+                "user_agent": user_agent,
+                "request_id": request_id,
+                "previous_hash": previous_hash,
+            },
+            sort_keys=True,
+        )
         record_hash = hashlib.sha256(record_data.encode()).hexdigest()
 
         # TODO: Write to AuditLogEntry model or send to async task

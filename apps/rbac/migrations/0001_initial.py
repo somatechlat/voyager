@@ -4,8 +4,8 @@ Creates Role, Permission, RoleAssignment, PermissionAssignment, and Workspace
 models with full indexes, constraints, and foreign key relationships.
 """
 
-from django.db import migrations, models
 import django.db.models.deletion
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -82,7 +82,6 @@ class Migration(migrations.Migration):
                 name="voyager_permission_module_action_idx",
             ),
         ),
-
         # ── Role ──────────────────────────────────────────────────────────
         migrations.CreateModel(
             name="Role",
@@ -196,7 +195,6 @@ class Migration(migrations.Migration):
                 name="rbac_role_tenant_name_uniq",
             ),
         ),
-
         # ── RoleAssignment ────────────────────────────────────────────────
         migrations.CreateModel(
             name="RoleAssignment",
@@ -323,7 +321,6 @@ class Migration(migrations.Migration):
                 name="voyager_ra_expires_idx",
             ),
         ),
-
         # ── PermissionAssignment ──────────────────────────────────────────
         migrations.CreateModel(
             name="PermissionAssignment",
@@ -383,7 +380,6 @@ class Migration(migrations.Migration):
                 name="voyager_pa_role_perm_idx",
             ),
         ),
-
         # ── Workspace ─────────────────────────────────────────────────────
         migrations.CreateModel(
             name="Workspace",

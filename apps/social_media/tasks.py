@@ -10,7 +10,7 @@ Tasks are routed to the ``social`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True, max_retries=3)
 def create_social_post(
     self,
-    post_data: Dict[str, Any],
+    post_data: dict[str, Any],
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create and schedule a social media post.
 
     :param post_data: Post specification with ``platform``,
@@ -32,7 +32,7 @@ def create_social_post(
     """
     logger.info("Creating social post for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "post_id": "",
@@ -45,7 +45,7 @@ def create_social_post(
 def sync_engagement_metrics(
     self,
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Synchronise engagement metrics from social platforms.
 
     :param tenant_id: UUID of the tenant scope.
@@ -53,7 +53,7 @@ def sync_engagement_metrics(
     """
     logger.info("Syncing engagement metrics for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "platforms_synced": [],

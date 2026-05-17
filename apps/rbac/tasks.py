@@ -10,7 +10,7 @@ Tasks are routed to the ``rbac`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def cleanup_expired_sessions(self) -> Dict[str, Any]:
+def cleanup_expired_sessions(self) -> dict[str, Any]:
     """Remove expired user sessions and temporary role grants.
 
     Called by the beat scheduler every hour. Deletes
@@ -31,7 +31,7 @@ def cleanup_expired_sessions(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "sessions_cleaned": 0,
@@ -42,7 +42,7 @@ def cleanup_expired_sessions(self) -> Dict[str, Any]:
 
 
 @shared_task(bind=True, max_retries=3)
-def sync_keycloak_roles(self) -> Dict[str, Any]:
+def sync_keycloak_roles(self) -> dict[str, Any]:
     """Synchronise roles from Keycloak into the local RBAC store.
 
     Fetches the current realm roles from Keycloak and ensures
@@ -53,7 +53,7 @@ def sync_keycloak_roles(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "roles_synced": 0,

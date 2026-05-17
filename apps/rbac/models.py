@@ -95,11 +95,11 @@ class Role(models.Model):
     def get_all_permissions(self) -> list[str]:
         """Return the effective permission set including inherited permissions.
 
-        Walks the parent chain recursively and merges all permission
-codenames into a deduplicated list.
+                Walks the parent chain recursively and merges all permission
+        codenames into a deduplicated list.
 
-        Returns:
-            List of permission codenames effective for this role.
+                Returns:
+                    List of permission codenames effective for this role.
         """
         perms: set[str] = set(self.permissions or [])
         if self.parent_id:
@@ -269,6 +269,7 @@ class RoleAssignment(models.Model):
         if self.expires_at is None:
             return False
         from django.utils import timezone
+
         return timezone.now() > self.expires_at
 
 

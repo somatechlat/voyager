@@ -12,10 +12,10 @@ Operational endpoints:
     api/v1/             → All application REST API routes (Django Ninja)
 """
 
-from django.contrib import admin
-from django.urls import include, path
-
 from apps.core.api import api as v1_api
+from django.contrib import admin
+from django.urls import path
+
 from apps.core.views import health, ready, status_view, version_view
 
 # ==============================================================================

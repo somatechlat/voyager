@@ -24,7 +24,7 @@ Usage:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import hvac
 from hvac.exceptions import VaultError
@@ -90,7 +90,7 @@ class VaultClient:
             logger.debug("Vault authentication check failed: %s", exc)
             return False
 
-    def reauthenticate(self, token: Optional[str] = None) -> bool:
+    def reauthenticate(self, token: str | None = None) -> bool:
         """Re-authenticate with a new or existing token.
 
         Args:
@@ -112,7 +112,7 @@ class VaultClient:
 
     # -- KV v2 secret operations ----------------------------------------------
 
-    def get_secret(self, path: str, key: Optional[str] = None) -> Union[str, Dict[str, Any]]:
+    def get_secret(self, path: str, key: str | None = None) -> str | dict[str, Any]:
         """Read a secret from Vault KV v2.
 
         Args:
@@ -137,20 +137,16 @@ class VaultClient:
 
             if key is not None:
                 if key not in data:
-                    raise ValueError(
-                        f"Key '{key}' not found in secret at {path}"
-                    )
+                    raise ValueError(f"Key '{key}' not found in secret at {path}")
                 return str(data[key])
 
             return dict(data)
 
         except VaultError as exc:
-            logger.error(
-                "Failed to read secret at %s/%s: %s", self.mount_point, path, exc
-            )
+            logger.error("Failed to read secret at %s/%s: %s", self.mount_point, path, exc)
             raise
 
-    def put_secret(self, path: str, data: Dict[str, Any]) -> bool:
+    def put_secret(self, path: str, data: dict[str, Any]) -> bool:
         """Write or update a secret in Vault KV v2.
 
         Args:
@@ -173,9 +169,7 @@ class VaultClient:
             return True
 
         except VaultError as exc:
-            logger.error(
-                "Failed to write secret at %s/%s: %s", self.mount_point, path, exc
-            )
+            logger.error("Failed to write secret at %s/%s: %s", self.mount_point, path, exc)
             raise
 
     def delete_secret(self, path: str) -> bool:
@@ -199,9 +193,7 @@ class VaultClient:
             return True
 
         except VaultError as exc:
-            logger.error(
-                "Failed to delete secret at %s/%s: %s", self.mount_point, path, exc
-            )
+            logger.error("Failed to delete secret at %s/%s: %s", self.mount_point, path, exc)
             raise
 
     def list_secrets(self, path: str = "") -> list[str]:
@@ -224,14 +216,12 @@ class VaultClient:
             return response["data"]["keys"]
 
         except VaultError as exc:
-            logger.error(
-                "Failed to list secrets at %s/%s: %s", self.mount_point, path, exc
-            )
+            logger.error("Failed to list secrets at %s/%s: %s", self.mount_point, path, exc)
             raise
 
     # -- dynamic database credentials -----------------------------------------
 
-    def get_database_credentials(self, db_name: str = "voyager") -> Dict[str, str]:
+    def get_database_credentials(self, db_name: str = "voyager") -> dict[str, str]:
         """Retrieve dynamic database credentials from Vault's database engine.
 
         Args:
@@ -264,12 +254,10 @@ class VaultClient:
             return creds
 
         except VaultError as exc:
-            logger.error(
-                "Failed to generate DB credentials for '%s': %s", db_name, exc
-            )
+            logger.error("Failed to generate DB credentials for '%s': %s", db_name, exc)
             raise
 
-    def rotate_database_credentials(self, db_name: str = "voyager") -> Dict[str, Any]:
+    def rotate_database_credentials(self, db_name: str = "voyager") -> dict[str, Any]:
         """Rotate the static database credentials stored in Vault.
 
         Args:
@@ -289,9 +277,7 @@ class VaultClient:
             return response
 
         except VaultError as exc:
-            logger.error(
-                "Failed to rotate DB credentials for '%s': %s", db_name, exc
-            )
+            logger.error("Failed to rotate DB credentials for '%s': %s", db_name, exc)
             raise
 
     # -- platform API tokens --------------------------------------------------
@@ -395,7 +381,7 @@ class VaultClient:
 
     # -- SSL / TLS certificates -----------------------------------------------
 
-    def get_certificate(self, cert_name: str) -> Dict[str, str]:
+    def get_certificate(self, cert_name: str) -> dict[str, str]:
         """Retrieve an SSL/TLS certificate bundle.
 
         Args:
@@ -416,7 +402,7 @@ class VaultClient:
 
     # -- SMS gateway credentials ----------------------------------------------
 
-    def get_sms_credentials(self, gateway: str = "twilio") -> Dict[str, str]:
+    def get_sms_credentials(self, gateway: str = "twilio") -> dict[str, str]:
         """Retrieve SMS gateway credentials.
 
         Args:
@@ -437,7 +423,7 @@ class VaultClient:
 
     # -- lease management -----------------------------------------------------
 
-    def renew_lease(self, lease_id: str, increment: Optional[int] = None) -> Dict[str, Any]:
+    def renew_lease(self, lease_id: str, increment: int | None = None) -> dict[str, Any]:
         """Renew a Vault lease for dynamic secrets.
 
         Args:

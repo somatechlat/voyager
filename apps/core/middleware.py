@@ -11,7 +11,6 @@ import logging
 import re
 import uuid
 from contextvars import ContextVar
-from typing import Optional
 
 from django.http import JsonResponse
 
@@ -100,7 +99,7 @@ class APIVersionMiddleware:
         response["X-API-Version"] = api_version
         return response
 
-    def _extract_version(self, request) -> Optional[str]:
+    def _extract_version(self, request) -> str | None:
         if header_version := request.headers.get("X-API-Version"):
             return header_version.lstrip("v")
 
@@ -205,6 +204,7 @@ class AuditMiddleware:
 # ---------------------------------------------------------------------------
 # Accessor functions for context variables
 # ---------------------------------------------------------------------------
+
 
 def get_request_id() -> str:
     return request_id_var.get()

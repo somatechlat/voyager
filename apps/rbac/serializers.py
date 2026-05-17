@@ -8,15 +8,15 @@ and workspaces. All schemas use strict typing and validation.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from ninja import Schema
 
-
 # ---------------------------------------------------------------------------
 # Permission schemas
 # ---------------------------------------------------------------------------
+
 
 class PermissionSchema(Schema):
     """Represents a single granular permission in the Voyager system.
@@ -39,7 +39,7 @@ class PermissionSchema(Schema):
 class PermissionListResponse(Schema):
     """Paginated response for permission listing."""
 
-    items: List[PermissionSchema]
+    items: list[PermissionSchema]
     total: int
     page: int
     page_size: int
@@ -48,6 +48,7 @@ class PermissionListResponse(Schema):
 # ---------------------------------------------------------------------------
 # Role schemas
 # ---------------------------------------------------------------------------
+
 
 class RoleSchema(Schema):
     """Represents a role definition in the Voyager RBAC system.
@@ -66,8 +67,8 @@ class RoleSchema(Schema):
     id: UUID
     name: str
     description: str
-    parent_id: Optional[UUID] = None
-    permissions: List[str]
+    parent_id: UUID | None = None
+    permissions: list[str]
     is_system: bool
     created_at: datetime
     updated_at: datetime
@@ -76,7 +77,7 @@ class RoleSchema(Schema):
 class RoleListResponse(Schema):
     """Paginated response for role listing."""
 
-    items: List[RoleSchema]
+    items: list[RoleSchema]
     total: int
     page: int
     page_size: int
@@ -94,8 +95,8 @@ class RoleCreateSchema(Schema):
 
     name: str
     description: str = ""
-    parent_id: Optional[UUID] = None
-    permissions: List[str] = []
+    parent_id: UUID | None = None
+    permissions: list[str] = []
 
 
 class RoleUpdateSchema(Schema):
@@ -105,24 +106,25 @@ class RoleUpdateSchema(Schema):
     and permission list modified.
     """
 
-    name: Optional[str] = None
-    description: Optional[str] = None
-    parent_id: Optional[UUID] = None
-    permissions: Optional[List[str]] = None
+    name: str | None = None
+    description: str | None = None
+    parent_id: UUID | None = None
+    permissions: list[str] | None = None
 
 
 class RoleDetailResponse(Schema):
     """Detailed role response including inherited permissions."""
 
     role: RoleSchema
-    inherited_permissions: List[str]
-    total_permissions: List[str]
+    inherited_permissions: list[str]
+    total_permissions: list[str]
     user_count: int
 
 
 # ---------------------------------------------------------------------------
 # Role Assignment schemas
 # ---------------------------------------------------------------------------
+
 
 class RoleAssignmentSchema(Schema):
     """Represents a role granted to a user within a tenant/workspace scope.
@@ -142,16 +144,16 @@ class RoleAssignmentSchema(Schema):
     user_id: str
     role: RoleSchema
     tenant_id: str
-    workspace_id: Optional[str] = None
+    workspace_id: str | None = None
     granted_by: str
     granted_at: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class RoleAssignmentListResponse(Schema):
     """Paginated response for role assignment listing."""
 
-    items: List[RoleAssignmentSchema]
+    items: list[RoleAssignmentSchema]
     total: int
     page: int
     page_size: int
@@ -171,8 +173,8 @@ class RoleAssignmentCreateSchema(Schema):
     user_id: str
     role_id: UUID
     tenant_id: str
-    workspace_id: Optional[str] = None
-    expires_at: Optional[datetime] = None
+    workspace_id: str | None = None
+    expires_at: datetime | None = None
 
 
 class RoleAssignmentRevokeSchema(Schema):
@@ -185,6 +187,7 @@ class RoleAssignmentRevokeSchema(Schema):
 # ---------------------------------------------------------------------------
 # Workspace schemas
 # ---------------------------------------------------------------------------
+
 
 class WorkspaceSchema(Schema):
     """Represents a workspace within a tenant for resource isolation.
@@ -213,7 +216,7 @@ class WorkspaceSchema(Schema):
 class WorkspaceListResponse(Schema):
     """Paginated response for workspace listing."""
 
-    items: List[WorkspaceSchema]
+    items: list[WorkspaceSchema]
     total: int
     page: int
     page_size: int
@@ -238,9 +241,9 @@ class WorkspaceCreateSchema(Schema):
 class WorkspaceUpdateSchema(Schema):
     """Request body for updating a workspace."""
 
-    name: Optional[str] = None
-    description: Optional[str] = None
-    is_active: Optional[bool] = None
+    name: str | None = None
+    description: str | None = None
+    is_active: bool | None = None
 
 
 class WorkspaceMemberSchema(Schema):
@@ -249,7 +252,7 @@ class WorkspaceMemberSchema(Schema):
     user_id: str
     username: str
     email: str
-    roles: List[str]
+    roles: list[str]
     joined_at: datetime
 
 
@@ -257,7 +260,7 @@ class WorkspaceDetailResponse(Schema):
     """Detailed workspace response with member list."""
 
     workspace: WorkspaceSchema
-    members: List[WorkspaceMemberSchema]
+    members: list[WorkspaceMemberSchema]
     member_count: int
 
 
@@ -265,15 +268,16 @@ class WorkspaceDetailResponse(Schema):
 # User permission / role schemas
 # ---------------------------------------------------------------------------
 
+
 class UserPermissionsResponse(Schema):
     """Response containing the current user's effective permissions."""
 
     user_id: str
     username: str
     tenant_id: str
-    roles: List[str]
-    permissions: List[str]
-    workspace_roles: Dict[str, List[str]]
+    roles: list[str]
+    permissions: list[str]
+    workspace_roles: dict[str, list[str]]
     is_superadmin: bool
     is_tenant_admin: bool
 
@@ -284,13 +288,14 @@ class UserRolesResponse(Schema):
     user_id: str
     username: str
     tenant_id: str
-    roles: List[str]
-    workspace_roles: Dict[str, List[str]]
+    roles: list[str]
+    workspace_roles: dict[str, list[str]]
 
 
 # ---------------------------------------------------------------------------
 # Audit / activity schemas
 # ---------------------------------------------------------------------------
+
 
 class RoleActivitySchema(Schema):
     """Represents an audit event for role-related changes."""
@@ -298,9 +303,9 @@ class RoleActivitySchema(Schema):
     id: UUID
     action: str  # "role.created", "role.assigned", "role.revoked"
     actor_id: str
-    target_user_id: Optional[str] = None
+    target_user_id: str | None = None
     role_name: str
     tenant_id: str
-    workspace_id: Optional[str] = None
+    workspace_id: str | None = None
     timestamp: datetime
-    details: Dict[str, Any] = {}
+    details: dict[str, Any] = {}

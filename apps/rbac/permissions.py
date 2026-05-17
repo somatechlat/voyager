@@ -13,7 +13,6 @@ access control across tenants and workspaces.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional
 
 from ninja.errors import HttpError
 
@@ -119,7 +118,7 @@ class HasRole(BasePermission):
 class HasAnyRole(BasePermission):
     """Require the user to have at least one of the specified roles."""
 
-    def __init__(self, roles: List[str]) -> None:
+    def __init__(self, roles: list[str]) -> None:
         """Initialise with a list of acceptable roles.
 
         Args:
@@ -171,7 +170,7 @@ class HasPermission(BasePermission):
 class HasAnyPermission(BasePermission):
     """Require the user to hold at least one of the specified permissions."""
 
-    def __init__(self, permissions: List[str]) -> None:
+    def __init__(self, permissions: list[str]) -> None:
         """Initialise with acceptable permissions.
 
         Args:
@@ -322,7 +321,7 @@ class IsOwner(BasePermission):
     resource's owner field (passed at check time).
     """
 
-    def __init__(self, owner_id: Optional[str] = None) -> None:
+    def __init__(self, owner_id: str | None = None) -> None:
         """Initialise with an optional static owner ID.
 
         Args:
@@ -352,9 +351,7 @@ class IsOwner(BasePermission):
         return user.user_id == owner_id
 
     def _deny(self, user: VoyagerUser) -> None:
-        logger.warning(
-            "User %s is not the resource owner", user.username
-        )
+        logger.warning("User %s is not the resource owner", user.username)
         raise HttpError(403, "Access denied: resource ownership required")
 
 
@@ -394,8 +391,8 @@ class CompositePermission(BasePermission):
 
     def __init__(
         self,
-        all_of: Optional[List[BasePermission]] = None,
-        any_of: Optional[List[BasePermission]] = None,
+        all_of: list[BasePermission] | None = None,
+        any_of: list[BasePermission] | None = None,
     ) -> None:
         """Initialise with permission lists.
 
@@ -416,7 +413,5 @@ class CompositePermission(BasePermission):
         return True
 
     def _deny(self, user: VoyagerUser) -> None:
-        logger.warning(
-            "Composite permission denied for user %s", user.username
-        )
+        logger.warning("Composite permission denied for user %s", user.username)
         raise HttpError(403, "Access denied: composite permission check failed")

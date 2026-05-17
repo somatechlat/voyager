@@ -7,7 +7,7 @@ competitive intelligence processing.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 def analyze_market_position(
     self,
     tenant_id: str,
-    parameters: Dict[str, Any],
-) -> Dict[str, Any]:
+    parameters: dict[str, Any],
+) -> dict[str, Any]:
     """Analyze market position for a tenant.
 
     :param tenant_id: UUID of the tenant scope.
@@ -28,7 +28,7 @@ def analyze_market_position(
     """
     logger.info("Analyzing market position for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "tenant_id": tenant_id,

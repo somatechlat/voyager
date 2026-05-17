@@ -10,7 +10,7 @@ Tasks are routed to the ``publishing`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def publish_due_posts(self) -> Dict[str, Any]:
+def publish_due_posts(self) -> dict[str, Any]:
     """Publish all posts whose ``scheduled_at`` timestamp has passed.
 
     Called by the beat scheduler every 60 seconds. Iterates over
@@ -35,7 +35,7 @@ def publish_due_posts(self) -> Dict[str, Any]:
     #   2. For each post: validate, upload media, call platform API
     #   3. Update post status to 'published' or 'failed'
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "published": 0,
@@ -47,7 +47,7 @@ def publish_due_posts(self) -> Dict[str, Any]:
 
 
 @shared_task(bind=True, max_retries=3)
-def process_recurring_posts(self) -> Dict[str, Any]:
+def process_recurring_posts(self) -> dict[str, Any]:
     """Generate new instances of recurring post series.
 
     Called by the beat scheduler every hour. Looks for
@@ -59,7 +59,7 @@ def process_recurring_posts(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "created": 0,
@@ -73,8 +73,8 @@ def publish_post(
     self,
     post_id: str,
     platform: str,
-    content: Dict[str, Any],
-) -> Dict[str, Any]:
+    content: dict[str, Any],
+) -> dict[str, Any]:
     """Publish a single post to the specified platform.
 
     :param post_id: UUID of the ScheduledPost.
@@ -87,7 +87,7 @@ def publish_post(
     """
     logger.info("Publishing post %s to %s", post_id, platform)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "post_id": post_id,

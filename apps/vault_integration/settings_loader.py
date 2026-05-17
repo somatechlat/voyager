@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from apps.vault_integration.client import vault_client
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 def load_settings_from_vault(
     path: str = "settings",
     fallback_prefix: str = "VOYAGER_",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load a complete settings block from Vault.
 
     Reads all keys from ``voyager/settings`` (or the given path) and returns
@@ -69,7 +69,7 @@ def load_settings_from_vault(
 
 def get_database_config_from_vault(
     db_name: str = "voyager",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load database configuration from Vault.
 
     Reads from ``voyager/database/<db_name>`` and returns a Django-compatible
@@ -86,9 +86,7 @@ def get_database_config_from_vault(
         if isinstance(data, dict):
             return _build_django_db_config(data)
     except Exception as exc:
-        logger.warning(
-            "Failed to load DB config from Vault for '%s': %s", db_name, exc
-        )
+        logger.warning("Failed to load DB config from Vault for '%s': %s", db_name, exc)
 
     # Fallback: parse DATABASE_URL from environment
     db_url = os.environ.get("DATABASE_URL", os.environ.get("VOYAGER_DATABASE_URL", ""))
@@ -101,7 +99,7 @@ def get_database_config_from_vault(
 
 def get_redis_config_from_vault(
     instance: str = "default",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load Redis configuration from Vault.
 
     Reads from ``voyager/redis/<instance>`` and returns Django Caches-compatible
@@ -126,12 +124,12 @@ def get_redis_config_from_vault(
                 },
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load Redis config from Vault for '%s': %s", instance, exc
-        )
+        logger.warning("Failed to load Redis config from Vault for '%s': %s", instance, exc)
 
     # Fallback
-    redis_url = os.environ.get("REDIS_URL", os.environ.get("VOYAGER_REDIS_URL", "redis://redis:6379/0"))
+    redis_url = os.environ.get(
+        "REDIS_URL", os.environ.get("VOYAGER_REDIS_URL", "redis://redis:6379/0")
+    )
     return {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": redis_url,
@@ -143,7 +141,7 @@ def get_redis_config_from_vault(
 
 def get_kafka_config_from_vault(
     cluster: str = "default",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Load Kafka bootstrap configuration from Vault.
 
     Reads from ``voyager/kafka/<cluster>``.
@@ -165,9 +163,7 @@ def get_kafka_config_from_vault(
                 "sasl_mechanism": data.get("sasl_mechanism", "SCRAM-SHA-256"),
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load Kafka config from Vault for '%s': %s", cluster, exc
-        )
+        logger.warning("Failed to load Kafka config from Vault for '%s': %s", cluster, exc)
 
     # Fallback
     bootstrap = os.environ.get(
@@ -185,7 +181,7 @@ def get_kafka_config_from_vault(
 
 def get_keycloak_config_from_vault(
     realm: str = "voyager",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Load Keycloak configuration from Vault.
 
     Reads from ``voyager/keycloak/<realm>``.
@@ -206,15 +202,15 @@ def get_keycloak_config_from_vault(
                 "client_secret": data.get("client_secret", ""),
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load Keycloak config from Vault for '%s': %s", realm, exc
-        )
+        logger.warning("Failed to load Keycloak config from Vault for '%s': %s", realm, exc)
 
     # Fallback to environment
     return {
         "url": os.environ.get("KEYCLOAK_URL", os.environ.get("VOYAGER_KEYCLOAK_URL", "")),
         "realm": os.environ.get("KEYCLOAK_REALM", os.environ.get("VOYAGER_KEYCLOAK_REALM", realm)),
-        "client_id": os.environ.get("KEYCLOAK_CLIENT_ID", os.environ.get("VOYAGER_KEYCLOAK_CLIENT_ID", "")),
+        "client_id": os.environ.get(
+            "KEYCLOAK_CLIENT_ID", os.environ.get("VOYAGER_KEYCLOAK_CLIENT_ID", "")
+        ),
         "client_secret": os.environ.get(
             "KEYCLOAK_CLIENT_SECRET",
             os.environ.get("VOYAGER_KEYCLOAK_CLIENT_SECRET", ""),
@@ -224,7 +220,7 @@ def get_keycloak_config_from_vault(
 
 def get_celery_config_from_vault(
     queue: str = "voyager",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Load Celery broker configuration from Vault.
 
     Reads from ``voyager/celery/<queue>``.
@@ -247,11 +243,11 @@ def get_celery_config_from_vault(
                 "timezone": data.get("timezone", "UTC"),
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load Celery config from Vault for '%s': %s", queue, exc
-        )
+        logger.warning("Failed to load Celery config from Vault for '%s': %s", queue, exc)
 
-    redis_url = os.environ.get("REDIS_URL", os.environ.get("VOYAGER_REDIS_URL", "redis://redis:6379/0"))
+    redis_url = os.environ.get(
+        "REDIS_URL", os.environ.get("VOYAGER_REDIS_URL", "redis://redis:6379/0")
+    )
     return {
         "broker_url": redis_url,
         "result_backend": redis_url,
@@ -264,7 +260,7 @@ def get_celery_config_from_vault(
 
 def get_minio_config_from_vault(
     bucket: str = "voyager",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Load MinIO/S3 configuration from Vault.
 
     Reads from ``voyager/minio/<bucket>``.
@@ -286,14 +282,16 @@ def get_minio_config_from_vault(
                 "secure": data.get("secure", "false"),
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load MinIO config from Vault for '%s': %s", bucket, exc
-        )
+        logger.warning("Failed to load MinIO config from Vault for '%s': %s", bucket, exc)
 
     return {
         "endpoint": os.environ.get("MINIO_ENDPOINT", os.environ.get("VOYANT_MINIO_ENDPOINT", "")),
-        "access_key": os.environ.get("MINIO_ACCESS_KEY", os.environ.get("VOYANT_MINIO_ACCESS_KEY", "")),
-        "secret_key": os.environ.get("MINIO_SECRET_KEY", os.environ.get("VOYANT_MINIO_SECRET_KEY", "")),
+        "access_key": os.environ.get(
+            "MINIO_ACCESS_KEY", os.environ.get("VOYANT_MINIO_ACCESS_KEY", "")
+        ),
+        "secret_key": os.environ.get(
+            "MINIO_SECRET_KEY", os.environ.get("VOYANT_MINIO_SECRET_KEY", "")
+        ),
         "bucket": bucket,
         "secure": "false",
     }
@@ -301,7 +299,7 @@ def get_minio_config_from_vault(
 
 def get_email_config_from_vault(
     provider: str = "smtp",
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Load email/SMTP configuration from Vault.
 
     Reads from ``voyager/email/<provider>``.
@@ -324,9 +322,7 @@ def get_email_config_from_vault(
                 "from_email": data.get("from_email", ""),
             }
     except Exception as exc:
-        logger.warning(
-            "Failed to load email config from Vault for '%s': %s", provider, exc
-        )
+        logger.warning("Failed to load email config from Vault for '%s': %s", provider, exc)
 
     return {
         "host": os.environ.get("EMAIL_HOST", "localhost"),
@@ -343,7 +339,7 @@ def get_email_config_from_vault(
 # ---------------------------------------------------------------------------
 
 
-def _load_from_env(prefix: str) -> Dict[str, Any]:
+def _load_from_env(prefix: str) -> dict[str, Any]:
     """Collect environment variables starting with prefix.
 
     Strips the prefix and lowercases keys for consistent naming.
@@ -354,7 +350,7 @@ def _load_from_env(prefix: str) -> Dict[str, Any]:
     Returns:
         Dictionary of env var key-value pairs.
     """
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
     for key, value in os.environ.items():
         if key.startswith(prefix):
             clean_key = key[len(prefix) :].lower()
@@ -363,7 +359,7 @@ def _load_from_env(prefix: str) -> Dict[str, Any]:
     return result
 
 
-def _build_django_db_config(data: Dict[str, Any]) -> Dict[str, Any]:
+def _build_django_db_config(data: dict[str, Any]) -> dict[str, Any]:
     """Convert Vault database secret to Django DATABASES format.
 
     Args:
@@ -385,7 +381,7 @@ def _build_django_db_config(data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _parse_database_url(url: str) -> Dict[str, Any]:
+def _parse_database_url(url: str) -> dict[str, Any]:
     """Parse a DATABASE_URL-style connection string.
 
     Args:
@@ -411,7 +407,7 @@ def _parse_database_url(url: str) -> Dict[str, Any]:
         return _default_db_config()
 
 
-def _default_db_config() -> Dict[str, Any]:
+def _default_db_config() -> dict[str, Any]:
     """Return default database config for local development.
 
     Returns:

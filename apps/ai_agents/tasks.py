@@ -10,7 +10,7 @@ Tasks are routed to the ``agents`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 def dispatch_agent_task(
     self,
     agent_id: str,
-    task_input: Dict[str, Any],
+    task_input: dict[str, Any],
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Dispatch a task to an AI agent for execution.
 
     :param agent_id: UUID of the agent.
@@ -34,7 +34,7 @@ def dispatch_agent_task(
     """
     logger.info("Dispatching agent task: agent=%s tenant=%s", agent_id, tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "task_id": "",
@@ -48,7 +48,7 @@ def sync_agent_memory(
     self,
     agent_id: str,
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Synchronise agent memory with Qdrant vector store.
 
     :param agent_id: UUID of the agent.
@@ -57,7 +57,7 @@ def sync_agent_memory(
     """
     logger.info("Syncing agent memory: agent=%s", agent_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "vectors_synced": 0,

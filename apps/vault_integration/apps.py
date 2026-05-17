@@ -8,7 +8,6 @@ connectivity to HashiCorp Vault before the first request.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django.apps import AppConfig
 

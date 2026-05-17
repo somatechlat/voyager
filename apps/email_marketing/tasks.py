@@ -10,7 +10,7 @@ Tasks are routed to the ``email`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -23,7 +23,7 @@ def send_campaign_emails(
     campaign_id: str,
     tenant_id: str,
     batch_size: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Send an email marketing campaign in batches.
 
     :param campaign_id: UUID of the email campaign.
@@ -38,7 +38,7 @@ def send_campaign_emails(
         batch_size,
     )
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "campaign_id": campaign_id,
@@ -50,7 +50,7 @@ def send_campaign_emails(
 
 
 @shared_task(bind=True, max_retries=3)
-def sync_email_lists(self, tenant_id: str) -> Dict[str, Any]:
+def sync_email_lists(self, tenant_id: str) -> dict[str, Any]:
     """Synchronise email subscriber lists with external ESPs.
 
     :param tenant_id: UUID of the tenant scope.
@@ -58,7 +58,7 @@ def sync_email_lists(self, tenant_id: str) -> Dict[str, Any]:
     """
     logger.info("Syncing email lists for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "lists_synced": 0,

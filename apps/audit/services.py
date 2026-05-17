@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import gzip
-import hashlib
 import json
 import logging
 from datetime import datetime
@@ -17,8 +16,7 @@ from io import StringIO
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Q, QuerySet
-from django.utils import timezone
+from django.db.models import QuerySet
 
 from apps.audit.models import AuditLogArchive, AuditLogEntry
 
@@ -83,14 +81,10 @@ class AuditService:
 
         if actor_type not in valid_actor_types:
             raise ValueError(
-                f"Invalid actor_type '{actor_type}'. "
-                f"Must be one of: {valid_actor_types}"
+                f"Invalid actor_type '{actor_type}'. " f"Must be one of: {valid_actor_types}"
             )
         if outcome not in valid_outcomes:
-            raise ValueError(
-                f"Invalid outcome '{outcome}'. "
-                f"Must be one of: {valid_outcomes}"
-            )
+            raise ValueError(f"Invalid outcome '{outcome}'. " f"Must be one of: {valid_outcomes}")
 
         previous_hash = AuditService.get_previous_hash(tenant_id)
 
@@ -143,9 +137,13 @@ class AuditService:
             string if the tenant has no prior entries.
         """
         try:
-            latest = AuditLogEntry.objects.filter(
-                tenant_id=tenant_id,
-            ).order_by("-timestamp").first()
+            latest = (
+                AuditLogEntry.objects.filter(
+                    tenant_id=tenant_id,
+                )
+                .order_by("-timestamp")
+                .first()
+            )
             return latest.entry_hash if latest else ""
         except Exception:
             return ""
@@ -201,7 +199,7 @@ class AuditService:
         if end_date := filters.get("end_date"):
             qs = qs.filter(timestamp__lte=end_date)
 
-        return list(qs.order_by("-timestamp")[offset:offset + limit])
+        return list(qs.order_by("-timestamp")[offset : offset + limit])
 
     @staticmethod
     def query_logs_count(tenant_id: str, filters: dict[str, Any] | None = None) -> int:
@@ -275,8 +273,7 @@ class AuditService:
             return AuditService._export_json(entries)
         else:
             raise ValueError(
-                f"Unsupported export format '{export_format}'. "
-                "Use 'csv' or 'json'."
+                f"Unsupported export format '{export_format}'. " "Use 'csv' or 'json'."
             )
 
     @staticmethod
@@ -291,31 +288,47 @@ class AuditService:
         """
         output = StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "timestamp", "tenant_id", "actor_id", "actor_type", "actor_email",
-            "action", "resource_type", "resource_id", "outcome",
-            "details", "ip_address", "user_agent", "request_id",
-            "session_id", "previous_hash", "entry_hash",
-        ])
+        writer.writerow(
+            [
+                "timestamp",
+                "tenant_id",
+                "actor_id",
+                "actor_type",
+                "actor_email",
+                "action",
+                "resource_type",
+                "resource_id",
+                "outcome",
+                "details",
+                "ip_address",
+                "user_agent",
+                "request_id",
+                "session_id",
+                "previous_hash",
+                "entry_hash",
+            ]
+        )
         for entry in entries.iterator():
-            writer.writerow([
-                entry.timestamp.isoformat(),
-                entry.tenant_id,
-                entry.actor_id,
-                entry.actor_type,
-                entry.actor_email,
-                entry.action,
-                entry.resource_type,
-                entry.resource_id,
-                entry.outcome,
-                json.dumps(entry.details),
-                entry.ip_address or "",
-                entry.user_agent,
-                entry.request_id,
-                entry.session_id,
-                entry.previous_hash,
-                entry.entry_hash,
-            ])
+            writer.writerow(
+                [
+                    entry.timestamp.isoformat(),
+                    entry.tenant_id,
+                    entry.actor_id,
+                    entry.actor_type,
+                    entry.actor_email,
+                    entry.action,
+                    entry.resource_type,
+                    entry.resource_id,
+                    entry.outcome,
+                    json.dumps(entry.details),
+                    entry.ip_address or "",
+                    entry.user_agent,
+                    entry.request_id,
+                    entry.session_id,
+                    entry.previous_hash,
+                    entry.entry_hash,
+                ]
+            )
         return output.getvalue()
 
     @staticmethod
@@ -330,24 +343,26 @@ class AuditService:
         """
         results: list[dict[str, Any]] = []
         for entry in entries.iterator():
-            results.append({
-                "timestamp": entry.timestamp.isoformat(),
-                "tenant_id": entry.tenant_id,
-                "actor_id": entry.actor_id,
-                "actor_type": entry.actor_type,
-                "actor_email": entry.actor_email,
-                "action": entry.action,
-                "resource_type": entry.resource_type,
-                "resource_id": entry.resource_id,
-                "outcome": entry.outcome,
-                "details": entry.details,
-                "ip_address": entry.ip_address,
-                "user_agent": entry.user_agent,
-                "request_id": entry.request_id,
-                "session_id": entry.session_id,
-                "previous_hash": entry.previous_hash,
-                "entry_hash": entry.entry_hash,
-            })
+            results.append(
+                {
+                    "timestamp": entry.timestamp.isoformat(),
+                    "tenant_id": entry.tenant_id,
+                    "actor_id": entry.actor_id,
+                    "actor_type": entry.actor_type,
+                    "actor_email": entry.actor_email,
+                    "action": entry.action,
+                    "resource_type": entry.resource_type,
+                    "resource_id": entry.resource_id,
+                    "outcome": entry.outcome,
+                    "details": entry.details,
+                    "ip_address": entry.ip_address,
+                    "user_agent": entry.user_agent,
+                    "request_id": entry.request_id,
+                    "session_id": entry.session_id,
+                    "previous_hash": entry.previous_hash,
+                    "entry_hash": entry.entry_hash,
+                }
+            )
         return json.dumps(results, indent=2, default=str)
 
     @staticmethod
@@ -389,24 +404,26 @@ class AuditService:
         log_data: list[dict[str, Any]] = []
         count = 0
         for entry in entries.iterator():
-            log_data.append({
-                "timestamp": entry.timestamp.isoformat(),
-                "tenant_id": entry.tenant_id,
-                "actor_id": entry.actor_id,
-                "actor_type": entry.actor_type,
-                "actor_email": entry.actor_email,
-                "action": entry.action,
-                "resource_type": entry.resource_type,
-                "resource_id": entry.resource_id,
-                "outcome": entry.outcome,
-                "details": entry.details,
-                "ip_address": entry.ip_address,
-                "user_agent": entry.user_agent,
-                "request_id": entry.request_id,
-                "session_id": entry.session_id,
-                "previous_hash": entry.previous_hash,
-                "entry_hash": entry.entry_hash,
-            })
+            log_data.append(
+                {
+                    "timestamp": entry.timestamp.isoformat(),
+                    "tenant_id": entry.tenant_id,
+                    "actor_id": entry.actor_id,
+                    "actor_type": entry.actor_type,
+                    "actor_email": entry.actor_email,
+                    "action": entry.action,
+                    "resource_type": entry.resource_type,
+                    "resource_id": entry.resource_id,
+                    "outcome": entry.outcome,
+                    "details": entry.details,
+                    "ip_address": entry.ip_address,
+                    "user_agent": entry.user_agent,
+                    "request_id": entry.request_id,
+                    "session_id": entry.session_id,
+                    "previous_hash": entry.previous_hash,
+                    "entry_hash": entry.entry_hash,
+                }
+            )
             count += 1
 
         compressed = gzip.compress(
@@ -424,8 +441,7 @@ class AuditService:
         )
 
         logger.info(
-            "Archived %d audit log entries for tenant=%s month=%s "
-            "(compressed: %d bytes)",
+            "Archived %d audit log entries for tenant=%s month=%s " "(compressed: %d bytes)",
             count,
             tenant_id,
             year_month,
@@ -451,9 +467,7 @@ class AuditService:
             ``first_broken_id`` (int or None) keys.
         """
         entries = list(
-            AuditLogEntry.objects.filter(tenant_id=tenant_id)
-            .order_by("-timestamp")
-            [:limit]
+            AuditLogEntry.objects.filter(tenant_id=tenant_id).order_by("-timestamp")[:limit]
         )
 
         if len(entries) < 2:

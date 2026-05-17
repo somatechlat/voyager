@@ -7,7 +7,7 @@ invalidation, and asset optimisation.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -19,7 +19,7 @@ def process_asset_upload(
     self,
     asset_id: str,
     tenant_id: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Process a newly uploaded asset.
 
     Generates thumbnails, extracts metadata, and uploads to CDN.
@@ -30,7 +30,7 @@ def process_asset_upload(
     """
     logger.info("Processing asset %s for tenant %s", asset_id, tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "asset_id": asset_id,

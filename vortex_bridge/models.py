@@ -10,17 +10,16 @@ All models use Pydantic v2 BaseModel with strict type checking.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ─────────────────────────────────────────────────────────────
 # Enumerations
 # ─────────────────────────────────────────────────────────────
 
 
-class RunStatus(str, Enum):
+class RunStatus(str, Enum):  # noqa: UP042  # noqa: UP042
     """Execution status values returned by Vortex.
 
     Mirrors ``crate::entities::run::RunStatus`` in the Rust source.
@@ -33,7 +32,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class NotificationLevel(str, Enum):
+class NotificationLevel(str, Enum):  # noqa: UP042  # noqa: UP042
     """Severity levels for real-time notifications."""
 
     INFO = "info"
@@ -53,11 +52,11 @@ class GraphRequest(BaseModel):
     Mirrors ``vortex_core::api::GraphRequest`` in the Rust source.
     """
 
-    graph: Dict[str, Any] = Field(
+    graph: dict[str, Any] = Field(
         ...,
         description="GraphDSL definition as a JSON-serializable dict.",
     )
-    priority: Optional[str] = Field(
+    priority: str | None = Field(
         default=None,
         description="Execution priority: 'high' or 'low'.",
     )
@@ -79,11 +78,11 @@ class ExecuteRequest(BaseModel):
     Mirrors ``vortex_core::api::ExecuteRequest``.
     """
 
-    full: Optional[bool] = Field(
+    full: bool | None = Field(
         default=True,
         description="Execute all nodes (True) or partial subset.",
     )
-    output_nodes: Optional[List[str]] = Field(
+    output_nodes: list[str] | None = Field(
         default=None,
         description="Node IDs to capture as execution outputs.",
     )
@@ -124,7 +123,7 @@ class RunStatusResponse(BaseModel):
         le=1.0,
         description="Fractional progress from 0.0 to 1.0.",
     )
-    current_node: Optional[str] = Field(
+    current_node: str | None = Field(
         default=None,
         description="ID of the node currently executing, if any.",
     )
@@ -143,7 +142,7 @@ class RegisterMcpClientRequest(BaseModel):
 
     id: str = Field(..., min_length=1, description="Unique client identifier.")
     command: str = Field(..., min_length=1, description="Executable command path.")
-    args: List[str] = Field(
+    args: list[str] = Field(
         default_factory=list,
         description="Command-line arguments for the MCP server.",
     )
@@ -159,7 +158,7 @@ class McpToolCallRequest(BaseModel):
         ...,
         description="VORTEX node type identifier, e.g. 'vortex.file.read'.",
     )
-    arguments: Dict[str, Any] = Field(
+    arguments: dict[str, Any] = Field(
         default_factory=dict,
         description="Tool-specific arguments.",
     )
@@ -172,7 +171,7 @@ class McpToolCallResponse(BaseModel):
     """
 
     type_id: str = Field(..., description="The type_id that was invoked.")
-    result: Dict[str, Any] = Field(
+    result: dict[str, Any] = Field(
         ...,
         description="Tool result as a JSON-serializable dictionary.",
     )
@@ -187,19 +186,19 @@ class NodeDef(BaseModel):
 
     type_id: str = Field(..., description="Fully-qualified node type ID.")
     name: str = Field(..., description="Human-readable node name.")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None,
         description="Markdown description of node functionality.",
     )
-    inputs: List[Dict[str, Any]] = Field(
+    inputs: list[dict[str, Any]] = Field(
         default_factory=list,
         description="Input port definitions.",
     )
-    outputs: List[Dict[str, Any]] = Field(
+    outputs: list[dict[str, Any]] = Field(
         default_factory=list,
         description="Output port definitions.",
     )
-    parameters: List[Dict[str, Any]] = Field(
+    parameters: list[dict[str, Any]] = Field(
         default_factory=list,
         description="Configurable parameter schema.",
     )
@@ -218,7 +217,7 @@ class HealthCheckResponse(BaseModel):
 
     status: str = Field(..., description="'healthy' or 'degraded'.")
     version: str = Field(..., description="Vortex build version.")
-    checks: Dict[str, bool] = Field(
+    checks: dict[str, bool] = Field(
         default_factory=dict,
         description="Named dependency health flags.",
     )
@@ -271,5 +270,5 @@ class WsRunCompleteMessage(BaseModel):
 
     type: str = Field(default="RunComplete")
     run_id: str
-    success: bool
-    error: Optional[str] = None
+    success: bool = Field(default=False)
+    status: str = Field(default="completed")

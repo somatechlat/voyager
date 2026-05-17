@@ -10,7 +10,7 @@ Tasks are routed to the ``governance`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def run_policy_scan(self, tenant_id: str) -> Dict[str, Any]:
+def run_policy_scan(self, tenant_id: str) -> dict[str, Any]:
     """Run governance policy compliance scan.
 
     Evaluates all active policies against recent activity and
@@ -29,7 +29,7 @@ def run_policy_scan(self, tenant_id: str) -> Dict[str, Any]:
     """
     logger.info("Running policy scan for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "tenant_id": tenant_id,
@@ -44,7 +44,7 @@ def generate_compliance_report(
     self,
     tenant_id: str,
     report_type: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate a compliance report.
 
     :param tenant_id: UUID of the tenant scope.
@@ -58,7 +58,7 @@ def generate_compliance_report(
         tenant_id,
     )
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "report_id": "",

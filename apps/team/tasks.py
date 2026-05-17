@@ -10,7 +10,7 @@ Tasks are routed to the ``team`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def send_team_digest(self, tenant_id: str) -> Dict[str, Any]:
+def send_team_digest(self, tenant_id: str) -> dict[str, Any]:
     """Send daily activity digest to team members.
 
     :param tenant_id: UUID of the tenant scope.
@@ -26,7 +26,7 @@ def send_team_digest(self, tenant_id: str) -> Dict[str, Any]:
     """
     logger.info("Sending team digest for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "tenant_id": tenant_id,
@@ -37,7 +37,7 @@ def send_team_digest(self, tenant_id: str) -> Dict[str, Any]:
 
 
 @shared_task(bind=True, max_retries=3)
-def sync_team_permissions(self, tenant_id: str) -> Dict[str, Any]:
+def sync_team_permissions(self, tenant_id: str) -> dict[str, Any]:
     """Synchronise team member permissions with Keycloak.
 
     :param tenant_id: UUID of the tenant scope.
@@ -45,7 +45,7 @@ def sync_team_permissions(self, tenant_id: str) -> Dict[str, Any]:
     """
     logger.info("Syncing team permissions for tenant %s", tenant_id)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "tenant_id": tenant_id,

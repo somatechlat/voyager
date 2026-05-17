@@ -8,12 +8,11 @@ into the main ASGI application via ProtocolTypeRouter.
 from __future__ import annotations
 
 from django.urls import re_path
-from typing import List
 
 from . import consumers
 
 # Type alias matching channels.routing.URLRouter expectations.
-websocket_urlpatterns: List = [
+websocket_urlpatterns: list = [
     # Notifications stream — real-time user notifications
     re_path(
         r"ws/notifications/$",

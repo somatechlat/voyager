@@ -23,7 +23,7 @@ Always close the client on shutdown::
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -44,8 +44,8 @@ class VortexClient:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        timeout: Optional[float] = None,
+        base_url: str | None = None,
+        timeout: float | None = None,
     ) -> None:
         self.base_url: str = base_url or self.BASE_URL
         self.timeout: float = timeout or self.TIMEOUT
@@ -59,9 +59,9 @@ class VortexClient:
 
     async def submit_graph(
         self,
-        graph_dsl: Dict[str, Any],
+        graph_dsl: dict[str, Any],
         token: str,
-        priority: Optional[str] = None,
+        priority: str | None = None,
     ) -> str:
         """Submit a workflow graph to Vortex.
 
@@ -74,7 +74,7 @@ class VortexClient:
         :returns: The UUID ``graph_id`` assigned by Vortex.
         :raises httpx.HTTPStatusError: On 4xx/5xx from Vortex.
         """
-        payload: Dict[str, Any] = {"graph": graph_dsl}
+        payload: dict[str, Any] = {"graph": graph_dsl}
         if priority is not None:
             payload["priority"] = priority
 
@@ -84,7 +84,7 @@ class VortexClient:
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
-        data: Dict[str, Any] = response.json()
+        data: dict[str, Any] = response.json()
         graph_id: str = data["graph_id"]
         logger.info("Graph submitted: %s (version=%s)", graph_id, data.get("version"))
         return graph_id
@@ -93,7 +93,7 @@ class VortexClient:
         self,
         graph_id: str,
         token: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Retrieve a previously submitted graph.
 
         Maps to ``GET /api/graph/:id``.
@@ -115,7 +115,7 @@ class VortexClient:
         graph_id: str,
         token: str,
         full: bool = True,
-        output_nodes: Optional[List[str]] = None,
+        output_nodes: list[str] | None = None,
     ) -> str:
         """Execute a submitted graph.
 
@@ -128,7 +128,7 @@ class VortexClient:
         :returns: The UUID ``run_id`` for tracking execution.
         :raises httpx.HTTPStatusError: On 4xx/5xx from Vortex.
         """
-        payload: Dict[str, Any] = {"full": full}
+        payload: dict[str, Any] = {"full": full}
         if output_nodes is not None:
             payload["output_nodes"] = output_nodes
 
@@ -138,7 +138,7 @@ class VortexClient:
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
-        data: Dict[str, Any] = response.json()
+        data: dict[str, Any] = response.json()
         run_id: str = data["run_id"]
         logger.info(
             "Graph execution started: graph_id=%s run_id=%s eta_ms=%s",
@@ -156,7 +156,7 @@ class VortexClient:
         self,
         run_id: str,
         token: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Check the status of a running or completed graph execution.
 
         Maps to ``GET /api/run/:id/status``.
@@ -190,16 +190,14 @@ class VortexClient:
         if response.status_code == 200:
             logger.info("Run cancelled: %s", run_id)
             return True
-        logger.warning(
-            "Failed to cancel run %s: status=%s", run_id, response.status_code
-        )
+        logger.warning("Failed to cancel run %s: status=%s", run_id, response.status_code)
         return False
 
     # ─────────────────────────────────────────────────────────────
     # MCP (Model Context Protocol) integration
     # ─────────────────────────────────────────────────────────────
 
-    async def list_mcp_tools(self, token: str) -> List[Dict[str, Any]]:
+    async def list_mcp_tools(self, token: str) -> list[dict[str, Any]]:
         """List all available MCP tool node definitions.
 
         Maps to ``GET /api/nodes/mcp``.
@@ -216,7 +214,7 @@ class VortexClient:
         response.raise_for_status()
         return response.json()
 
-    async def list_mcp_clients(self, token: str) -> List[str]:
+    async def list_mcp_clients(self, token: str) -> list[str]:
         """List registered MCP client IDs.
 
         Maps to ``GET /api/mcp/clients``.
@@ -234,9 +232,9 @@ class VortexClient:
     async def call_mcp_tool(
         self,
         type_id: str,
-        arguments: Dict[str, Any],
+        arguments: dict[str, Any],
         token: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Invoke an MCP tool by its VORTEX type_id.
 
         Maps to ``POST /api/mcp/tool/call``.
@@ -259,7 +257,7 @@ class VortexClient:
         self,
         client_id: str,
         command: str,
-        args: List[str],
+        args: list[str],
         token: str,
     ) -> bool:
         """Register a stdio MCP client with Vortex.
@@ -291,7 +289,7 @@ class VortexClient:
     # Health & observability
     # ─────────────────────────────────────────────────────────────
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Check Vortex health (unauthenticated, suitable for K8s probes).
 
         Maps to ``GET /health``.
@@ -323,7 +321,7 @@ class VortexClient:
         await self._client.aclose()
         logger.debug("VortexClient closed")
 
-    async def __aenter__(self) -> "VortexClient":
+    async def __aenter__(self) -> VortexClient:
         return self
 
     async def __aexit__(

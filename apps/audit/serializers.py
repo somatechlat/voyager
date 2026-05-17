@@ -8,15 +8,15 @@ integrity, filtering, and export support. All timestamps are UTC.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from ninja import Schema
 
-
 # ---------------------------------------------------------------------------
 # Core audit schemas
 # ---------------------------------------------------------------------------
+
 
 class AuditLogSchema(Schema):
     """Represents a single immutable audit log entry.
@@ -48,8 +48,8 @@ class AuditLogSchema(Schema):
     resource_type: str
     resource_id: str
     outcome: str
-    details: Dict[str, Any]
-    ip_address: Optional[str] = None
+    details: dict[str, Any]
+    ip_address: str | None = None
     user_agent: str = ""
     request_id: str = ""
     previous_hash: str = ""
@@ -59,7 +59,7 @@ class AuditLogSchema(Schema):
 class AuditLogListResponse(Schema):
     """Paginated response for audit log queries."""
 
-    items: List[AuditLogSchema]
+    items: list[AuditLogSchema]
     total: int
     page: int
     page_size: int
@@ -79,8 +79,8 @@ class AuditLogCreateSchema(Schema):
     resource_type: str
     resource_id: str
     outcome: str = "success"
-    details: Dict[str, Any] = {}
-    ip_address: Optional[str] = None
+    details: dict[str, Any] = {}
+    ip_address: str | None = None
 
 
 class AuditLogFilterSchema(Schema):
@@ -89,17 +89,17 @@ class AuditLogFilterSchema(Schema):
     All filters are AND-combined. Date range uses inclusive boundaries.
     """
 
-    tenant_id: Optional[str] = None
-    actor_id: Optional[str] = None
-    actor_type: Optional[str] = None
-    action: Optional[str] = None
-    action_prefix: Optional[str] = None
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    outcome: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
-    request_id: Optional[str] = None
+    tenant_id: str | None = None
+    actor_id: str | None = None
+    actor_type: str | None = None
+    action: str | None = None
+    action_prefix: str | None = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    outcome: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    request_id: str | None = None
     page: int = 1
     page_size: int = 20
 
@@ -109,18 +109,19 @@ class AuditLogStatsSchema(Schema):
 
     tenant_id: str
     total_events: int
-    events_by_action: Dict[str, int]
-    events_by_outcome: Dict[str, int]
-    events_by_resource_type: Dict[str, int]
-    events_by_day: Dict[str, int]
+    events_by_action: dict[str, int]
+    events_by_outcome: dict[str, int]
+    events_by_resource_type: dict[str, int]
+    events_by_day: dict[str, int]
     unique_actors: int
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
 # Export schemas
 # ---------------------------------------------------------------------------
+
 
 class AuditLogExportRequestSchema(Schema):
     """Request body for exporting audit logs.
@@ -129,11 +130,11 @@ class AuditLogExportRequestSchema(Schema):
     """
 
     format: str = "json"  # "csv" or "json"
-    tenant_id: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
-    action_prefix: Optional[str] = None
-    resource_type: Optional[str] = None
+    tenant_id: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    action_prefix: str | None = None
+    resource_type: str | None = None
 
 
 class AuditLogExportResponse(Schema):
@@ -141,24 +142,25 @@ class AuditLogExportResponse(Schema):
 
     format: str
     record_count: int
-    download_url: Optional[str] = None
-    data: Optional[List[AuditLogSchema]] = None
+    download_url: str | None = None
+    data: list[AuditLogSchema] | None = None
 
 
 # ---------------------------------------------------------------------------
 # Hash chain verification schemas
 # ---------------------------------------------------------------------------
 
+
 class HashChainStatusSchema(Schema):
     """Status of the hash chain integrity check."""
 
     is_valid: bool
     total_entries: int
-    first_entry_id: Optional[str] = None
-    last_entry_id: Optional[str] = None
+    first_entry_id: str | None = None
+    last_entry_id: str | None = None
     last_hash: str = ""
-    broken_at_index: Optional[int] = None
-    broken_entry_id: Optional[str] = None
+    broken_at_index: int | None = None
+    broken_entry_id: str | None = None
     checked_at: datetime
 
 
@@ -166,13 +168,14 @@ class HashChainVerifyRequestSchema(Schema):
     """Request to verify hash chain integrity for a tenant's audit log."""
 
     tenant_id: str
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
 
 
 # ---------------------------------------------------------------------------
 # Bulk operation schemas
 # ---------------------------------------------------------------------------
+
 
 class BulkAuditLogCreateSchema(Schema):
     """Request body for creating multiple audit log entries at once.
@@ -180,7 +183,7 @@ class BulkAuditLogCreateSchema(Schema):
     Used for batch-logging from background tasks or bulk imports.
     """
 
-    entries: List[AuditLogCreateSchema]
+    entries: list[AuditLogCreateSchema]
 
 
 class BulkAuditLogResponse(Schema):
@@ -188,4 +191,4 @@ class BulkAuditLogResponse(Schema):
 
     created_count: int
     failed_count: int
-    errors: List[str]
+    errors: list[str]

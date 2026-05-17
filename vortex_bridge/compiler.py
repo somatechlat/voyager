@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class WorkflowCompiler:
     # Public API
     # ─────────────────────────────────────────────────────────────
 
-    def compile_workflow(self, workflow: Dict[str, Any]) -> Dict[str, Any]:
+    def compile_workflow(self, workflow: dict[str, Any]) -> dict[str, Any]:
         """Compile a generic Voyager workflow to Vortex GraphDSL.
 
         This is the entry-point for arbitrary workflows that already
@@ -53,17 +53,11 @@ class WorkflowCompiler:
         :raises ValueError: If the workflow is missing required keys.
         """
         if "nodes" not in workflow or "edges" not in workflow:
-            raise ValueError(
-                "Workflow must contain 'nodes' and 'edges' keys"
-            )
+            raise ValueError("Workflow must contain 'nodes' and 'edges' keys")
 
-        graph_dsl: Dict[str, Any] = {
-            "nodes": [
-                self._normalize_node(n) for n in workflow["nodes"]
-            ],
-            "edges": [
-                self._normalize_edge(e) for e in workflow["edges"]
-            ],
+        graph_dsl: dict[str, Any] = {
+            "nodes": [self._normalize_node(n) for n in workflow["nodes"]],
+            "edges": [self._normalize_edge(e) for e in workflow["edges"]],
             "metadata": workflow.get("metadata", {}),
         }
 
@@ -76,10 +70,10 @@ class WorkflowCompiler:
 
     def compile_content_pipeline(
         self,
-        brand_kit: Dict[str, Any],
-        templates: List[Dict[str, Any]],
-        options: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        brand_kit: dict[str, Any],
+        templates: list[dict[str, Any]],
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Compile a content-creation pipeline to GraphDSL.
 
         Generates a graph that:
@@ -122,7 +116,7 @@ class WorkflowCompiler:
             parameters={"format": options.get("output_format", "json") if options else "json"},
         )
 
-        graph_dsl: Dict[str, Any] = {
+        graph_dsl: dict[str, Any] = {
             "nodes": [brand_node, template_node, generate_node, format_node, output_node],
             "edges": [
                 self._create_edge(brand_node["id"], generate_node["id"], "brand"),
@@ -138,15 +132,13 @@ class WorkflowCompiler:
             },
         }
 
-        logger.info(
-            "Compiled content pipeline: %d templates", len(templates)
-        )
+        logger.info("Compiled content pipeline: %d templates", len(templates))
         return graph_dsl
 
     def compile_campaign_workflow(
         self,
-        campaign: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        campaign: dict[str, Any],
+    ) -> dict[str, Any]:
         """Compile a campaign execution workflow to GraphDSL.
 
         Generates a graph that orchestrates multi-channel campaign
@@ -166,8 +158,8 @@ class WorkflowCompiler:
             parameters={"budget": campaign.get("budget", {})},
         )
 
-        channel_nodes: List[Dict[str, Any]] = []
-        channel_edges: List[Dict[str, Any]] = []
+        channel_nodes: list[dict[str, Any]] = []
+        channel_edges: list[dict[str, Any]] = []
 
         for channel in campaign.get("channels", []):
             ch_node = self._create_node(
@@ -175,12 +167,8 @@ class WorkflowCompiler:
                 parameters=channel,
             )
             channel_nodes.append(ch_node)
-            channel_edges.append(
-                self._create_edge(segment_node["id"], ch_node["id"], "audience")
-            )
-            channel_edges.append(
-                self._create_edge(budget_node["id"], ch_node["id"], "budget")
-            )
+            channel_edges.append(self._create_edge(segment_node["id"], ch_node["id"], "audience"))
+            channel_edges.append(self._create_edge(budget_node["id"], ch_node["id"], "budget"))
 
         aggregate_node = self._create_node(
             type_id="vortex.metrics.aggregate",
@@ -188,11 +176,9 @@ class WorkflowCompiler:
         )
 
         for ch_node in channel_nodes:
-            channel_edges.append(
-                self._create_edge(ch_node["id"], aggregate_node["id"], "metrics")
-            )
+            channel_edges.append(self._create_edge(ch_node["id"], aggregate_node["id"], "metrics"))
 
-        graph_dsl: Dict[str, Any] = {
+        graph_dsl: dict[str, Any] = {
             "nodes": [segment_node, budget_node, *channel_nodes, aggregate_node],
             "edges": channel_edges,
             "metadata": {
@@ -211,9 +197,9 @@ class WorkflowCompiler:
 
     def compile_publishing_queue(
         self,
-        posts: List[Dict[str, Any]],
-        options: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        posts: list[dict[str, Any]],
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Compile a publishing queue workflow to GraphDSL.
 
         Generates a parallel dispatch graph where each post is a
@@ -225,8 +211,8 @@ class WorkflowCompiler:
         :param options: Optional queue overrides (batch size, retry).
         :returns: GraphDSL dictionary.
         """
-        post_nodes: List[Dict[str, Any]] = []
-        post_edges: List[Dict[str, Any]] = []
+        post_nodes: list[dict[str, Any]] = []
+        post_edges: list[dict[str, Any]] = []
 
         for post in posts:
             validate_node = self._create_node(
@@ -246,11 +232,9 @@ class WorkflowCompiler:
             post_edges.append(
                 self._create_edge(validate_node["id"], optimise_node["id"], "content")
             )
-            post_edges.append(
-                self._create_edge(optimise_node["id"], publish_node["id"], "content")
-            )
+            post_edges.append(self._create_edge(optimise_node["id"], publish_node["id"], "content"))
 
-        graph_dsl: Dict[str, Any] = {
+        graph_dsl: dict[str, Any] = {
             "nodes": post_nodes,
             "edges": post_edges,
             "metadata": {
@@ -260,9 +244,7 @@ class WorkflowCompiler:
             },
         }
 
-        logger.info(
-            "Compiled publishing queue: %d posts", len(posts)
-        )
+        logger.info("Compiled publishing queue: %d posts", len(posts))
         return graph_dsl
 
     # ─────────────────────────────────────────────────────────────
@@ -272,9 +254,9 @@ class WorkflowCompiler:
     def _create_node(
         self,
         type_id: str,
-        parameters: Dict[str, Any],
-        position: Optional[Dict[str, int]] = None,
-    ) -> Dict[str, Any]:
+        parameters: dict[str, Any],
+        position: dict[str, int] | None = None,
+    ) -> dict[str, Any]:
         """Create a normalized node dictionary.
 
         :param type_id: VORTEX node type identifier.
@@ -293,10 +275,10 @@ class WorkflowCompiler:
         self,
         source: str,
         target: str,
-        label: Optional[str] = None,
-        source_port: Optional[str] = None,
-        target_port: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        label: str | None = None,
+        source_port: str | None = None,
+        target_port: str | None = None,
+    ) -> dict[str, Any]:
         """Create a normalized edge dictionary.
 
         :param source: Source node ``id``.
@@ -306,7 +288,7 @@ class WorkflowCompiler:
         :param target_port: Optional target port name.
         :returns: Normalized edge dict.
         """
-        edge: Dict[str, Any] = {
+        edge: dict[str, Any] = {
             "id": f"edge_{uuid.uuid4().hex[:8]}",
             "source": source,
             "target": target,
@@ -319,7 +301,7 @@ class WorkflowCompiler:
             edge["target_port"] = target_port
         return edge
 
-    def _normalize_node(self, node: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_node(self, node: dict[str, Any]) -> dict[str, Any]:
         """Ensure a node dict has all required GraphDSL fields."""
         normalized = dict(node)
         if "id" not in normalized:
@@ -328,7 +310,7 @@ class WorkflowCompiler:
             normalized["position"] = {"x": 0, "y": 0}
         return normalized
 
-    def _normalize_edge(self, edge: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_edge(self, edge: dict[str, Any]) -> dict[str, Any]:
         """Ensure an edge dict has all required GraphDSL fields."""
         normalized = dict(edge)
         if "id" not in normalized:

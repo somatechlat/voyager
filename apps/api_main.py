@@ -35,26 +35,27 @@ import uuid
 
 from ninja import NinjaAPI
 
+from apps.ai_agents.api import router as agents_router
+from apps.analytics_v2.api import router as analytics_router
+from apps.assets.api import router as assets_router
+from apps.audit.api import router as audit_router
+from apps.billing.api import router as billing_router
+from apps.campaigns.api import router as campaigns_router
+from apps.clients.api import router as clients_router
+from apps.content_creation.api import router as content_router
+from apps.email_marketing.api import router as email_router
+from apps.governance_v2.api import router as governance_router
+from apps.integrations.api import router as integrations_router
+from apps.publishing.api import router as publishing_router
+
 # Import all module routers
 from apps.rbac.api import router as rbac_router
-from apps.audit.api import router as audit_router
-from apps.content_creation.api import router as content_router
-from apps.publishing.api import router as publishing_router
-from apps.campaigns.api import router as campaigns_router
-from apps.strategy.api import router as strategy_router
-from apps.analytics_v2.api import router as analytics_router
-from apps.web_scraping_v2.api import router as scraping_router
-from apps.ai_agents.api import router as agents_router
-from apps.social_media.api import router as social_router
 from apps.seo.api import router as seo_router
-from apps.email_marketing.api import router as email_router
-from apps.clients.api import router as clients_router
-from apps.billing.api import router as billing_router
-from apps.assets.api import router as assets_router
+from apps.social_media.api import router as social_router
+from apps.strategy.api import router as strategy_router
 from apps.team.api import router as team_router
+from apps.web_scraping_v2.api import router as scraping_router
 from apps.workflows_v2.api import router as workflows_router
-from apps.integrations.api import router as integrations_router
-from apps.governance_v2.api import router as governance_router
 
 # Same pytest collision avoidance as Voyant
 urls_namespace = "voyager_v1"

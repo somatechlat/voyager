@@ -10,7 +10,7 @@ Tasks are routed to the ``billing`` queue via
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from celery import shared_task
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3)
-def generate_invoices(self) -> Dict[str, Any]:
+def generate_invoices(self) -> dict[str, Any]:
     """Generate invoices for all billable tenants.
 
     Iterates over active subscriptions and generates invoices
@@ -29,7 +29,7 @@ def generate_invoices(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "invoices_generated": 0,
@@ -40,7 +40,7 @@ def generate_invoices(self) -> Dict[str, Any]:
 
 
 @shared_task(bind=True, max_retries=3)
-def process_recurring_payments(self) -> Dict[str, Any]:
+def process_recurring_payments(self) -> dict[str, Any]:
     """Process recurring subscription payments.
 
     Charges payment methods for subscriptions that are due.
@@ -50,7 +50,7 @@ def process_recurring_payments(self) -> Dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "status": "ok",
         "task": self.name,
         "payments_processed": 0,

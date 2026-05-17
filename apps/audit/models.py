@@ -207,10 +207,14 @@ class AuditLogEntry(models.Model):
         }
         if self.previous_hash:
             try:
-                prev = AuditLogEntry.objects.filter(
-                    tenant_id=self.tenant_id,
-                    timestamp__lt=self.timestamp,
-                ).order_by("-timestamp").first()
+                prev = (
+                    AuditLogEntry.objects.filter(
+                        tenant_id=self.tenant_id,
+                        timestamp__lt=self.timestamp,
+                    )
+                    .order_by("-timestamp")
+                    .first()
+                )
                 if prev:
                     result["chain_valid"] = self.previous_hash == prev.entry_hash
             except AuditLogEntry.DoesNotExist:

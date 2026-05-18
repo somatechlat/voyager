@@ -7,7 +7,6 @@ and benchmark creation.
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 from ninja import Router
 
@@ -168,9 +167,7 @@ def benchmark_stats(request, tenant_id: str = ""):
         "total_benchmarks": qs.count(),
         "competitors_tracked": qs.values("competitor_handle").distinct().count(),
         "platforms": list(qs.values_list("platform", flat=True).distinct()),
-        "latest_period": (
-            qs.order_by("-period_end").values_list("period_end", flat=True).first()
-        ),
+        "latest_period": (qs.order_by("-period_end").values_list("period_end", flat=True).first()),
     }
 
 

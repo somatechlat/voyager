@@ -39,13 +39,17 @@ class ContentCalendar(UUIDModel, TimeStampedModel, TenantModel):
         related_name="calendar_entry",
     )
     calendar_view = models.CharField(
-        max_length=16, choices=CalendarView.choices, default=CalendarView.MONTH,
+        max_length=16,
+        choices=CalendarView.choices,
+        default=CalendarView.MONTH,
     )
     position_order = models.PositiveIntegerField(
-        default=0, help_text="Render order within a calendar cell",
+        default=0,
+        help_text="Render order within a calendar cell",
     )
     color_override = models.CharField(
-        max_length=7, blank=True,
+        max_length=7,
+        blank=True,
         help_text="Optional hex colour override (#RRGGBB)",
     )
 
@@ -121,21 +125,28 @@ class BlackoutWindow(UUIDModel, TimeStampedModel, TenantModel):
 
     name = models.CharField(max_length=255, help_text="Blackout name")
     account_id = models.UUIDField(
-        null=True, blank=True, db_index=True,
+        null=True,
+        blank=True,
+        db_index=True,
         help_text="Account scope; null = all accounts",
     )
     platform = models.CharField(
-        max_length=32, blank=True, db_index=True,
+        max_length=32,
+        blank=True,
+        db_index=True,
         help_text="Platform scope; blank = all platforms",
     )
     start_at = models.DateTimeField(help_text="Blackout start")
     end_at = models.DateTimeField(help_text="Blackout end")
     recurring = models.CharField(
-        max_length=16, choices=RecurringType.choices, default=RecurringType.NONE,
+        max_length=16,
+        choices=RecurringType.choices,
+        default=RecurringType.NONE,
     )
     is_active = models.BooleanField(default=True, db_index=True)
     metadata_json = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text="Additional blackout metadata",
     )
 

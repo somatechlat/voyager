@@ -6,6 +6,7 @@ CRUD for A/B tests, sample size calculation, and results evaluation.
 from __future__ import annotations
 
 import logging
+from datetime import UTC
 from typing import Any
 
 from django.shortcuts import get_object_or_404
@@ -241,11 +242,11 @@ def start_ab_test(
     Returns:
         Status update.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     test = get_object_or_404(CampaignABTest, id=test_id, campaign_id=campaign_id)
     test.status = CampaignABTest.Status.RUNNING
-    test.start_date = datetime.now(timezone.utc)
+    test.start_date = datetime.now(UTC)
     test.save(update_fields=["status", "start_date", "updated_at"])
     return {"success": True, "status": test.status}
 
@@ -266,10 +267,10 @@ def stop_ab_test(
     Returns:
         Status update.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     test = get_object_or_404(CampaignABTest, id=test_id, campaign_id=campaign_id)
     test.status = CampaignABTest.Status.COMPLETED
-    test.end_date = datetime.now(timezone.utc)
+    test.end_date = datetime.now(UTC)
     test.save(update_fields=["status", "end_date", "updated_at"])
     return {"success": True, "status": test.status}

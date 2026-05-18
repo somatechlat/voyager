@@ -78,12 +78,8 @@ class Keyword(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant_id = models.CharField(max_length=128, db_index=True)
     keyword = models.CharField(max_length=500, db_index=True, help_text="The keyword phrase")
-    location = models.CharField(
-        max_length=10, default="US", help_text="ISO 3166-1 country code"
-    )
-    language = models.CharField(
-        max_length=10, default="en", help_text="ISO 639-1 language code"
-    )
+    location = models.CharField(max_length=10, default="US", help_text="ISO 3166-1 country code")
+    language = models.CharField(max_length=10, default="en", help_text="ISO 639-1 language code")
 
     # Search metrics
     monthly_volume = models.PositiveIntegerField(

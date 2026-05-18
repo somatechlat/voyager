@@ -14,7 +14,11 @@ from ninja import Router
 
 from apps.analytics_v2.models.export import ExportJob
 from apps.analytics_v2.serializers import ExportCreateIn, ExportOut
-from apps.analytics_v2.services.export import create_export_job, process_export_job, stream_export_response
+from apps.analytics_v2.services.export import (
+    create_export_job,
+    process_export_job,
+    stream_export_response,
+)
 from apps.rbac.auth import VoyagerKeycloakBearer
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -113,6 +117,7 @@ def download_export(request, job_id: UUID) -> Any:
 
     if job.status != "completed":
         from ninja.errors import HttpError
+
         raise HttpError(400, f"Export job is {job.status}, not ready for download")
 
     return stream_export_response(job)

@@ -66,9 +66,7 @@ class Client(models.Model):
         blank=True,
         help_text="Primary contact person's full name",
     )
-    contact_email = models.EmailField(
-        blank=True, help_text="Primary contact email address"
-    )
+    contact_email = models.EmailField(blank=True, help_text="Primary contact email address")
     contact_phone = models.CharField(
         max_length=50,
         blank=True,

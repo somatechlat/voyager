@@ -7,11 +7,10 @@ lifecycle auto-advancement, and A/B test evaluation.
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import UTC, date, timedelta
 from typing import Any
 
 from celery import shared_task
-from django.db import transaction
 
 from apps.campaigns.models import Campaign
 from apps.campaigns.services.budget import check_budget_alerts
@@ -104,9 +103,7 @@ def sync_performance_data(
             _sync_single_campaign_performance(campaign)
             synced += 1
         except Exception:
-            logger.exception(
-                "Error syncing performance for campaign %s", campaign.id
-            )
+            logger.exception("Error syncing performance for campaign %s", campaign.id)
             errors += 1
 
     result = {
@@ -219,7 +216,7 @@ def evaluate_ab_tests_task(
     Returns:
         Evaluation summary.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from apps.campaigns.models import CampaignABTest
     from apps.campaigns.services.ab_testing import evaluate_test_results
@@ -237,7 +234,7 @@ def evaluate_ab_tests_task(
         try:
             # Check if test should complete
             should_complete = False
-            if test.end_date and test.end_date < datetime.now(timezone.utc):
+            if test.end_date and test.end_date < datetime.now(UTC):
                 should_complete = True
             elif (
                 test.sample_size_per_variant
@@ -248,7 +245,7 @@ def evaluate_ab_tests_task(
 
             if should_complete:
                 test.status = CampaignABTest.Status.COMPLETED
-                test.end_date = datetime.now(timezone.utc)
+                test.end_date = datetime.now(UTC)
                 test.save(update_fields=["status", "end_date", "updated_at"])
                 completed += 1
 
@@ -286,9 +283,7 @@ def execute_campaign(
     Returns:
         Result dict.
     """
-    logger.info(
-        "Executing campaign %s for tenant %s", campaign_id, tenant_id
-    )
+    logger.info("Executing campaign %s for tenant %s", campaign_id, tenant_id)
 
     result = {
         "status": "ok",

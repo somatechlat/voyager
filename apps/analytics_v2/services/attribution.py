@@ -8,12 +8,9 @@ assigning conversion credit across touchpoints.
 from __future__ import annotations
 
 import logging
-import math
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
-
-from apps.analytics_v2.models.attribution import AttributionModel, ConversionPath, Touchpoint
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +237,9 @@ def _data_driven(touchpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return result
 
     # Build transition counts
-    transitions: dict[str, dict[str, float]] = {c: {} for c in channels + ["start", "conversion", "null"]}
+    transitions: dict[str, dict[str, float]] = {
+        c: {} for c in channels + ["start", "conversion", "null"]
+    }
     prev = "start"
     for tp in result:
         ch = tp.get("channel", "unknown")
@@ -275,7 +274,10 @@ def _data_driven(touchpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     # Normalize removal effects to credits
     total_effect = sum(removal_effects.values())
-    channel_credits = {ch: (eff / total_effect if total_effect > 0 else 1.0 / n) for ch, eff in removal_effects.items()}
+    channel_credits = {
+        ch: (eff / total_effect if total_effect > 0 else 1.0 / n)
+        for ch, eff in removal_effects.items()
+    }
 
     # Distribute channel credits to individual touchpoints
     for tp in result:
@@ -314,7 +316,9 @@ def _markov_conversion_rate(
                 if next_state == "conversion":
                     conv_prob += prob * trans_prob
                 elif next_state != "null":
-                    new_state_probs[next_state] = new_state_probs.get(next_state, 0) + prob * trans_prob
+                    new_state_probs[next_state] = (
+                        new_state_probs.get(next_state, 0) + prob * trans_prob
+                    )
         state_probs = new_state_probs
         if not state_probs:
             break
@@ -379,17 +383,19 @@ def visualize_conversion_path(
         if prev_ts and ts:
             time_since = round((ts - prev_ts).total_seconds() / 3600, 2)
 
-        steps.append({
-            "step": i + 1,
-            "channel": tp.get("channel", ""),
-            "platform": tp.get("platform", ""),
-            "campaign": tp.get("campaign", ""),
-            "touchpoint_type": tp.get("touchpoint_type", ""),
-            "timestamp": ts.isoformat() if ts else None,
-            "time_since_previous_hours": time_since,
-            "credit": round(tp.get("credit", 0), 4),
-            "revenue_attributed": round(tp.get("revenue_attributed", 0), 2),
-        })
+        steps.append(
+            {
+                "step": i + 1,
+                "channel": tp.get("channel", ""),
+                "platform": tp.get("platform", ""),
+                "campaign": tp.get("campaign", ""),
+                "touchpoint_type": tp.get("touchpoint_type", ""),
+                "timestamp": ts.isoformat() if ts else None,
+                "time_since_previous_hours": time_since,
+                "credit": round(tp.get("credit", 0), 4),
+                "revenue_attributed": round(tp.get("revenue_attributed", 0), 2),
+            }
+        )
 
     first_ts = sorted_tps[0].get("timestamp") if sorted_tps else None
     if isinstance(first_ts, str):

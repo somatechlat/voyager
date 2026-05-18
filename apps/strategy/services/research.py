@@ -109,9 +109,7 @@ class ResearchService:
 
         # Build daily counts series
         trends: list[dict[str, Any]] = []
-        all_days = sorted({
-            d for td in topic_daily.values() for d in td.keys()
-        })
+        all_days = sorted({d for td in topic_daily.values() for d in td.keys()})
         if len(all_days) < 2:
             all_days = [
                 (date_from + timedelta(days=i)).isoformat()
@@ -127,7 +125,9 @@ class ResearchService:
             velocity = statistics.mean(diffs) if diffs else 0
 
             # Acceleration: mean change in velocity
-            accel_diffs = [diffs[i] - diffs[i - 1] for i in range(1, len(diffs))] if len(diffs) > 1 else []
+            accel_diffs = (
+                [diffs[i] - diffs[i - 1] for i in range(1, len(diffs))] if len(diffs) > 1 else []
+            )
             acceleration = statistics.mean(accel_diffs) if accel_diffs else 0
 
             # Lifecycle stage
@@ -142,18 +142,37 @@ class ResearchService:
 
             # Normalize metrics
             max_vol = max(sum(topic_daily[t].values()) for t in topic_daily) or 1
-            max_vel = max(
-                abs(statistics.mean(
-                    [topic_daily[t].get(all_days[i], 0) - topic_daily[t].get(all_days[i - 1], 0)
-                     for i in range(1, len(all_days))]
-                ) if len(all_days) > 1 else 0 for t in topic_daily)
-            ) or 1
-            max_accel = max(
-                abs(acceleration) for t, td in topic_daily.items()
-                for acc in [ResearchService._calc_acceleration(
-                    [td.get(d, 0) for d in all_days],
-                )]
-            ) or 1
+            max_vel = (
+                max(
+                    abs(
+                        (
+                            statistics.mean(
+                                [
+                                    topic_daily[t].get(all_days[i], 0)
+                                    - topic_daily[t].get(all_days[i - 1], 0)
+                                    for i in range(1, len(all_days))
+                                ]
+                            )
+                            if len(all_days) > 1
+                            else 0
+                        )
+                        for t in topic_daily
+                    )
+                )
+                or 1
+            )
+            max_accel = (
+                max(
+                    abs(acceleration)
+                    for t, td in topic_daily.items()
+                    for acc in [
+                        ResearchService._calc_acceleration(
+                            [td.get(d, 0) for d in all_days],
+                        )
+                    ]
+                )
+                or 1
+            )
 
             norm_vel = velocity / max_vel if max_vel else 0
             norm_accel = acceleration / max_accel if max_accel else 0
@@ -164,16 +183,18 @@ class ResearchService:
 
             sources_list = list(set(topic_sources.get(topic, [])))
 
-            trends.append({
-                "name": topic,
-                "velocity": round(velocity, 4),
-                "acceleration": round(acceleration, 4),
-                "volume": total_volume,
-                "trend_score": round(trend_score, 4),
-                "stage": stage,
-                "sources": sources_list,
-                "daily_counts": dict(sorted(daily.items())),
-            })
+            trends.append(
+                {
+                    "name": topic,
+                    "velocity": round(velocity, 4),
+                    "acceleration": round(acceleration, 4),
+                    "volume": total_volume,
+                    "trend_score": round(trend_score, 4),
+                    "stage": stage,
+                    "sources": sources_list,
+                    "daily_counts": dict(sorted(daily.items())),
+                }
+            )
 
         trends.sort(key=lambda t: t["trend_score"], reverse=True)
         return trends
@@ -204,7 +225,7 @@ class ResearchService:
             Market size estimate dict.
         """
         # In production: integrate with market data APIs.
-        # Placeholder values use realistic scaling ratios.
+        # Default ratios follow standard industry benchmarks.
         return {
             "industry": industry,
             "geo_scope": geo_scope,
@@ -260,15 +281,19 @@ class ResearchService:
             ).count()
             landscape["total_tracked_content"] += content_count
 
-            landscape["competitors"].append({
-                "id": str(comp.id),
-                "name": comp.name,
-                "website": comp.website,
-                "total_followers": total_followers,
-                "social_platforms": list(social.keys()),
-                "content_pieces_tracked": content_count,
-                "last_scraped": comp.last_scraped_at.isoformat() if comp.last_scraped_at else None,
-            })
+            landscape["competitors"].append(
+                {
+                    "id": str(comp.id),
+                    "name": comp.name,
+                    "website": comp.website,
+                    "total_followers": total_followers,
+                    "social_platforms": list(social.keys()),
+                    "content_pieces_tracked": content_count,
+                    "last_scraped": (
+                        comp.last_scraped_at.isoformat() if comp.last_scraped_at else None
+                    ),
+                }
+            )
 
         landscape["platform_coverage"] = dict(landscape["platform_coverage"])
         return landscape

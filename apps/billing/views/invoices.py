@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router
@@ -98,9 +97,7 @@ def update_invoice(request, invoice_id: int, data: InvoiceUpdateSchema):
     return invoice
 
 
-@router.post(
-    "/invoices/{int:invoice_id}/status", response=InvoiceSchema, tags=["Billing"]
-)
+@router.post("/invoices/{int:invoice_id}/status", response=InvoiceSchema, tags=["Billing"])
 def update_invoice_status(request, invoice_id: int, data: InvoiceStatusUpdateSchema):
     """Update invoice status."""
     tenant_id = getattr(request, "tenant_id", "")
@@ -108,6 +105,7 @@ def update_invoice_status(request, invoice_id: int, data: InvoiceStatusUpdateSch
     invoice.status = data.status
     if data.status == Invoice.Status.SENT and not invoice.sent_at:
         from django.utils import timezone
+
         invoice.sent_at = timezone.now()
     if data.status == Invoice.Status.VOID:
         invoice.amount_due = Decimal("0")
@@ -133,9 +131,9 @@ def list_invoice_line_items(request, invoice_id: int):
     """List line items for an invoice."""
     tenant_id = getattr(request, "tenant_id", "")
     return list(
-        LineItem.objects.filter(
-            tenant_id=tenant_id, invoice_id=invoice_id
-        ).order_by("sort_order", "created_at")
+        LineItem.objects.filter(tenant_id=tenant_id, invoice_id=invoice_id).order_by(
+            "sort_order", "created_at"
+        )
     )
 
 
@@ -149,9 +147,11 @@ def add_line_item(request, invoice_id: int, data: LineItemCreateSchema):
     tenant_id = getattr(request, "tenant_id", "")
     invoice = get_object_or_404(Invoice, tenant_id=tenant_id, pk=invoice_id)
     max_order = (
-        LineItem.objects.filter(invoice=invoice).order_by("-sort_order").values_list(
-            "sort_order", flat=True
-        ).first() or 0
+        LineItem.objects.filter(invoice=invoice)
+        .order_by("-sort_order")
+        .values_list("sort_order", flat=True)
+        .first()
+        or 0
     )
     item = LineItem.objects.create(
         tenant_id=tenant_id,

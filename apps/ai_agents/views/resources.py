@@ -2,24 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from django.http import HttpRequest
 
 from apps.ai_agents.models.agent import AgentResourceLimit
 from apps.ai_agents.serializers import (
     ConsumeResourcesRequest,
-    ResourceCheckResponse,
-    ResourceLimitSchema,
-    ResourceStatusSchema,
     ResetResourcesResponse,
+    ResourceCheckResponse,
+    ResourceStatusSchema,
 )
 from apps.ai_agents.services.resources import ResourceManager
 
 
-def get_resource_status(
-    request: HttpRequest, agent_id: int
-) -> ResourceStatusSchema:
+def get_resource_status(request: HttpRequest, agent_id: int) -> ResourceStatusSchema:
     """Get current resource status for an agent."""
     status = ResourceManager.get_resource_status(agent_id)
     if status.get("status") == "error":
@@ -41,16 +36,12 @@ def get_resource_status(
     )
 
 
-def get_resource_limits(
-    request: HttpRequest, agent_id: int
-) -> AgentResourceLimit:
+def get_resource_limits(request: HttpRequest, agent_id: int) -> AgentResourceLimit:
     """Get raw resource limit record for an agent."""
     return AgentResourceLimit.objects.get(agent_id=agent_id)
 
 
-def check_resources(
-    request: HttpRequest, agent_id: int
-) -> ResourceCheckResponse:
+def check_resources(request: HttpRequest, agent_id: int) -> ResourceCheckResponse:
     """Check resource limits and get throttle status."""
     result = ResourceManager.check_resources(agent_id)
     return ResourceCheckResponse(

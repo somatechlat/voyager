@@ -69,9 +69,7 @@ def list_campaigns(
     if objective:
         qs = qs.filter(objective=objective)
     if search:
-        qs = qs.filter(
-            Q(name__icontains=search) | Q(description__icontains=search)
-        )
+        qs = qs.filter(Q(name__icontains=search) | Q(description__icontains=search))
 
     return list(qs.order_by("-created_at")[offset : offset + limit])
 
@@ -220,7 +218,9 @@ def clone_campaign(
         current_spend=0,
         currency=source.currency,
         pacing_type=source.pacing_type if include_settings else Campaign.PacingType.EVEN,
-        attribution_model=source.attribution_model if include_settings else Campaign.AttributionModel.LAST_TOUCH,
+        attribution_model=(
+            source.attribution_model if include_settings else Campaign.AttributionModel.LAST_TOUCH
+        ),
         channels=source.channels if include_settings else [],
         target_audience=source.target_audience if include_audiences else {},
         kpis=source.kpis if include_settings else {},

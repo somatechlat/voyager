@@ -167,7 +167,11 @@ def schedule_retry(
 
     logger.info(
         "Retry %s for post %s: type=%s delay=%ss action=%s",
-        attempt_number, post.id, error_type, delay, escalation["action"],
+        attempt_number,
+        post.id,
+        error_type,
+        delay,
+        escalation["action"],
     )
 
     return {

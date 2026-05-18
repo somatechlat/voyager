@@ -79,25 +79,17 @@ class InfluencerProfile(UUIDModel, TenantModel, TimeStampedModel):
     bio = models.TextField(blank=True)
     followers = models.PositiveIntegerField(default=0)
     following = models.PositiveIntegerField(default=0)
-    engagement_rate = models.DecimalField(
-        max_digits=5, decimal_places=4, null=True, blank=True
-    )
+    engagement_rate = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
     niche = models.JSONField(default=list, blank=True)
     location = models.CharField(max_length=255, blank=True)
     audience_demographics = models.JSONField(default=dict, blank=True)
-    authenticity_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    authenticity_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     red_flags = models.JSONField(default=list, blank=True)
-    rate_estimate = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    rate_estimate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     content_quality_score = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
     )
-    status = models.CharField(
-        max_length=20, choices=STATUSES, default="discovered", db_index=True
-    )
+    status = models.CharField(max_length=20, choices=STATUSES, default="discovered", db_index=True)
     outreach_status = models.CharField(
         max_length=20, choices=OUTREACH_STATUSES, default="not_contacted", db_index=True
     )

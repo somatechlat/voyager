@@ -45,9 +45,7 @@ class MCPToolCall(models.Model):
     tenant_id = models.CharField(
         max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation"
     )
-    tool_id = models.CharField(
-        max_length=128, db_index=True, help_text="Unique tool identifier"
-    )
+    tool_id = models.CharField(max_length=128, db_index=True, help_text="Unique tool identifier")
     name = models.CharField(max_length=255, help_text="Human-readable tool name")
     description = models.TextField(blank=True, help_text="Tool description")
     version = models.CharField(max_length=20, default="1.0.0", help_text="Semantic version string")
@@ -66,9 +64,7 @@ class MCPToolCall(models.Model):
     rate_limit_window_seconds = models.IntegerField(
         default=3600, help_text="Rate limit window in seconds"
     )
-    timeout_ms = models.IntegerField(
-        default=30000, help_text="Execution timeout in milliseconds"
-    )
+    timeout_ms = models.IntegerField(default=30000, help_text="Execution timeout in milliseconds")
     cost_per_call = models.DecimalField(
         max_digits=8, decimal_places=6, default=0.010000, help_text="Cost in dollars per invocation"
     )
@@ -81,15 +77,11 @@ class MCPToolCall(models.Model):
     success = models.BooleanField(
         null=True, blank=True, help_text="Whether the invocation succeeded"
     )
-    error_message = models.TextField(
-        blank=True, help_text="Error text if the invocation failed"
-    )
+    error_message = models.TextField(blank=True, help_text="Error text if the invocation failed")
     duration_ms = models.IntegerField(
         null=True, blank=True, help_text="Actual execution duration in milliseconds"
     )
-    called_at = models.DateTimeField(
-        null=True, blank=True, help_text="When the tool was invoked"
-    )
+    called_at = models.DateTimeField(null=True, blank=True, help_text="When the tool was invoked")
     created_at = models.DateTimeField(
         auto_now_add=True, db_index=True, help_text="Timestamp when the record was created"
     )

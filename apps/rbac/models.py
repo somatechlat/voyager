@@ -8,7 +8,11 @@ for consistent primary keys, timestamps, and multi-tenancy support.
 
 from __future__ import annotations
 
+import logging
+
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class Role(models.Model):
@@ -106,7 +110,7 @@ class Role(models.Model):
             try:
                 perms.update(self.parent.get_all_permissions())
             except Role.DoesNotExist:
-                pass
+                logger.debug("Parent role %s not found", self.parent_id)
         return sorted(perms)
 
     def has_permission(self, codename: str) -> bool:

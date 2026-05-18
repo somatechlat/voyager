@@ -7,7 +7,6 @@ and color-coded content type handling.
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 from datetime import date, timedelta
 from typing import Any
 
@@ -102,9 +101,7 @@ class CalendarService:
         while current <= date_to:
             day_str = current.isoformat()
             day_items = [a for a in assignments if a.due_date == current]
-            est_hours = sum(
-                float(a.estimated_hours or 0) for a in day_items
-            )
+            est_hours = sum(float(a.estimated_hours or 0) for a in day_items)
             # Default capacity: 8 hours
             capacity = 8.0
             utilization = est_hours / capacity if capacity > 0 else 0
@@ -117,19 +114,12 @@ class CalendarService:
             current += timedelta(days=1)
 
         overloaded = [
-            {"date": d, **data}
-            for d, data in workload.items()
-            if data["utilization"] > 1.0
+            {"date": d, **data} for d, data in workload.items() if data["utilization"] > 1.0
         ]
         underloaded = [
-            {"date": d, **data}
-            for d, data in workload.items()
-            if data["utilization"] < 0.5
+            {"date": d, **data} for d, data in workload.items() if data["utilization"] < 0.5
         ]
-        avg_util = (
-            statistics.mean(w["utilization"] for w in workload.values())
-            if workload else 0
-        )
+        avg_util = statistics.mean(w["utilization"] for w in workload.values()) if workload else 0
 
         return {
             "workload": workload,
@@ -177,23 +167,27 @@ class CalendarService:
 
         entries = []
         for entry in qs.order_by("publish_date", "priority"):
-            entries.append({
-                "id": str(entry.id),
-                "title": entry.title,
-                "content_type": entry.content_type,
-                "content_type_label": entry.get_content_type_display(),
-                "color_code": entry.color_code,
-                "platform": entry.platform,
-                "status": entry.status,
-                "status_label": entry.get_status_display(),
-                "publish_date": entry.publish_date.isoformat() if entry.publish_date else None,
-                "due_date": entry.due_date.isoformat() if entry.due_date else None,
-                "assignee_id": str(entry.assignee_id) if entry.assignee_id else None,
-                "priority": entry.priority,
-                "estimated_hours": float(entry.estimated_hours) if entry.estimated_hours else None,
-                "actual_hours": float(entry.actual_hours) if entry.actual_hours else None,
-                "notes": entry.notes,
-            })
+            entries.append(
+                {
+                    "id": str(entry.id),
+                    "title": entry.title,
+                    "content_type": entry.content_type,
+                    "content_type_label": entry.get_content_type_display(),
+                    "color_code": entry.color_code,
+                    "platform": entry.platform,
+                    "status": entry.status,
+                    "status_label": entry.get_status_display(),
+                    "publish_date": entry.publish_date.isoformat() if entry.publish_date else None,
+                    "due_date": entry.due_date.isoformat() if entry.due_date else None,
+                    "assignee_id": str(entry.assignee_id) if entry.assignee_id else None,
+                    "priority": entry.priority,
+                    "estimated_hours": (
+                        float(entry.estimated_hours) if entry.estimated_hours else None
+                    ),
+                    "actual_hours": float(entry.actual_hours) if entry.actual_hours else None,
+                    "notes": entry.notes,
+                }
+            )
         return entries
 
     @staticmethod
@@ -237,9 +231,13 @@ class CalendarService:
         """
         from django.db.models import Count
 
-        status_counts = EditorialCalendar.objects.filter(
-            tenant_id=tenant_id,
-        ).values("status").annotate(count=Count("id"))
+        status_counts = (
+            EditorialCalendar.objects.filter(
+                tenant_id=tenant_id,
+            )
+            .values("status")
+            .annotate(count=Count("id"))
+        )
 
         pipeline = {status: 0 for status, _ in EditorialCalendar.Status.choices}
         for sc in status_counts:

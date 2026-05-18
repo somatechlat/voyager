@@ -23,15 +23,14 @@ from ..serializers import (
     ScrapeJobSchema,
     SentimentResultSchema,
     SentimentScoreListResponse,
-    SERPTrackResultSchema,
     SERPTrackingListResponse,
+    SERPTrackResultSchema,
     ShareOfVoiceResponse,
     SocialMentionListResponse,
     SocialMentionSchema,
     TrendDetectionListResponse,
     TrendDetectionSchema,
 )
-
 from .competitors import (
     create_competitor_monitor,
     detect_changes,
@@ -58,7 +57,9 @@ router.get("/scrape-jobs/{job_id}", response=ScrapeJobSchema)(get_scrape_job)
 router.post("/competitors", response=CompetitorMonitorSchema)(create_competitor_monitor)
 router.get("/competitors", response=CompetitorMonitorListResponse)(list_competitors)
 router.post("/competitors/{monitor_id}/detect", response=CompetitorDetectResponse)(detect_changes)
-router.get("/competitors/{monitor_id}/snapshots", response=list[CompetitorSnapshotSchema])(list_snapshots)
+router.get("/competitors/{monitor_id}/snapshots", response=list[CompetitorSnapshotSchema])(
+    list_snapshots
+)
 router.get("/competitors/{monitor_id}/changes", response=list[CompetitorChangeSchema])(list_changes)
 
 # Price track endpoints

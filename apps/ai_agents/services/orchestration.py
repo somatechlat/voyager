@@ -131,7 +131,9 @@ class AgentOrchestrator:
             max_cost_per_day=user_resources.get("max_cost_per_day", defaults["max_cost_per_day"]),
         )
 
-        logger.info("Created agent id=%s name=%s type=%s tenant=%s", agent.id, name, agent_type, tenant_id)
+        logger.info(
+            "Created agent id=%s name=%s type=%s tenant=%s", agent.id, name, agent_type, tenant_id
+        )
         return agent
 
     @staticmethod
@@ -170,7 +172,9 @@ class AgentOrchestrator:
             "cost": 0.01,
         }
 
-        ResourceManager.consume_resources(agent_id, api_calls=result["api_calls"], cost=result["cost"])
+        ResourceManager.consume_resources(
+            agent_id, api_calls=result["api_calls"], cost=result["cost"]
+        )
 
         agent.status = AIAgent.Status.IDLE
         agent.save(update_fields=["status"])

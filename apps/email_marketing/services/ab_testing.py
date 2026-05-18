@@ -13,6 +13,7 @@ from typing import Any
 # Sample size calculation
 # ---------------------------------------------------------------------------
 
+
 def calculate_sample_size(
     baseline_rate: float,
     mde: float,
@@ -50,7 +51,10 @@ def calculate_sample_size(
     p2 = min(baseline_rate * (1 + mde), 0.9999)
     p_bar = (p1 + p2) / 2
     n = (
-        (z_alpha * math.sqrt(2 * p_bar * (1 - p_bar)) + z_beta * math.sqrt(p1 * (1 - p1) + p2 * (1 - p2)))
+        (
+            z_alpha * math.sqrt(2 * p_bar * (1 - p_bar))
+            + z_beta * math.sqrt(p1 * (1 - p1) + p2 * (1 - p2))
+        )
         ** 2
     ) / ((p2 - p1) ** 2)
     sample_per_variant = math.ceil(n)
@@ -82,29 +86,49 @@ def _z_score(cdf: float) -> float:
     if cdf == 0.5:
         return 0.0
     a = [
-        2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637,
+        2.50662823884,
+        -18.61500062529,
+        41.39119773534,
+        -25.44106049637,
     ]
     b = [
-        -8.47351093090, 23.08336743743, -21.06224101826, 3.13082909833,
+        -8.47351093090,
+        23.08336743743,
+        -21.06224101826,
+        3.13082909833,
     ]
     c = [
-        0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
-        0.0276438810333863, 0.0038405729373609, 0.0003951896511919,
-        0.0000321767881768, 0.0000002888167364, 0.0000003960315187,
+        0.3374754822726147,
+        0.9761690190917186,
+        0.1607979714918209,
+        0.0276438810333863,
+        0.0038405729373609,
+        0.0003951896511919,
+        0.0000321767881768,
+        0.0000002888167364,
+        0.0000003960315187,
     ]
     y = cdf - 0.5
     if abs(y) < 0.42:
         r = y * y
-        return y * (((a[3] * r + a[2]) * r + a[1]) * r + a[0]) / ((((b[3] * r + b[2]) * r + b[1]) * r + b[0]) * r + 1)
+        return (
+            y
+            * (((a[3] * r + a[2]) * r + a[1]) * r + a[0])
+            / ((((b[3] * r + b[2]) * r + b[1]) * r + b[0]) * r + 1)
+        )
     r = cdf if y < 0 else 1 - cdf
     r = math.log(-math.log(r))
-    x = c[0] + r * (c[1] + r * (c[2] + r * (c[3] + r * (c[4] + r * (c[5] + r * (c[6] + r * (c[7] + r * c[8])))))))
+    x = c[0] + r * (
+        c[1]
+        + r * (c[2] + r * (c[3] + r * (c[4] + r * (c[5] + r * (c[6] + r * (c[7] + r * c[8]))))))
+    )
     return -x if y < 0 else x
 
 
 # ---------------------------------------------------------------------------
 # Chi-squared test
 # ---------------------------------------------------------------------------
+
 
 def chi_squared_test(
     control_conversions: int,
@@ -139,7 +163,13 @@ def chi_squared_test(
     col2 = variant_total
     total = col1 + col2
     if total == 0:
-        return {"chi2": 0.0, "p_value": 1.0, "significant": False, "control_rate": 0.0, "variant_rate": 0.0}
+        return {
+            "chi2": 0.0,
+            "p_value": 1.0,
+            "significant": False,
+            "control_rate": 0.0,
+            "variant_rate": 0.0,
+        }
     expected_11 = col1 * row1 / total
     expected_12 = col2 * row1 / total
     expected_21 = col1 * row2 / total
@@ -180,14 +210,13 @@ def _chi2_cdf(k: int, x: float) -> float:
     """
     if x <= 0:
         return 1.0
-    return math.exp(-x / 2) * sum(
-        (x / 2) ** i / math.factorial(i) for i in range(k // 2 + 1)
-    )
+    return math.exp(-x / 2) * sum((x / 2) ** i / math.factorial(i) for i in range(k // 2 + 1))
 
 
 # ---------------------------------------------------------------------------
 # Winner selection
 # ---------------------------------------------------------------------------
+
 
 def select_winner(
     variants: list[dict[str, Any]],
@@ -219,8 +248,10 @@ def select_winner(
         var_conversions = variant.get(metric, 0)
         var_total = variant.get("sent", 1)
         result = chi_squared_test(
-            control_conversions, control_total,
-            var_conversions, var_total,
+            control_conversions,
+            control_total,
+            var_conversions,
+            var_total,
         )
         result["variant_id"] = variant.get("id")
         result["control_id"] = control.get("id")

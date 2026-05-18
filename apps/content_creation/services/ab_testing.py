@@ -110,17 +110,19 @@ def create_test(
 
     enriched_variants = []
     for i, v in enumerate(variants):
-        enriched_variants.append({
-            "variant_id": v.get("variant_id", f"variant_{i + 1}"),
-            "name": v.get("name", f"Variant {i + 1}"),
-            "content_text": v.get("content_text", ""),
-            "content_html": v.get("content_html", ""),
-            "image_url": v.get("image_url", ""),
-            "impressions": v.get("impressions", 0),
-            "clicks": v.get("clicks", 0),
-            "conversions": v.get("conversions", 0),
-            "engagement_score": v.get("engagement_score", 0.0),
-        })
+        enriched_variants.append(
+            {
+                "variant_id": v.get("variant_id", f"variant_{i + 1}"),
+                "name": v.get("name", f"Variant {i + 1}"),
+                "content_text": v.get("content_text", ""),
+                "content_html": v.get("content_html", ""),
+                "image_url": v.get("image_url", ""),
+                "impressions": v.get("impressions", 0),
+                "clicks": v.get("clicks", 0),
+                "conversions": v.get("conversions", 0),
+                "engagement_score": v.get("engagement_score", 0.0),
+            }
+        )
 
     return {
         "valid": True,
@@ -167,9 +169,7 @@ def calculate_winner(variants: list[dict[str, Any]]) -> dict[str, Any]:
         v["ctr"] = (clicks / impressions * 100) if impressions > 0 else 0.0
         v["conversion_rate"] = (conversions / clicks * 100) if clicks > 0 else 0.0
         v["engagement_rate"] = (
-            ((likes + comments + shares) / impressions * 100)
-            if impressions > 0
-            else 0.0
+            ((likes + comments + shares) / impressions * 100) if impressions > 0 else 0.0
         )
 
     # Sort by conversion rate (default winner criteria)
@@ -189,12 +189,14 @@ def calculate_winner(variants: list[dict[str, Any]]) -> dict[str, Any]:
             other.get("conversions", 0),
             max(other.get("impressions", 0), 1),
         )
-        sig_pairs.append({
-            "variant_a": leading.get("variant_id"),
-            "variant_b": other.get("variant_id"),
-            "p_value": round(p, 6),
-            "significant": p < 0.05,
-        })
+        sig_pairs.append(
+            {
+                "variant_a": leading.get("variant_id"),
+                "variant_b": other.get("variant_id"),
+                "p_value": round(p, 6),
+                "significant": p < 0.05,
+            }
+        )
 
     is_significant = any(p["significant"] for p in sig_pairs)
 
@@ -232,7 +234,7 @@ def calculate_winner(variants: list[dict[str, Any]]) -> dict[str, Any]:
         "winner": None,
         "significant": False,
         "message": "No statistically significant winner yet. "
-                   "Collect more impressions per variant.",
+        "Collect more impressions per variant.",
         "pairwise_results": sig_pairs,
         "variant_metrics": [
             {

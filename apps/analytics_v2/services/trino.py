@@ -40,6 +40,7 @@ POSTGRES_TABLES = {
 TRINO_DEFAULT_TIMEOUT = 300  # 5 minutes
 CACHE_TTL = 300  # 5 minutes
 
+
 def execute_query(
     sql: str,
     tenant_id: str,
@@ -94,7 +95,9 @@ def execute_query(
         cached = _get_cached_result(cache_key)
         if cached:
             cached["from_cache"] = True
-            _log_query(user_id, tenant_id, sql, cached.get("row_count", 0), 0, data_source, cached=True)
+            _log_query(
+                user_id, tenant_id, sql, cached.get("row_count", 0), 0, data_source, cached=True
+            )
             return cached
 
     # Execute query
@@ -133,13 +136,16 @@ def execute_query(
 
     # Log query
     _log_query(
-        user_id, tenant_id, sql,
+        user_id,
+        tenant_id,
+        sql,
         result.get("row_count", 0),
         result.get("execution_time_ms", 0),
         data_source,
     )
 
     return result
+
 
 def _route_query(sql: str) -> str:
     """Route a query to the appropriate engine based on referenced tables.
@@ -150,7 +156,6 @@ def _route_query(sql: str) -> str:
     Returns:
         Data source identifier.
     """
-    sql_lower = sql.lower()
     tables = _extract_tables(sql)
 
     all_in_clickhouse = all(t in CLICKHOUSE_TABLES for t in tables)
@@ -164,6 +169,7 @@ def _route_query(sql: str) -> str:
         return "trino"
     # Default to ClickHouse for analytics queries
     return "clickhouse"
+
 
 def _extract_tables(sql: str) -> set[str]:
     """Extract table names from a SQL query.
@@ -182,6 +188,7 @@ def _extract_tables(sql: str) -> set[str]:
     join_matches = re.findall(r"\bjoin\s+(\w+)", sql, re.IGNORECASE)
     tables.update(join_matches)
     return tables
+
 
 def _inject_tenant_scope(sql: str, tenant_id: str) -> str:
     """Inject tenant_id filter into the WHERE clause.
@@ -203,6 +210,7 @@ def _inject_tenant_scope(sql: str, tenant_id: str) -> str:
         sql = f"{sql} WHERE {tenant_clause}"
 
     return sql
+
 
 def _execute_clickhouse(sql: str, limit: int) -> dict[str, Any]:
     """Execute query against ClickHouse.
@@ -232,6 +240,7 @@ def _execute_clickhouse(sql: str, limit: int) -> dict[str, Any]:
         "data_source": "clickhouse",
     }
 
+
 def _execute_postgres(sql: str, limit: int) -> dict[str, Any]:
     """Execute query against PostgreSQL.
 
@@ -259,6 +268,7 @@ def _execute_postgres(sql: str, limit: int) -> dict[str, Any]:
         "execution_time_ms": int((time.time() - start) * 1000),
         "data_source": "postgres",
     }
+
 
 def _execute_trino(sql: str, limit: int) -> dict[str, Any]:
     """Execute query via Trino federation engine.
@@ -304,6 +314,7 @@ def _execute_trino(sql: str, limit: int) -> dict[str, Any]:
         # Fallback
         return _execute_clickhouse(sql, limit)
 
+
 def _query_hash(sql: str) -> str:
     """Generate a cache key from a SQL query.
 
@@ -315,6 +326,7 @@ def _query_hash(sql: str) -> str:
     """
     normalized = re.sub(r"\s+", " ", sql.strip().lower())
     return hashlib.md5(normalized.encode()).hexdigest()
+
 
 def _get_cached_result(cache_key: str) -> dict[str, Any] | None:
     """Retrieve cached query result.
@@ -332,6 +344,7 @@ def _get_cached_result(cache_key: str) -> dict[str, Any] | None:
     except Exception:
         return None
 
+
 def _cache_result(cache_key: str, result: dict[str, Any]) -> None:
     """Cache query result with TTL.
 
@@ -344,7 +357,8 @@ def _cache_result(cache_key: str, result: dict[str, Any]) -> None:
 
         cache.set(f"trino_query_{cache_key}", result, timeout=CACHE_TTL)
     except Exception:
-        pass
+        logger.debug("Failed to cache Trino query result", exc_info=True)
+
 
 def _log_query(
     user_id: str,
@@ -368,8 +382,15 @@ def _log_query(
     """
     logger.info(
         "Query audit: user=%s tenant=%s source=%s rows=%d time_ms=%d cached=%s sql=%.200s",
-        user_id, tenant_id, data_source, row_count, execution_time_ms, cached, sql,
+        user_id,
+        tenant_id,
+        data_source,
+        row_count,
+        execution_time_ms,
+        cached,
+        sql,
     )
+
 
 def validate_query(sql: str) -> dict[str, Any]:
     """Validate a SQL query for security and syntax issues.
@@ -413,6 +434,7 @@ def validate_query(sql: str) -> dict[str, Any]:
         "tables": tables,
         "warnings": warnings_list,
     }
+
 
 def build_query_from_builder(config: dict[str, Any]) -> str:
     """Build SQL from a structured query builder configuration.

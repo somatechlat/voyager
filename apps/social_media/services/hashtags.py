@@ -8,10 +8,7 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import timedelta
 from typing import Any
-
-from django.utils import timezone
 
 from apps.social_media.models import HashtagResearch
 
@@ -49,33 +46,23 @@ def score_hashtag_competition(
         "recent_volume": entry.posts_last_week or 0,
         "avg_engagement": float(entry.avg_engagement) if entry.avg_engagement else 0,
         "top_post_threshold": (
-            float(entry.top_post_min_engagement)
-            if entry.top_post_min_engagement
-            else 0
+            float(entry.top_post_min_engagement) if entry.top_post_min_engagement else 0
         ),
     }
 
     volume_score = _minmax_normalize(
         math.log10(max(factors["volume"], 1)), VOLUME_LOG_MIN, VOLUME_LOG_MAX
     )
-    recent_score = _minmax_normalize(
-        factors["recent_volume"], RECENT_MIN, RECENT_MAX
-    )
+    recent_score = _minmax_normalize(factors["recent_volume"], RECENT_MIN, RECENT_MAX)
     engagement_score = _minmax_normalize(
         factors["top_post_threshold"], ENGAGEMENT_MIN, ENGAGEMENT_MAX
     )
 
-    competition = (
-        volume_score * 0.4
-        + recent_score * 0.35
-        + engagement_score * 0.25
-    ) * 100
+    competition = (volume_score * 0.4 + recent_score * 0.35 + engagement_score * 0.25) * 100
 
     opportunity = (
         (1 - competition / 100)
-        * _minmax_normalize(
-            math.log10(max(factors["volume"], 1)), VOLUME_LOG_MIN, VOLUME_LOG_MAX
-        )
+        * _minmax_normalize(math.log10(max(factors["volume"], 1)), VOLUME_LOG_MIN, VOLUME_LOG_MAX)
         * 100
     )
 
@@ -111,9 +98,9 @@ def get_trending_hashtags(
     qs = HashtagResearch.objects.filter(tenant_id=tenant_id)
     if platform:
         qs = qs.filter(platform=platform)
-    qs = qs.filter(
-        trend_direction__in=["rising", "viral"]
-    ).order_by("-trend_percentage", "-opportunity_score")[:limit]
+    qs = qs.filter(trend_direction__in=["rising", "viral"]).order_by(
+        "-trend_percentage", "-opportunity_score"
+    )[:limit]
 
     return [
         {
@@ -144,14 +131,18 @@ def suggest_hashtags(
     :param limit: Max results.
     :returns: List of suggested hashtag dicts.
     """
-    qs = HashtagResearch.objects.filter(
-        tenant_id=tenant_id,
-        platform=platform,
-    ).filter(
-        models.Q(hashtag__icontains=topic)
-        | models.Q(category__icontains=topic)
-        | models.Q(related_hashtags__contains=[topic])
-    ).order_by("-opportunity_score")[:limit]
+    qs = (
+        HashtagResearch.objects.filter(
+            tenant_id=tenant_id,
+            platform=platform,
+        )
+        .filter(
+            models.Q(hashtag__icontains=topic)
+            | models.Q(category__icontains=topic)
+            | models.Q(related_hashtags__contains=[topic])
+        )
+        .order_by("-opportunity_score")[:limit]
+    )
 
     return [
         {

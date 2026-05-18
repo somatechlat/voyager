@@ -11,7 +11,6 @@ from apps.ai_agents.serializers import (
     ABTestConfigRequest,
     ABTestResultRequest,
     ABTestStatusResponse,
-    LearningLoopSchema,
     OutcomeAnalysisRequest,
     OutcomeAnalysisResponse,
     UpdateStrategyRequest,
@@ -59,10 +58,7 @@ def list_learning_loops(
     request: HttpRequest, agent_id: int, limit: int = 20
 ) -> list[AgentLearningLoop]:
     """List learning loop iterations for an agent."""
-    return list(
-        AgentLearningLoop.objects.filter(agent_id=agent_id)
-        .order_by("-applied_at")[:limit]
-    )
+    return list(AgentLearningLoop.objects.filter(agent_id=agent_id).order_by("-applied_at")[:limit])
 
 
 def configure_ab_test(

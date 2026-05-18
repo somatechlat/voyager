@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
 from django.utils import timezone
-from django.db.models import Count, Q
 
 from apps.ai_agents.models import AIAgent
 from apps.ai_agents.models.mcp import MCPToolCall
@@ -106,7 +104,9 @@ class MCPToolService:
             return {"status": "error", "error": "invalid_input", "details": validation["errors"]}
 
         # Check rate limit
-        recent_calls = MCPToolService._count_recent_calls(agent_id, tool_id, tool.rate_limit_window_seconds)
+        recent_calls = MCPToolService._count_recent_calls(
+            agent_id, tool_id, tool.rate_limit_window_seconds
+        )
         if recent_calls >= tool.rate_limit_max_calls:
             return {
                 "status": "error",
@@ -160,9 +160,16 @@ class MCPToolService:
             qs = qs.filter(agent_id=agent_id)
 
         tools = qs.values(
-            "tool_id", "name", "description", "version", "endpoint",
-            "rate_limit_max_calls", "rate_limit_window_seconds",
-            "timeout_ms", "cost_per_call", "agent_id",
+            "tool_id",
+            "name",
+            "description",
+            "version",
+            "endpoint",
+            "rate_limit_max_calls",
+            "rate_limit_window_seconds",
+            "timeout_ms",
+            "cost_per_call",
+            "agent_id",
         ).distinct()
 
         return list(tools)

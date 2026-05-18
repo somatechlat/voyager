@@ -7,7 +7,7 @@ webhook processing, and dunning management.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -148,9 +148,7 @@ def process_refund(
     if stripe and payment.stripe_charge_id:
         try:
             refund_cents = int(refund_amount * 100)
-            refund = stripe.Refund.create(
-                charge=payment.stripe_charge_id, amount=refund_cents
-            )
+            refund = stripe.Refund.create(charge=payment.stripe_charge_id, amount=refund_cents)
             payment.stripe_refund_id = refund.id
         except Exception as exc:
             logger.exception("Stripe refund failed")
@@ -161,7 +159,9 @@ def process_refund(
         payment.status = Payment.Status.REFUNDED
     else:
         payment.status = Payment.Status.PARTIALLY_REFUNDED
-    payment.save(update_fields=["refund_amount", "refund_reason", "stripe_refund_id", "status", "updated_at"])
+    payment.save(
+        update_fields=["refund_amount", "refund_reason", "stripe_refund_id", "status", "updated_at"]
+    )
     return {
         "payment_id": payment.pk,
         "refund_amount": str(refund_amount),
@@ -233,9 +233,7 @@ def manage_dunning(invoice: Invoice) -> dict[str, Any] | None:
     if not current_action:
         return None
     log = list(invoice.dunning_log or [])
-    already_taken = any(
-        entry.get("day", 0) == current_action["day"] for entry in log
-    )
+    already_taken = any(entry.get("day", 0) == current_action["day"] for entry in log)
     if already_taken:
         return None
     result = {

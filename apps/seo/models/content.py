@@ -42,15 +42,11 @@ class ContentOptimization(models.Model):
     paragraph_count = models.PositiveIntegerField(default=0)
 
     # Readability
-    flesch_reading_ease = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    flesch_reading_ease = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     flesch_kincaid_grade = models.DecimalField(
         max_digits=4, decimal_places=2, null=True, blank=True
     )
-    smog_index = models.DecimalField(
-        max_digits=4, decimal_places=2, null=True, blank=True
-    )
+    smog_index = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
 
     # Keyword analysis
     keyword_density_json = models.JSONField(
@@ -64,9 +60,7 @@ class ContentOptimization(models.Model):
     )
 
     # Topic coverage
-    entities_json = models.JSONField(
-        default=list, blank=True, help_text="Named entities extracted"
-    )
+    entities_json = models.JSONField(default=list, blank=True, help_text="Named entities extracted")
     topics_covered_json = models.JSONField(
         default=list, blank=True, help_text="Topics detected in content"
     )
@@ -75,32 +69,22 @@ class ContentOptimization(models.Model):
     )
 
     # Competitor benchmark
-    competitor_avg_word_count = models.PositiveIntegerField(
-        null=True, blank=True
-    )
+    competitor_avg_word_count = models.PositiveIntegerField(null=True, blank=True)
     competitor_avg_readability = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
     )
     competitor_common_topics_json = models.JSONField(default=list, blank=True)
 
     # Headings
-    heading_structure_json = models.JSONField(
-        default=list, blank=True, help_text="H1-H6 structure"
-    )
+    heading_structure_json = models.JSONField(default=list, blank=True, help_text="H1-H6 structure")
 
     # Scoring
     content_score = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True, help_text="Overall score 0-100"
     )
-    readability_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    seo_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    uniqueness_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    readability_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seo_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    uniqueness_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Recommendations
     recommendations_json = models.JSONField(

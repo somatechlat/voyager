@@ -36,9 +36,7 @@ class TechnicalCrawl(models.Model):
     status_code = models.PositiveIntegerField(
         null=True, blank=True, help_text="HTTP response status"
     )
-    is_indexable = models.BooleanField(
-        default=True, help_text="Whether page can be indexed"
-    )
+    is_indexable = models.BooleanField(default=True, help_text="Whether page can be indexed")
 
     # Content
     word_count = models.PositiveIntegerField(default=0)
@@ -58,9 +56,7 @@ class TechnicalCrawl(models.Model):
     lcp_ms = models.PositiveIntegerField(
         null=True, blank=True, help_text="Largest Contentful Paint in ms"
     )
-    fid_ms = models.PositiveIntegerField(
-        null=True, blank=True, help_text="First Input Delay in ms"
-    )
+    fid_ms = models.PositiveIntegerField(null=True, blank=True, help_text="First Input Delay in ms")
     cls_score = models.DecimalField(
         max_digits=6,
         decimal_places=4,
@@ -87,9 +83,7 @@ class TechnicalCrawl(models.Model):
     )
 
     # Issues
-    issues_json = models.JSONField(
-        default=list, blank=True, help_text="Technical issues detected"
-    )
+    issues_json = models.JSONField(default=list, blank=True, help_text="Technical issues detected")
 
     # Scoring
     seo_score = models.DecimalField(

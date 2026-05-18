@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import statistics
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -80,9 +80,7 @@ class TrendAnalyzer:
 
         # Normalize each metric to 0-100 range
         normalized_volume = self._minmax_normalize(volume, max(industry_baseline, 1))
-        normalized_velocity = self._minmax_normalize(
-            abs(velocity), max(industry_baseline * 0.1, 1)
-        )
+        normalized_velocity = self._minmax_normalize(abs(velocity), max(industry_baseline * 0.1, 1))
         normalized_acceleration = self._minmax_normalize(
             abs(acceleration), max(industry_baseline * 0.05, 1)
         )
@@ -200,11 +198,9 @@ class TrendAnalyzer:
         date_str = peak_point.get("date")
         if date_str:
             try:
-                return timezone.make_aware(
-                    datetime.strptime(date_str, "%Y-%m-%d")
-                )
+                return timezone.make_aware(datetime.strptime(date_str, "%Y-%m-%d"))
             except (ValueError, TypeError):
-                pass
+                logger.debug("Failed to parse trend date: %s", date_str)
         return None
 
     def _estimate_lifespan(

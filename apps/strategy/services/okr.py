@@ -7,7 +7,7 @@ calculation, and confidence scoring.
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 from typing import Any
 
 from apps.strategy.models.okr import KeyResult, Objective
@@ -161,23 +161,24 @@ class OKRService:
         """Serialize an objective with children and key results."""
         krs = []
         for kr in obj.key_results.all():
-            krs.append({
-                "id": str(kr.id),
-                "title": kr.title,
-                "kr_type": kr.kr_type,
-                "target_value": float(kr.target_value),
-                "current_value": float(kr.current_value),
-                "start_value": float(kr.start_value),
-                "direction": kr.direction,
-                "unit": kr.unit,
-                "progress": float(kr.progress),
-                "confidence": kr.confidence,
-                "data_source": kr.data_source,
-            })
+            krs.append(
+                {
+                    "id": str(kr.id),
+                    "title": kr.title,
+                    "kr_type": kr.kr_type,
+                    "target_value": float(kr.target_value),
+                    "current_value": float(kr.current_value),
+                    "start_value": float(kr.start_value),
+                    "direction": kr.direction,
+                    "unit": kr.unit,
+                    "progress": float(kr.progress),
+                    "confidence": kr.confidence,
+                    "data_source": kr.data_source,
+                }
+            )
 
         children = [
-            OKRService._serialize_objective(child, depth=depth + 1)
-            for child in obj.children.all()
+            OKRService._serialize_objective(child, depth=depth + 1) for child in obj.children.all()
         ]
 
         return {

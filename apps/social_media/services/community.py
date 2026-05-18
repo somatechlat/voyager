@@ -69,9 +69,7 @@ def calculate_engagement_score(
         "ugc": 0,
     }
 
-    weighted_score = sum(
-        INTERACTION_WEIGHTS.get(k, 1) * v for k, v in breakdown.items()
-    )
+    weighted_score = sum(INTERACTION_WEIGHTS.get(k, 1) * v for k, v in breakdown.items())
 
     active_types = sum(1 for v in breakdown.values() if v > 0)
     recency_multiplier = 1.0 + (active_types / max(len(breakdown), 1))
@@ -129,12 +127,8 @@ def identify_vips(
 
     return {
         "champions": [member_to_dict(m) for m in members[:champion_cutoff]],
-        "advocates": [
-            member_to_dict(m) for m in members[champion_cutoff:advocate_cutoff]
-        ],
-        "engaged": [
-            member_to_dict(m) for m in members[advocate_cutoff:engaged_cutoff]
-        ],
+        "advocates": [member_to_dict(m) for m in members[champion_cutoff:advocate_cutoff]],
+        "engaged": [member_to_dict(m) for m in members[advocate_cutoff:engaged_cutoff]],
     }
 
 
@@ -152,17 +146,19 @@ def update_member_scores(member: CommunityMember) -> None:
     loyalty = _calculate_loyalty(member)
     member.loyalty_score = loyalty
 
-    vip = (
-        float(member.engagement_score) * 0.4
-        + float(influence) * 0.35
-        + float(loyalty) * 0.25
-    )
+    vip = float(member.engagement_score) * 0.4 + float(influence) * 0.35 + float(loyalty) * 0.25
     member.vip_score = round(min(vip, 999999.99), 2)
     member.tier = engagement["tier"]
-    member.save(update_fields=[
-        "engagement_score", "influence_score", "loyalty_score",
-        "vip_score", "tier", "updated_at",
-    ])
+    member.save(
+        update_fields=[
+            "engagement_score",
+            "influence_score",
+            "loyalty_score",
+            "vip_score",
+            "tier",
+            "updated_at",
+        ]
+    )
 
 
 def get_community_health(
@@ -179,9 +175,7 @@ def get_community_health(
 
     total_members = CommunityMember.objects.filter(tenant_id=tenant_id).count()
     active_members = (
-        CommunityMember.objects.filter(
-            tenant_id=tenant_id, last_active_at__gte=since
-        )
+        CommunityMember.objects.filter(tenant_id=tenant_id, last_active_at__gte=since)
         .values("platform")
         .annotate(count=Count("id"))
     )
@@ -197,18 +191,23 @@ def get_community_health(
     ).count()
 
     total_interactions = sum(
-        CommunityMember.objects.filter(tenant_id=tenant_id).aggregate(
-            total=Sum("total_interactions")
-        ).get("total") or 0,
+        CommunityMember.objects.filter(tenant_id=tenant_id)
+        .aggregate(total=Sum("total_interactions"))
+        .get("total")
+        or 0,
     )
 
     avg_engagement = 0.0
     if total_members > 0:
-        avg_engagement = float(
-            CommunityMember.objects.filter(tenant_id=tenant_id).aggregate(
-                avg=Sum("engagement_score")
-            ).get("avg") or 0,
-        ) / total_members
+        avg_engagement = (
+            float(
+                CommunityMember.objects.filter(tenant_id=tenant_id)
+                .aggregate(avg=Sum("engagement_score"))
+                .get("avg")
+                or 0,
+            )
+            / total_members
+        )
 
     return {
         "total_members": total_members,

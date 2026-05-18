@@ -78,9 +78,7 @@ class CollaborationService:
             Result dict with status and any error.
         """
         try:
-            collaboration = AgentCollaboration.objects.get(
-                pk=collaboration_id, tenant_id=tenant_id
-            )
+            collaboration = AgentCollaboration.objects.get(pk=collaboration_id, tenant_id=tenant_id)
         except AgentCollaboration.DoesNotExist:
             return {"status": "error", "error": "Collaboration not found"}
 
@@ -101,7 +99,11 @@ class CollaborationService:
             )
             collaboration.status = AgentCollaboration.Status.FAILED
             collaboration.save(update_fields=["messages", "status"])
-            return {"status": "error", "error": "circular_delegation", "chain": chain + [to_agent_str]}
+            return {
+                "status": "error",
+                "error": "circular_delegation",
+                "chain": chain + [to_agent_str],
+            }
 
         # Check max depth
         if len(chain) >= collaboration.max_depth:
@@ -141,9 +143,7 @@ class CollaborationService:
                 "task": task,
             }
         )
-        collaboration.save(
-            update_fields=["delegation_chain", "status", "started_at", "messages"]
-        )
+        collaboration.save(update_fields=["delegation_chain", "status", "started_at", "messages"])
 
         logger.info(
             "Delegated task from agent %s to agent %s in collaboration %s",
@@ -199,9 +199,7 @@ class CollaborationService:
         return {"status": "error", "error": "Collaboration not found"}
 
     @staticmethod
-    def get_collaboration_messages(
-        tenant_id: str, collaboration_id: int
-    ) -> list[dict[str, Any]]:
+    def get_collaboration_messages(tenant_id: str, collaboration_id: int) -> list[dict[str, Any]]:
         """Retrieve the message log for a collaboration.
 
         Args:

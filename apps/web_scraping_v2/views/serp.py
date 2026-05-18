@@ -11,10 +11,10 @@ from ninja.errors import HttpError
 from ..models import SERPTracking
 from ..serializers import (
     SERPTrackBatchSchema,
-    SERPTrackResultSchema,
-    SERPTrackSchema,
     SERPTrackingListResponse,
     SERPTrackingSchema,
+    SERPTrackResultSchema,
+    SERPTrackSchema,
 )
 from ..services.serp import SERPTracker
 

@@ -227,9 +227,7 @@ def enforce_resource_limits(
 
     try:
         # Reset daily counters for a new day
-        reset_result = ResourceManager.reset_daily_counters(
-            tenant_id=tenant_id or None
-        )
+        reset_result = ResourceManager.reset_daily_counters(tenant_id=tenant_id or None)
 
         return {
             "status": "ok",
@@ -269,9 +267,7 @@ def schedule_collaboration_task(
     logger.info("Executing collaboration step: collaboration=%s", collaboration_id)
 
     try:
-        collaboration = AgentCollaboration.objects.get(
-            pk=collaboration_id, tenant_id=tenant_id
-        )
+        collaboration = AgentCollaboration.objects.get(pk=collaboration_id, tenant_id=tenant_id)
         return {
             "status": "ok",
             "task": self.name,

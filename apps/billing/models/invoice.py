@@ -31,9 +31,7 @@ class Invoice(TimestampedModel):
         DUE_ON_RECEIPT = "due_on_receipt", "Due on Receipt"
         CUSTOM = "custom", "Custom"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.CASCADE,
@@ -71,21 +69,15 @@ class Invoice(TimestampedModel):
     amount_due = models.DecimalField(
         max_digits=14, decimal_places=2, help_text="Remaining amount due"
     )
-    currency = models.CharField(
-        max_length=3, default="USD", help_text="Currency code (ISO 4217)"
-    )
+    currency = models.CharField(max_length=3, default="USD", help_text="Currency code (ISO 4217)")
     exchange_rate = models.DecimalField(
         max_digits=14,
         decimal_places=6,
         default=1,
         help_text="Exchange rate to base currency",
     )
-    invoice_date = models.DateField(
-        db_index=True, help_text="Date the invoice was issued"
-    )
-    due_date = models.DateField(
-        db_index=True, help_text="Date payment is due"
-    )
+    invoice_date = models.DateField(db_index=True, help_text="Date the invoice was issued")
+    due_date = models.DateField(db_index=True, help_text="Date payment is due")
     paid_at = models.DateTimeField(
         blank=True, null=True, help_text="When the invoice was fully paid"
     )
@@ -113,27 +105,15 @@ class Invoice(TimestampedModel):
         help_text="Invoice template name",
     )
     notes = models.TextField(blank=True, help_text="Notes visible to the client")
-    internal_notes = models.TextField(
-        blank=True, help_text="Internal-only notes"
-    )
-    dunning_log = models.JSONField(
-        default=list, help_text="Dunning management log entries"
-    )
-    date_from = models.DateField(
-        blank=True, null=True, help_text="Start of billing period"
-    )
-    date_to = models.DateField(
-        blank=True, null=True, help_text="End of billing period"
-    )
-    sent_at = models.DateTimeField(
-        blank=True, null=True, help_text="When the invoice was sent"
-    )
+    internal_notes = models.TextField(blank=True, help_text="Internal-only notes")
+    dunning_log = models.JSONField(default=list, help_text="Dunning management log entries")
+    date_from = models.DateField(blank=True, null=True, help_text="Start of billing period")
+    date_to = models.DateField(blank=True, null=True, help_text="End of billing period")
+    sent_at = models.DateTimeField(blank=True, null=True, help_text="When the invoice was sent")
     sent_to = models.JSONField(
         blank=True, default=list, help_text="Email addresses the invoice was sent to"
     )
-    auto_send = models.BooleanField(
-        default=False, help_text="Whether to auto-send this invoice"
-    )
+    auto_send = models.BooleanField(default=False, help_text="Whether to auto-send this invoice")
     reminder_schedule = models.JSONField(
         blank=True, default=dict, help_text="Custom reminder schedule"
     )

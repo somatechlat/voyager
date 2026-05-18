@@ -57,12 +57,10 @@ def list_subscribers(
     if tag:
         qs = qs.filter(tags__contains=[tag])
     if search:
-        qs = qs.filter(
-            email__icontains=search
-        ) | qs.filter(
-            first_name__icontains=search
-        ) | qs.filter(
-            last_name__icontains=search
+        qs = (
+            qs.filter(email__icontains=search)
+            | qs.filter(first_name__icontains=search)
+            | qs.filter(last_name__icontains=search)
         )
     return list(qs.order_by("-subscribed_at")[offset : offset + limit])
 

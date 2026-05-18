@@ -13,7 +13,7 @@ from typing import Any
 
 from django.db.models import Q
 
-from apps.seo.models.keyword import Keyword, KeywordCluster
+from apps.seo.models.keyword import Keyword
 
 logger = logging.getLogger(__name__)
 
@@ -158,22 +158,22 @@ def semantic_cluster_keywords(
                 cluster_kws.append(other)
                 assigned.add(str(other.id))
 
-        total_volume = sum(
-            (k.monthly_volume or 0) for k in cluster_kws
-        )
+        total_volume = sum((k.monthly_volume or 0) for k in cluster_kws)
         avg_difficulty = sum(
             (float(k.difficulty) if k.difficulty else 50.0) for k in cluster_kws
         ) / max(len(cluster_kws), 1)
         priority = total_volume * (1.0 - avg_difficulty / 100.0)
 
-        clusters.append({
-            "label": kw.keyword[:50],
-            "keywords": cluster_kws,
-            "keyword_count": len(cluster_kws),
-            "total_volume": total_volume,
-            "avg_difficulty": round(avg_difficulty, 2),
-            "priority_score": round(max(priority, 0), 4),
-        })
+        clusters.append(
+            {
+                "label": kw.keyword[:50],
+                "keywords": cluster_kws,
+                "keyword_count": len(cluster_kws),
+                "total_volume": total_volume,
+                "avg_difficulty": round(avg_difficulty, 2),
+                "priority_score": round(max(priority, 0), 4),
+            }
+        )
 
     return sorted(clusters, key=lambda c: c["priority_score"], reverse=True)
 
@@ -230,13 +230,12 @@ def research_keywords(
     if cpc_min is not None:
         queryset = queryset.filter(cpc__gte=cpc_min)
 
-    keywords = list(queryset[:limit * 2])
+    keywords = list(queryset[: limit * 2])
 
     # Apply exclude filter
     if exclude:
         keywords = [
-            k for k in keywords
-            if not any(ex.lower() in k.keyword.lower() for ex in exclude)
+            k for k in keywords if not any(ex.lower() in k.keyword.lower() for ex in exclude)
         ]
 
     total_found = len(keywords)

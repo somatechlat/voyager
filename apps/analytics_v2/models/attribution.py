@@ -13,7 +13,6 @@ from django.db import models
 
 from apps.rbac.models import TenantScopedMixin
 
-
 ATTRIBUTION_MODEL_CHOICES = [
     ("first_touch", "First Touch"),
     ("last_touch", "Last Touch"),

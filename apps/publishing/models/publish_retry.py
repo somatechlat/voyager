@@ -10,7 +10,6 @@ import random
 from typing import Any
 
 from django.db import models
-from django.utils import timezone
 
 from .base import TimeStampedModel, UUIDModel
 
@@ -50,27 +49,39 @@ class PublishRetry(UUIDModel, TimeStampedModel):
         db_index=True,
     )
     attempt_number = models.PositiveIntegerField(
-        default=1, db_index=True, help_text="Retry attempt number",
+        default=1,
+        db_index=True,
+        help_text="Retry attempt number",
     )
     error_type = models.CharField(
-        max_length=32, choices=ErrorType.choices, db_index=True,
+        max_length=32,
+        choices=ErrorType.choices,
+        db_index=True,
         help_text="Classified error type",
     )
     error_message = models.TextField(help_text="Full error message")
     platform_response_status = models.PositiveIntegerField(
-        null=True, blank=True, help_text="HTTP status from platform",
+        null=True,
+        blank=True,
+        help_text="HTTP status from platform",
     )
     platform_response_body = models.TextField(
-        blank=True, help_text="Response body from platform",
+        blank=True,
+        help_text="Response body from platform",
     )
     delay_seconds = models.PositiveIntegerField(
-        default=0, help_text="Calculated delay before retry",
+        default=0,
+        help_text="Calculated delay before retry",
     )
     retried_at = models.DateTimeField(
-        null=True, blank=True, help_text="When retry was executed",
+        null=True,
+        blank=True,
+        help_text="When retry was executed",
     )
     successful = models.BooleanField(
-        default=False, db_index=True, help_text="Whether retry succeeded",
+        default=False,
+        db_index=True,
+        help_text="Whether retry succeeded",
     )
 
     class Meta:
@@ -153,7 +164,7 @@ class PublishRetry(UUIDModel, TimeStampedModel):
         error_message: str,
         response_status: int | None = None,
         response_body: str = "",
-    ) -> "PublishRetry":
+    ) -> PublishRetry:
         """Create a retry record with calculated delay.
 
         Args:

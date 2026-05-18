@@ -10,6 +10,7 @@ from ninja import Schema
 
 class CalendarEntryIn(Schema):
     """Input for creating/updating calendar entry."""
+
     title: str
     content_type: str
     platform: str = ""
@@ -25,6 +26,7 @@ class CalendarEntryIn(Schema):
 
 class CalendarEntryOut(Schema):
     """Output for calendar entry."""
+
     id: str
     title: str
     content_type: str
@@ -46,6 +48,7 @@ class CalendarEntryOut(Schema):
 
 class CalendarFilter(Schema):
     """Query filters for calendar view."""
+
     date_from: date | None = None
     date_to: date | None = None
     status: str | None = None
@@ -58,6 +61,7 @@ class CalendarFilter(Schema):
 
 class WorkloadOut(Schema):
     """Output for workload calculation."""
+
     workload: dict[str, dict[str, Any]]
     overloaded: list[dict[str, Any]]
     underloaded: list[dict[str, Any]]
@@ -69,11 +73,13 @@ class WorkloadOut(Schema):
 
 class StatusTransitionIn(Schema):
     """Input for pipeline status transition."""
+
     new_status: str
 
 
 class PipelineSummaryOut(Schema):
     """Output for pipeline summary."""
+
     pipeline: dict[str, int]
     total_entries: int
     upcoming_deadlines: int

@@ -8,25 +8,25 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
-from apps.workflows_v2.models.workflow import Workflow
-from apps.workflows_v2.models.node import WorkflowNode
 from apps.workflows_v2.models.edge import WorkflowEdge
+from apps.workflows_v2.models.node import WorkflowNode
+from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.serializers import (
-    NodeCreateSchema,
-    NodeUpdateSchema,
-    NodeOutSchema,
     EdgeCreateSchema,
-    EdgeUpdateSchema,
     EdgeOutSchema,
+    EdgeUpdateSchema,
     ErrorSchema,
+    NodeCreateSchema,
+    NodeOutSchema,
+    NodeUpdateSchema,
 )
 from apps.workflows_v2.services.builder import (
-    create_node,
-    update_node,
-    delete_node,
     create_edge,
-    update_edge,
+    create_node,
     delete_edge,
+    delete_node,
+    update_edge,
+    update_node,
 )
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -46,9 +46,7 @@ def list_nodes(request, workflow_id: int) -> list[WorkflowNode]:
 
 
 @router.post("/{workflow_id}/nodes", response=NodeOutSchema, tags=["Workflow Nodes"])
-def add_node(
-    request, workflow_id: int, payload: NodeCreateSchema
-) -> WorkflowNode:
+def add_node(request, workflow_id: int, payload: NodeCreateSchema) -> WorkflowNode:
     """Add a node to a workflow."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)

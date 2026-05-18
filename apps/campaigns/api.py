@@ -7,16 +7,16 @@ from __future__ import annotations
 
 from ninja import Router
 
-from apps.rbac.auth import VoyagerKeycloakBearer
 from apps.campaigns.views import (
+    ab_testing_router,
+    briefs_router,
+    budget_router,
+    channels_router,
     crud_router,
     lifecycle_router,
-    budget_router,
-    ab_testing_router,
     performance_router,
-    channels_router,
-    briefs_router,
 )
+from apps.rbac.auth import VoyagerKeycloakBearer
 
 # Main campaigns router with auth
 router = Router(auth=VoyagerKeycloakBearer())

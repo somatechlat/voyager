@@ -30,9 +30,7 @@ def get_month_start_end(d: date) -> tuple[date, date]:
     return start, end
 
 
-def calculate_monthly_usage(
-    retainer: Retainer, month: date
-) -> dict[str, Any]:
+def calculate_monthly_usage(retainer: Retainer, month: date) -> dict[str, Any]:
     """Calculate hours used for a retainer in a given month.
 
     Args:
@@ -68,9 +66,7 @@ def calculate_monthly_usage(
     }
 
 
-def calculate_rollover(
-    retainer: Retainer, month: date
-) -> dict[str, Any]:
+def calculate_rollover(retainer: Retainer, month: date) -> dict[str, Any]:
     """Calculate rollover hours for unused retainer allocation.
 
     Args:
@@ -124,9 +120,7 @@ def check_consumption_alerts(retainer: Retainer, month: date) -> list[dict[str, 
                         f"{usage['consumption_pct']}% of monthly allocation"
                     ),
                     "severity": (
-                        "critical" if threshold >= 100
-                        else "warning" if threshold >= 90
-                        else "info"
+                        "critical" if threshold >= 100 else "warning" if threshold >= 90 else "info"
                     ),
                 }
             )
@@ -162,9 +156,7 @@ def renew_retainer(retainer: Retainer) -> dict[str, Any]:
         Dict with renewal result.
     """
     if retainer.end_date:
-        retainer.end_date = retainer.end_date + timedelta(
-            days=retainer.renewal_term_months * 30
-        )
+        retainer.end_date = retainer.end_date + timedelta(days=retainer.renewal_term_months * 30)
     retainer.status = Retainer.Status.ACTIVE
     retainer.save(update_fields=["end_date", "status", "updated_at"])
     return {

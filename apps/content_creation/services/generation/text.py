@@ -10,7 +10,6 @@ from .text_clients import (
     _call_anthropic,
     _call_google,
     _call_openai,
-    _fallback_generation,
 )
 
 logger = logging.getLogger(__name__)
@@ -78,21 +77,18 @@ def _build_system_prompt(
         System prompt string ready for the model.
     """
     parts: list[str] = []
-    parts.append("You are an expert marketing copywriter. "
-                 "Generate high-quality, engaging content.")
+    parts.append(
+        "You are an expert marketing copywriter. " "Generate high-quality, engaging content."
+    )
 
     effective_tone = tone
     if brand_kit:
         effective_tone = brand_kit.get("voice", tone)
         if brand_kit.get("forbidden_words"):
-            parts.append(
-                "NEVER use these words: "
-                f"{', '.join(brand_kit['forbidden_words'])}."
-            )
+            parts.append("NEVER use these words: " f"{', '.join(brand_kit['forbidden_words'])}.")
         if brand_kit.get("required_phrases"):
             parts.append(
-                "Include these phrases naturally: "
-                f"{', '.join(brand_kit['required_phrases'])}."
+                "Include these phrases naturally: " f"{', '.join(brand_kit['required_phrases'])}."
             )
         if brand_kit.get("tone_rules"):
             rules = brand_kit["tone_rules"]
@@ -113,8 +109,7 @@ def _build_system_prompt(
             parts.append("Platform limits — " + ", ".join(limits) + ".")
     if seo_keywords:
         parts.append(
-            f"Integrate these SEO keywords naturally (1-3% density): "
-            f"{', '.join(seo_keywords)}."
+            f"Integrate these SEO keywords naturally (1-3% density): " f"{', '.join(seo_keywords)}."
         )
 
     return "\n\n".join(parts)
@@ -218,12 +213,14 @@ def _scan_forbidden_words(text: str, forbidden: list[str]) -> list[dict[str, Any
     for word in forbidden:
         idx = lower_text.find(word.lower())
         if idx >= 0:
-            violations.append({
-                "type": "forbidden_word",
-                "word": word,
-                "position": {"start": idx, "end": idx + len(word)},
-                "severity": "error",
-            })
+            violations.append(
+                {
+                    "type": "forbidden_word",
+                    "word": word,
+                    "position": {"start": idx, "end": idx + len(word)},
+                    "severity": "error",
+                }
+            )
     return violations
 
 
@@ -242,12 +239,14 @@ def _scan_competitors(text: str, competitors: list[str]) -> list[dict[str, Any]]
     for comp in competitors:
         idx = lower_text.find(comp.lower())
         if idx >= 0:
-            violations.append({
-                "type": "competitor_mention",
-                "competitor": comp,
-                "position": {"start": idx, "end": idx + len(comp)},
-                "severity": "error",
-            })
+            violations.append(
+                {
+                    "type": "competitor_mention",
+                    "competitor": comp,
+                    "position": {"start": idx, "end": idx + len(comp)},
+                    "severity": "error",
+                }
+            )
     return violations
 
 
@@ -288,14 +287,10 @@ def generate_text(
     model = _select_model(content_type, language)
     keywords = seo_keywords or []
 
-    system_prompt = _build_system_prompt(
-        brand_kit, tone, keywords, content_type, platforms
-    )
+    system_prompt = _build_system_prompt(brand_kit, tone, keywords, content_type, platforms)
     user_prompt = brief
     if include_cta:
-        user_prompt += (
-            "\n\nInclude a clear call-to-action at the end."
-        )
+        user_prompt += "\n\nInclude a clear call-to-action at the end."
 
     result = _call_text_model(model, system_prompt, user_prompt, language)
     text = result.get("text", "")
@@ -305,12 +300,8 @@ def generate_text(
     # Post-processing
     warnings: list[dict[str, Any]] = []
     if brand_kit:
-        warnings.extend(_scan_forbidden_words(
-            text, brand_kit.get("forbidden_words", [])
-        ))
-        warnings.extend(_scan_competitors(
-            text, brand_kit.get("competitor_list", [])
-        ))
+        warnings.extend(_scan_forbidden_words(text, brand_kit.get("forbidden_words", [])))
+        warnings.extend(_scan_competitors(text, brand_kit.get("competitor_list", [])))
 
     readability = _flesch_kincaid(text)
     seo_density_val = _seo_density(text, keywords)
@@ -325,17 +316,21 @@ def generate_text(
         if limit and len(adapted) > limit:
             adapted = adapted[: limit - 3] + "..."
             within_limit = False
-            warnings.append({
-                "type": "length_exceeded",
-                "message": f"{platform}: text truncated to {limit} chars",
-                "severity": "warning",
-            })
-        platform_adaptations.append({
-            "platform": platform,
-            "adapted_text": adapted,
-            "character_count": len(adapted),
-            "within_limit": within_limit,
-        })
+            warnings.append(
+                {
+                    "type": "length_exceeded",
+                    "message": f"{platform}: text truncated to {limit} chars",
+                    "severity": "warning",
+                }
+            )
+        platform_adaptations.append(
+            {
+                "platform": platform,
+                "adapted_text": adapted,
+                "character_count": len(adapted),
+                "within_limit": within_limit,
+            }
+        )
 
     overall_quality = (readability + engagement + seo_score) / 3.0
     if warnings:

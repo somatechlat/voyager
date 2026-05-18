@@ -7,7 +7,6 @@ tracking, and chunked processing for datasets exceeding 100,000 rows.
 from __future__ import annotations
 
 import csv
-import io
 import json
 import logging
 from datetime import datetime
@@ -68,7 +67,6 @@ def process_export_job(job: Any) -> dict[str, Any]:
     Returns:
         Dict with status, file info, and row count.
     """
-    from django.db import connections
 
     job.status = "running"
     job.started_at = datetime.utcnow()
@@ -103,7 +101,16 @@ def process_export_job(job: Any) -> dict[str, Any]:
         job.file_path = result.get("file_path", "")
         job.file_size_bytes = result.get("file_size_bytes", 0)
         job.progress_percent = 100
-        job.save(update_fields=["status", "completed_at", "row_count", "file_path", "file_size_bytes", "progress_percent"])
+        job.save(
+            update_fields=[
+                "status",
+                "completed_at",
+                "row_count",
+                "file_path",
+                "file_size_bytes",
+                "progress_percent",
+            ]
+        )
 
         return {
             "status": "completed",
@@ -147,7 +154,6 @@ def _stream_csv_export(
     Returns:
         Dict with row_count, file_path, file_size_bytes.
     """
-    import tempfile
 
     columns = job.columns if job.columns else []
     file_path = f"/tmp/export_{job.id}.csv"
@@ -162,7 +168,9 @@ def _stream_csv_export(
         row_count = 0
         offset = 0
         while True:
-            chunk = _fetch_chunk(source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE)
+            chunk = _fetch_chunk(
+                source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE
+            )
             if not chunk:
                 break
             for row in chunk:
@@ -210,7 +218,9 @@ def _stream_json_export(
         first = True
 
         while True:
-            chunk = _fetch_chunk(source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE)
+            chunk = _fetch_chunk(
+                source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE
+            )
             if not chunk:
                 break
             for row in chunk:
@@ -259,7 +269,9 @@ def _stream_ndjson_export(
         row_count = 0
         offset = 0
         while True:
-            chunk = _fetch_chunk(source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE)
+            chunk = _fetch_chunk(
+                source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE
+            )
             if not chunk:
                 break
             for row in chunk:
@@ -314,7 +326,9 @@ def _stream_excel_export(
     row_count = 0
     offset = 0
     while True:
-        chunk = _fetch_chunk(source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE)
+        chunk = _fetch_chunk(
+            source, start_dt, end_dt, filters, tenant_id, columns, offset, CHUNK_SIZE
+        )
         if not chunk:
             break
         for row in chunk:
@@ -360,7 +374,9 @@ def _fetch_chunk(
         from django.db import connections
 
         ch = connections.get("clickhouse")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         platform = filters.get("platform", "")
         if platform:
             where += f" AND platform = '{platform}'"
@@ -404,7 +420,9 @@ def stream_export_response(
         "excel": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }
 
-    ext = {"csv": "csv", "json": "json", "ndjson": "ndjson", "excel": "xlsx"}.get(job.format, job.format)
+    ext = {"csv": "csv", "json": "json", "ndjson": "ndjson", "excel": "xlsx"}.get(
+        job.format, job.format
+    )
 
     def _file_iterator():
         with open(job.file_path, "rb") as f:

@@ -80,12 +80,11 @@ def list_sentiment_scores(
     Returns:
         Paginated sentiment score list.
     """
-    from django.utils import timezone
     from datetime import timedelta
 
-    qs = SentimentScore.objects.filter(
-        analyzed_at__gte=timezone.now() - timedelta(days=days)
-    )
+    from django.utils import timezone
+
+    qs = SentimentScore.objects.filter(analyzed_at__gte=timezone.now() - timedelta(days=days))
 
     if tenant_id:
         qs = qs.filter(tenant_id=tenant_id)

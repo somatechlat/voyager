@@ -124,7 +124,7 @@ _SENSITIVE_TOPIC_PATTERNS: dict[str, list[str]] = {
     ],
 }
 
-# Common competitor name patterns (placeholder; real ones come from BrandSafetyRule)
+# Common competitor name patterns (extend via BrandSafetyRule model)
 _DEFAULT_COMPETITOR_PATTERNS: list[str] = []
 
 # Medical claim keywords for FDA compliance

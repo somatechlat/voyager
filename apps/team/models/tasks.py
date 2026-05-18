@@ -37,76 +37,116 @@ class Task(models.Model):
 
     id = models.BigAutoField(primary_key=True, editable=False)
     tenant_id = models.CharField(
-        max_length=128, db_index=True,
+        max_length=128,
+        db_index=True,
         help_text="Tenant identifier for multi-tenancy isolation",
     )
     title = models.CharField(max_length=500, help_text="Short task title")
     description = models.TextField(blank=True, help_text="Detailed task description")
     project_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="Optional linked project UUID",
     )
     client_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="Optional linked client UUID",
     )
     campaign_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="Optional linked campaign UUID",
     )
     assignee_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="UUID of the assigned user",
     )
     reporter_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="UUID of the user who created the task",
     )
     priority = models.CharField(
-        max_length=5, choices=Priority.choices, default=Priority.P2,
-        db_index=True, help_text="Priority level P0-P3",
+        max_length=5,
+        choices=Priority.choices,
+        default=Priority.P2,
+        db_index=True,
+        help_text="Priority level P0-P3",
     )
     status = models.CharField(
-        max_length=30, choices=Status.choices, default=Status.TODO,
-        db_index=True, help_text="Current task status",
+        max_length=30,
+        choices=Status.choices,
+        default=Status.TODO,
+        db_index=True,
+        help_text="Current task status",
     )
     task_type = models.CharField(
-        max_length=50, blank=True, db_index=True,
+        max_length=50,
+        blank=True,
+        db_index=True,
         help_text="Type of work (design, development, etc.)",
     )
     tags = models.JSONField(default=list, blank=True, help_text="List of string tags")
     due_date = models.DateField(
-        null=True, blank=True, db_index=True, help_text="Deadline date",
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Deadline date",
     )
     estimated_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True,
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
         help_text="Estimated effort in hours",
     )
     actual_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True,
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
         help_text="Logged effort in hours",
     )
     dependencies = models.JSONField(
-        default=list, blank=True, help_text="List of dependent task IDs",
+        default=list,
+        blank=True,
+        help_text="List of dependent task IDs",
     )
     subtasks = models.JSONField(
-        default=list, blank=True,
+        default=list,
+        blank=True,
         help_text="List of subtask objects with id, title, done fields",
     )
     custom_fields = models.JSONField(
-        default=dict, blank=True, help_text="Key-value custom fields",
+        default=dict,
+        blank=True,
+        help_text="Key-value custom fields",
     )
     attachments = models.JSONField(
-        default=list, blank=True, help_text="List of attachment file references",
+        default=list,
+        blank=True,
+        help_text="List of attachment file references",
     )
     position = models.IntegerField(
-        default=0, help_text="Sort position for Kanban boards",
+        default=0,
+        help_text="Sort position for Kanban boards",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, db_index=True, help_text="Timestamp when created",
+        auto_now_add=True,
+        db_index=True,
+        help_text="Timestamp when created",
     )
     updated_at = models.DateTimeField(
-        auto_now=True, db_index=True, help_text="Timestamp when last updated",
+        auto_now=True,
+        db_index=True,
+        help_text="Timestamp when last updated",
     )
 
     class Meta:
@@ -169,24 +209,35 @@ class TaskComment(models.Model):
 
     id = models.BigAutoField(primary_key=True, editable=False)
     task = models.ForeignKey(
-        Task, on_delete=models.CASCADE, related_name="comments",
+        Task,
+        on_delete=models.CASCADE,
+        related_name="comments",
         help_text="Parent task",
     )
     author_id = models.CharField(
-        max_length=128, db_index=True, help_text="UUID of the comment author",
+        max_length=128,
+        db_index=True,
+        help_text="UUID of the comment author",
     )
     content = models.TextField(help_text="Comment text content")
     mentions = models.JSONField(
-        default=list, blank=True, help_text="List of mentioned user IDs",
+        default=list,
+        blank=True,
+        help_text="List of mentioned user IDs",
     )
     attachments = models.JSONField(
-        default=list, blank=True, help_text="List of attachment references",
+        default=list,
+        blank=True,
+        help_text="List of attachment references",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, db_index=True, help_text="Timestamp when created",
+        auto_now_add=True,
+        db_index=True,
+        help_text="Timestamp when created",
     )
     updated_at = models.DateTimeField(
-        auto_now=True, help_text="Timestamp when last updated",
+        auto_now=True,
+        help_text="Timestamp when last updated",
     )
 
     class Meta:
@@ -213,25 +264,35 @@ class TaskTimeEntry(models.Model):
 
     id = models.BigAutoField(primary_key=True, editable=False)
     task = models.ForeignKey(
-        Task, on_delete=models.CASCADE, related_name="time_entries",
+        Task,
+        on_delete=models.CASCADE,
+        related_name="time_entries",
         help_text="Parent task",
     )
     user_id = models.CharField(
-        max_length=128, db_index=True,
+        max_length=128,
+        db_index=True,
         help_text="UUID of the user who logged time",
     )
     started_at = models.DateTimeField(db_index=True, help_text="When work began")
     ended_at = models.DateTimeField(
-        null=True, blank=True, help_text="When work ended",
+        null=True,
+        blank=True,
+        help_text="When work ended",
     )
     duration_seconds = models.IntegerField(
-        null=True, blank=True, help_text="Computed duration in seconds",
+        null=True,
+        blank=True,
+        help_text="Computed duration in seconds",
     )
     description = models.TextField(
-        blank=True, help_text="Optional description of work performed",
+        blank=True,
+        help_text="Optional description of work performed",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, db_index=True, help_text="Timestamp when created",
+        auto_now_add=True,
+        db_index=True,
+        help_text="Timestamp when created",
     )
 
     class Meta:
@@ -257,7 +318,5 @@ class TaskTimeEntry(models.Model):
     def save(self, *args, **kwargs):
         """Auto-compute duration_seconds before saving."""
         if self.ended_at and self.started_at:
-            self.duration_seconds = int(
-                (self.ended_at - self.started_at).total_seconds()
-            )
+            self.duration_seconds = int((self.ended_at - self.started_at).total_seconds())
         super().save(*args, **kwargs)

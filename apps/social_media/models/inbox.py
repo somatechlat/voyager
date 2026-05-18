@@ -89,18 +89,10 @@ class InboxMessage(UUIDModel, TenantModel, TimeStampedModel):
     )
     post_id = models.CharField(max_length=255, blank=True, db_index=True)
     thread_id = models.UUIDField(null=True, blank=True, db_index=True)
-    sentiment = models.CharField(
-        max_length=20, choices=SENTIMENTS, blank=True, db_index=True
-    )
-    sentiment_score = models.DecimalField(
-        max_digits=4, decimal_places=3, null=True, blank=True
-    )
-    spam_score = models.DecimalField(
-        max_digits=3, decimal_places=2, null=True, blank=True
-    )
-    status = models.CharField(
-        max_length=20, choices=STATUSES, default="new", db_index=True
-    )
+    sentiment = models.CharField(max_length=20, choices=SENTIMENTS, blank=True, db_index=True)
+    sentiment_score = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
+    spam_score = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUSES, default="new", db_index=True)
     assigned_to = models.CharField(max_length=128, blank=True, db_index=True)
     assignment_reason = models.TextField(blank=True)
     replied_at = models.DateTimeField(null=True, blank=True)

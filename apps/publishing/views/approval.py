@@ -9,7 +9,7 @@ from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
 
-from ..models import ApprovalAction, ApprovalInstance, ApprovalWorkflow, ScheduledPost
+from ..models import ApprovalWorkflow, ScheduledPost
 from ..services.approval import (
     approve_step,
     check_timeouts,
@@ -90,7 +90,8 @@ def list_workflows(request) -> list[dict[str, Any]]:
     """List approval workflows."""
     tenant_id = getattr(request, "tenant_id", "default")
     workflows = ApprovalWorkflow.objects.filter(
-        tenant_id=tenant_id, is_active=True,
+        tenant_id=tenant_id,
+        is_active=True,
     ).order_by("-created_at")
     return [_workflow_to_dict(w) for w in workflows]
 
@@ -140,7 +141,8 @@ def request_approval(request, post_id: str) -> dict[str, Any]:
 
     try:
         instance = create_approval_instance(
-            str(post.approval_workflow_id), str(post.id),
+            str(post.approval_workflow_id),
+            str(post.id),
         )
         return {
             "success": True,
@@ -167,7 +169,9 @@ def do_reject(request, instance_id: str, payload: ApproveIn) -> dict[str, Any]:
     return reject_approval(instance_id, user_id, payload.comment)
 
 
-@router.post("/approvals/{instance_id}/request-changes", response=dict, tags=["Publishing Approval"])
+@router.post(
+    "/approvals/{instance_id}/request-changes", response=dict, tags=["Publishing Approval"]
+)
 def do_request_changes(request, instance_id: str, payload: RequestChangesIn) -> dict[str, Any]:
     """Request changes on current step."""
     user_id = getattr(request, "user_id", "anonymous")

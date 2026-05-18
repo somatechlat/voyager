@@ -6,7 +6,7 @@ Performance aggregation, time series, dashboard KPIs, and ROI endpoints.
 from __future__ import annotations
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 from typing import Any
 
 from django.shortcuts import get_object_or_404
@@ -218,16 +218,15 @@ def performance_comparison(
         "benchmark": benchmark,
         "comparison": {
             "ctr_delta": (
-                current["ctr"] - benchmark["ctr"]
-                if benchmark and "ctr" in benchmark else None
+                current["ctr"] - benchmark["ctr"] if benchmark and "ctr" in benchmark else None
             ),
             "conversion_rate_delta": (
                 current["conversion_rate"] - benchmark["conversion_rate"]
-                if benchmark and "conversion_rate" in benchmark else None
+                if benchmark and "conversion_rate" in benchmark
+                else None
             ),
             "roas_delta": (
-                current["roas"] - benchmark["roas"]
-                if benchmark and "roas" in benchmark else None
+                current["roas"] - benchmark["roas"] if benchmark and "roas" in benchmark else None
             ),
         },
     }

@@ -27,8 +27,6 @@ AT_RISK_THRESHOLD = 0.85
 class WorkloadServiceError(Exception):
     """Raised when a workload operation fails."""
 
-    pass
-
 
 class WorkloadService:
     """Service layer for workload balancing and capacity planning."""
@@ -62,9 +60,7 @@ class WorkloadService:
             qs.values("status").annotate(count=Count("id")).values_list("status", "count")
         )
         by_priority = dict(
-            qs.values("priority")
-            .annotate(count=Count("id"))
-            .values_list("priority", "count")
+            qs.values("priority").annotate(count=Count("id")).values_list("priority", "count")
         )
 
         total_assigned = qs.count()
@@ -77,9 +73,7 @@ class WorkloadService:
         )
 
         upcoming = (
-            qs.filter(due_date__gte=date.today())
-            .exclude(status="done")
-            .order_by("due_date")[:10]
+            qs.filter(due_date__gte=date.today()).exclude(status="done").order_by("due_date")[:10]
         )
         upcoming_list = [
             {
@@ -132,9 +126,7 @@ class WorkloadService:
         workloads = []
         for uid in user_ids:
             try:
-                wl = WorkloadService.get_user_workload(
-                    tenant_id, uid, date_from, date_to
-                )
+                wl = WorkloadService.get_user_workload(tenant_id, uid, date_from, date_to)
                 workloads.append(wl)
             except Exception:
                 logger.warning("Failed to get workload for user %s", uid)
@@ -143,9 +135,7 @@ class WorkloadService:
         team_totals = {
             "total_assigned": sum(w["total_assigned"] for w in workloads),
             "total_overdue": sum(w["overdue_count"] for w in workloads),
-            "total_estimated_hours": sum(
-                w["total_estimated_hours"] for w in workloads
-            ),
+            "total_estimated_hours": sum(w["total_estimated_hours"] for w in workloads),
             "total_actual_hours": sum(w["total_actual_hours"] for w in workloads),
             "member_count": len(workloads),
         }
@@ -205,9 +195,9 @@ class WorkloadService:
         underutilized: list[dict[str, Any]] = []
 
         for uid in user_ids:
-            qs = Task.objects.filter(
-                tenant_id=tenant_id, assignee_id=uid
-            ).exclude(status__in=["done", "cancelled"])
+            qs = Task.objects.filter(tenant_id=tenant_id, assignee_id=uid).exclude(
+                status__in=["done", "cancelled"]
+            )
 
             if date_from:
                 qs = qs.filter(due_date__gte=date_from)
@@ -215,13 +205,9 @@ class WorkloadService:
                 qs = qs.filter(due_date__lte=date_to)
 
             assigned_tasks = qs.count()
-            estimated_hours = (
-                qs.aggregate(total=Sum("estimated_hours"))["total"] or Decimal("0")
-            )
+            estimated_hours = qs.aggregate(total=Sum("estimated_hours"))["total"] or Decimal("0")
 
-            utilization = (
-                float(estimated_hours) / available_hours if available_hours > 0 else 0.0
-            )
+            utilization = float(estimated_hours) / available_hours if available_hours > 0 else 0.0
 
             if utilization > OVERLOAD_THRESHOLD:
                 status = "overloaded"
@@ -328,12 +314,8 @@ class WorkloadService:
 
         for over in overloaded:
             for under in underutilized:
-                under_available = float(under["available_hours"]) - float(
-                    under["estimated_hours"]
-                )
-                over_overage = float(over["estimated_hours"]) - float(
-                    over["available_hours"]
-                )
+                under_available = float(under["available_hours"]) - float(under["estimated_hours"])
+                over_overage = float(over["estimated_hours"]) - float(over["available_hours"])
                 transferable = min(under_available, over_overage)
                 if transferable > 2:
                     suggestions.append(
@@ -342,9 +324,11 @@ class WorkloadService:
                     )
                     break
 
-        return suggestions if suggestions else [
-            "Review individual workloads for rebalancing opportunities."
-        ]
+        return (
+            suggestions
+            if suggestions
+            else ["Review individual workloads for rebalancing opportunities."]
+        )
 
     # -- Overdue detection -------------------------------------------------
 

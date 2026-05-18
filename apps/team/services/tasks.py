@@ -20,5 +20,3 @@ class TaskService(TaskCoreService, TaskOpsService):
     list_comments, log_time, list_time_entries, bulk_update, add_dependency,
     remove_dependency, add_subtask, toggle_subtask).
     """
-
-    pass

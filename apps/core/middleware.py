@@ -137,7 +137,7 @@ class RBACMiddleware:
                 request.voyager_user = user  # type: ignore[attr-defined]
             except Exception:
                 # Authentication failures are handled by the auth layer, not middleware
-                pass
+                logger.debug("Auth middleware token validation failed", exc_info=True)
 
         return self.get_response(request)
 
@@ -190,7 +190,7 @@ class AuditMiddleware:
             )
         except Exception:
             # Audit logging must never break the request
-            pass
+            logger.warning("Audit middleware logging failed", exc_info=True)
 
     @staticmethod
     def _get_client_ip(request):

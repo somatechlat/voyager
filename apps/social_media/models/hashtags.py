@@ -62,27 +62,17 @@ class HashtagResearch(UUIDModel, TenantModel, TimeStampedModel):
     total_posts = models.PositiveBigIntegerField(default=0)
     posts_last_week = models.PositiveIntegerField(default=0)
     posts_last_day = models.PositiveIntegerField(default=0)
-    avg_engagement = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    avg_engagement = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     top_post_min_engagement = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
-    competition_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    opportunity_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    competition_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    opportunity_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     recommendation = models.CharField(
         max_length=30, choices=RECOMMENDATIONS, blank=True, db_index=True
     )
-    trend_direction = models.CharField(
-        max_length=20, choices=TRENDS, blank=True, db_index=True
-    )
-    trend_percentage = models.DecimalField(
-        max_digits=6, decimal_places=2, null=True, blank=True
-    )
+    trend_direction = models.CharField(max_length=20, choices=TRENDS, blank=True, db_index=True)
+    trend_percentage = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     related_hashtags = models.JSONField(default=list, blank=True)
     category = models.CharField(max_length=255, blank=True, db_index=True)
     researched_at = models.DateTimeField(auto_now=True)

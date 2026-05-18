@@ -123,6 +123,7 @@ def delete_competitor(request, competitor_id: str):
 # Competitor Content
 # ---------------------------------------------------------------------------
 
+
 @router.post("/competitors/{competitor_id}/content", response=CompetitorContentOut)
 def add_competitor_content(
     request,
@@ -166,6 +167,7 @@ def list_competitor_content(
 # NLP Theme Extraction
 # ---------------------------------------------------------------------------
 
+
 @router.get("/competitors/{competitor_id}/themes", response=list[ThemeOut])
 def extract_themes(
     request,
@@ -187,6 +189,7 @@ def extract_themes(
 # ---------------------------------------------------------------------------
 # SWOT Analysis
 # ---------------------------------------------------------------------------
+
 
 @router.get("/competitors/{competitor_id}/swot", response=SWOTOut)
 def generate_swot(

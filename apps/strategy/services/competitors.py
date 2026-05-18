@@ -19,43 +19,276 @@ logger = logging.getLogger(__name__)
 # In production this integrates with sentence-transformers/BERTopic.
 STOP_WORDS = frozenset(
     [
-        "the", "a", "an", "is", "are", "was", "were", "be", "been",
-        "being", "have", "has", "had", "do", "does", "did", "will",
-        "would", "could", "should", "may", "might", "must", "shall",
-        "can", "need", "dare", "ought", "used", "to", "of", "in",
-        "for", "on", "with", "at", "by", "from", "as", "into",
-        "through", "during", "before", "after", "above", "below",
-        "between", "out", "off", "over", "under", "again", "further",
-        "then", "once", "and", "but", "or", "yet", "so", "if",
-        "because", "although", "though", "while", "where", "when",
-        "that", "which", "who", "whom", "whose", "what", "this",
-        "these", "those", "i", "me", "my", "we", "our", "you",
-        "your", "he", "him", "his", "she", "her", "it", "its",
-        "they", "them", "their", "s", "t", "just", "don", "now",
-        "ll", "re", "ve", "d", "m", "o", "ma", "y", "gonna",
-        "wanna", "got", "get", "like", "one", "also", "new", "way",
-        "time", "make", "well", "us", "more", "up", "all", "no",
-        "about", "how", "out", "many", "other", "some", "only",
-        "see", "him", "two", "her", "than", "them", "its", "now",
-        "find", "long", "down", "day", "did", "she", "use",
-        "her", "each", "which", "she", "how", "their", "if",
-        "will", "up", "other", "about", "many", "then", "them",
-        "these", "so", "some", "her", "would", "make", "like",
-        "into", "him", "has", "two", "more", "very", "what",
-        "know", "just", "first", "get", "over", "think", "also",
-        "your", "work", "life", "even", "new", "want", "here",
-        "back", "after", "use", "well", "way", "good", "too",
-        "any", "may", "say", "great", "through", "when", "come",
-        "much", "came", "old", "still", "where", "those", "while",
-        "really", "right", "being", "both", "each", "few", "such",
-        "off", "own", "under", "last", "never", "most", "around",
-        "another", "put", "again", "against", "might", "next",
-        "give", "done", "open", "case", "show", "live", "play",
-        "went", "told", "seen", "heard", "found", "took", "made",
-        "let", "set", "called", "tried", "asked", "moved", "based",
-        "said", "called", "told", "took", "gave", "saw", "got",
-        "came", "went", "made", "went", "said", "did", "was",
-        "were", "had", "has", "have", "having", "do", "does",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "must",
+        "shall",
+        "can",
+        "need",
+        "dare",
+        "ought",
+        "used",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "out",
+        "off",
+        "over",
+        "under",
+        "again",
+        "further",
+        "then",
+        "once",
+        "and",
+        "but",
+        "or",
+        "yet",
+        "so",
+        "if",
+        "because",
+        "although",
+        "though",
+        "while",
+        "where",
+        "when",
+        "that",
+        "which",
+        "who",
+        "whom",
+        "whose",
+        "what",
+        "this",
+        "these",
+        "those",
+        "i",
+        "me",
+        "my",
+        "we",
+        "our",
+        "you",
+        "your",
+        "he",
+        "him",
+        "his",
+        "she",
+        "her",
+        "it",
+        "its",
+        "they",
+        "them",
+        "their",
+        "s",
+        "t",
+        "just",
+        "don",
+        "now",
+        "ll",
+        "re",
+        "ve",
+        "d",
+        "m",
+        "o",
+        "ma",
+        "y",
+        "gonna",
+        "wanna",
+        "got",
+        "get",
+        "like",
+        "one",
+        "also",
+        "new",
+        "way",
+        "time",
+        "make",
+        "well",
+        "us",
+        "more",
+        "up",
+        "all",
+        "no",
+        "about",
+        "how",
+        "out",
+        "many",
+        "other",
+        "some",
+        "only",
+        "see",
+        "him",
+        "two",
+        "her",
+        "than",
+        "them",
+        "its",
+        "now",
+        "find",
+        "long",
+        "down",
+        "day",
+        "did",
+        "she",
+        "use",
+        "her",
+        "each",
+        "which",
+        "she",
+        "how",
+        "their",
+        "if",
+        "will",
+        "up",
+        "other",
+        "about",
+        "many",
+        "then",
+        "them",
+        "these",
+        "so",
+        "some",
+        "her",
+        "would",
+        "make",
+        "like",
+        "into",
+        "him",
+        "has",
+        "two",
+        "more",
+        "very",
+        "what",
+        "know",
+        "just",
+        "first",
+        "get",
+        "over",
+        "think",
+        "also",
+        "your",
+        "work",
+        "life",
+        "even",
+        "new",
+        "want",
+        "here",
+        "back",
+        "after",
+        "use",
+        "well",
+        "way",
+        "good",
+        "too",
+        "any",
+        "may",
+        "say",
+        "great",
+        "through",
+        "when",
+        "come",
+        "much",
+        "came",
+        "old",
+        "still",
+        "where",
+        "those",
+        "while",
+        "really",
+        "right",
+        "being",
+        "both",
+        "each",
+        "few",
+        "such",
+        "off",
+        "own",
+        "under",
+        "last",
+        "never",
+        "most",
+        "around",
+        "another",
+        "put",
+        "again",
+        "against",
+        "might",
+        "next",
+        "give",
+        "done",
+        "open",
+        "case",
+        "show",
+        "live",
+        "play",
+        "went",
+        "told",
+        "seen",
+        "heard",
+        "found",
+        "took",
+        "made",
+        "let",
+        "set",
+        "called",
+        "tried",
+        "asked",
+        "moved",
+        "based",
+        "said",
+        "called",
+        "told",
+        "took",
+        "gave",
+        "saw",
+        "got",
+        "came",
+        "went",
+        "made",
+        "went",
+        "said",
+        "did",
+        "was",
+        "were",
+        "had",
+        "has",
+        "have",
+        "having",
+        "do",
+        "does",
     ]
 )
 
@@ -124,7 +357,7 @@ class CompetitorService:
             try:
                 pub_dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
             except (ValueError, AttributeError):
-                pass
+                logger.debug("Failed to parse published_at: %s", published_at)
 
         content = CompetitorContent.objects.create(
             competitor_id=competitor_id,
@@ -223,6 +456,7 @@ class CompetitorService:
 
             # Trend: count over time
             from collections import defaultdict
+
             counts_over_time: dict[str, int] = defaultdict(int)
             for tc in theme_contents:
                 if tc.published_at:
@@ -236,16 +470,20 @@ class CompetitorService:
                 elif vals[-1] < vals[0] * 0.8:
                     trend = "falling"
 
-            themes.append({
-                "name": kw,
-                "keywords": theme_kws[:6],
-                "prevalence": round(count / total, 4),
-                "trend": trend,
-                "avg_engagement": round(statistics.mean(engagement_values), 4) if engagement_values else 0,
-                "avg_reach": round(statistics.mean(reach_values), 4) if reach_values else 0,
-                "content_count": len(theme_contents),
-                "trend_over_time": dict(sorted(counts_over_time.items())),
-            })
+            themes.append(
+                {
+                    "name": kw,
+                    "keywords": theme_kws[:6],
+                    "prevalence": round(count / total, 4),
+                    "trend": trend,
+                    "avg_engagement": (
+                        round(statistics.mean(engagement_values), 4) if engagement_values else 0
+                    ),
+                    "avg_reach": round(statistics.mean(reach_values), 4) if reach_values else 0,
+                    "content_count": len(theme_contents),
+                    "trend_over_time": dict(sorted(counts_over_time.items())),
+                }
+            )
 
         themes.sort(key=lambda t: t["prevalence"], reverse=True)
         return themes
@@ -295,7 +533,6 @@ class CompetitorService:
             # Content frequency (content per week)
             dates = sorted({c.published_at for c in contents if c.published_at})
             if len(dates) >= 2:
-                from datetime import timedelta
                 span = (dates[-1] - dates[0]).days or 1
                 freq = len(dates) / (span / 7.0)
             else:
@@ -306,24 +543,33 @@ class CompetitorService:
 
         # Strengths
         if avg_engagement > own_engagement_rate * 1.2:
-            strengths.append({
-                "factor": "High engagement rate",
-                "evidence": round(avg_engagement, 4),
-            })
+            strengths.append(
+                {
+                    "factor": "High engagement rate",
+                    "evidence": round(avg_engagement, 4),
+                }
+            )
         if freq > own_content_frequency * 1.3:
-            strengths.append({
-                "factor": "High content volume",
-                "evidence": round(freq, 2),
-            })
+            strengths.append(
+                {
+                    "factor": "High content volume",
+                    "evidence": round(freq, 2),
+                }
+            )
 
         # Weaknesses
         social = profile.social_profiles or {}
         for platform, data in social.items():
-            if isinstance(data, dict) and data.get("responseTime", 0) > own_response_time_hours * 1.5:
-                weaknesses.append({
-                    "factor": f"Slow {platform} response time",
-                    "evidence": data["responseTime"],
-                })
+            if (
+                isinstance(data, dict)
+                and data.get("responseTime", 0) > own_response_time_hours * 1.5
+            ):
+                weaknesses.append(
+                    {
+                        "factor": f"Slow {platform} response time",
+                        "evidence": data["responseTime"],
+                    }
+                )
 
         # Opportunities
         competitor_topics: set[str] = set()
@@ -333,10 +579,12 @@ class CompetitorService:
         own_topics_set = set(own_topics or [])
         topic_gaps = own_topics_set - competitor_topics
         for gap in list(topic_gaps)[:10]:
-            opportunities.append({
-                "factor": f"Topic gap: {gap}",
-                "evidence": gap,
-            })
+            opportunities.append(
+                {
+                    "factor": f"Topic gap: {gap}",
+                    "evidence": gap,
+                }
+            )
 
         # Threats
         total_followers = sum(
@@ -346,10 +594,12 @@ class CompetitorService:
         )
         own_total = own_ad_spend or 1
         if total_followers > own_total * 2:
-            threats.append({
-                "factor": "Significantly larger social following",
-                "evidence": total_followers,
-            })
+            threats.append(
+                {
+                    "factor": "Significantly larger social following",
+                    "evidence": total_followers,
+                }
+            )
 
         return {
             "strengths": strengths,

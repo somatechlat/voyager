@@ -9,20 +9,19 @@ from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
 from apps.workflows_v2.models.template import WorkflowTemplate
-from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.serializers import (
+    ErrorSchema,
     TemplateCreateSchema,
     TemplateInstallSchema,
-    TemplateOutSchema,
     TemplateListSchema,
-    ErrorSchema,
+    TemplateOutSchema,
 )
 from apps.workflows_v2.services.templates import (
-    publish_template,
-    list_templates,
-    install_template,
     export_template,
     import_template,
+    install_template,
+    list_templates,
+    publish_template,
 )
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -63,9 +62,7 @@ def template_detail(request, template_id: int) -> WorkflowTemplate:
     response=TemplateOutSchema,
     tags=["Templates"],
 )
-def create_template(
-    request, payload: TemplateCreateSchema
-) -> WorkflowTemplate:
+def create_template(request, payload: TemplateCreateSchema) -> WorkflowTemplate:
     """Publish a new workflow template."""
     user_id = _get_user(request)
     return publish_template(

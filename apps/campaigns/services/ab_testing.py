@@ -85,9 +85,7 @@ def _normal_cdf(x: float) -> float:
     x = abs(x) / sqrt(2.0)
 
     t = 1.0 / (1.0 + p * x)
-    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(
-        -x * x
-    )
+    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x * x)
 
     return 0.5 * (1.0 + sign * y)
 

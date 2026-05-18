@@ -18,21 +18,55 @@ from apps.social_media.models import SocialMention
 logger = logging.getLogger(__name__)
 
 POSITIVE_WORDS = {
-    "great", "amazing", "excellent", "love", "best", "awesome",
-    "fantastic", "wonderful", "perfect", "happy", "recommend",
-    "outstanding", "brilliant", "superb", "impressive", "quality",
+    "great",
+    "amazing",
+    "excellent",
+    "love",
+    "best",
+    "awesome",
+    "fantastic",
+    "wonderful",
+    "perfect",
+    "happy",
+    "recommend",
+    "outstanding",
+    "brilliant",
+    "superb",
+    "impressive",
+    "quality",
 }
 
 NEGATIVE_WORDS = {
-    "terrible", "awful", "worst", "hate", "bad", "poor",
-    "disappointing", "horrible", "broken", "useless", "waste",
-    "never", "refund", "scam", "fake", "problem", "issue",
-    "slow", "expensive", "overpriced", "regret",
+    "terrible",
+    "awful",
+    "worst",
+    "hate",
+    "bad",
+    "poor",
+    "disappointing",
+    "horrible",
+    "broken",
+    "useless",
+    "waste",
+    "never",
+    "refund",
+    "scam",
+    "fake",
+    "problem",
+    "issue",
+    "slow",
+    "expensive",
+    "overpriced",
+    "regret",
 }
 
 INTENSITY_MULTIPLIERS = {
-    "very": 1.3, "extremely": 1.5, "absolutely": 1.4,
-    "really": 1.2, "totally": 1.2, "completely": 1.3,
+    "very": 1.3,
+    "extremely": 1.5,
+    "absolutely": 1.4,
+    "really": 1.2,
+    "totally": 1.2,
+    "completely": 1.3,
 }
 
 
@@ -166,9 +200,7 @@ def get_mention_summary(
     :returns: Summary dict with counts, sentiment distribution.
     """
     since = timezone.now() - timedelta(days=days)
-    qs = SocialMention.objects.filter(
-        tenant_id=tenant_id, mentioned_at__gte=since
-    )
+    qs = SocialMention.objects.filter(tenant_id=tenant_id, mentioned_at__gte=since)
     if tracked_term:
         qs = qs.filter(tracked_term__iexact=tracked_term)
 

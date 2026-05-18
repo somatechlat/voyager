@@ -76,15 +76,19 @@ def generate_image(
 
     warnings = []
     if brand_kit and brand_kit.get("color_palette") and color_palette:
-        warnings.append({
-            "type": "color_check",
-            "message": "Brand color distance check queued for post-processing",
-        })
+        warnings.append(
+            {
+                "type": "color_check",
+                "message": "Brand color distance check queued for post-processing",
+            }
+        )
     if remove_background:
-        warnings.append({
-            "type": "background_removal",
-            "message": "Background removal applied",
-        })
+        warnings.append(
+            {
+                "type": "background_removal",
+                "message": "Background removal applied",
+            }
+        )
 
     return {
         "image_url": "",

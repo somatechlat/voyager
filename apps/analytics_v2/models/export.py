@@ -12,7 +12,6 @@ from django.db import models
 
 from apps.rbac.models import TenantScopedMixin
 
-
 EXPORT_FORMAT_CHOICES = [
     ("csv", "CSV"),
     ("json", "JSON"),

@@ -61,9 +61,7 @@ def _message_to_dict(message: Message) -> dict[str, Any]:
 
 
 @router.get("", response=ChannelListResponseSchema)
-def list_channels(
-    request, channel_type: str | None = None, page: int = 1, page_size: int = 20
-):
+def list_channels(request, channel_type: str | None = None, page: int = 1, page_size: int = 20):
     """List channels for the tenant."""
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
@@ -183,9 +181,7 @@ def list_messages(request, channel_id: int, page: int = 1, page_size: int = 50):
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
     try:
-        result = MessagingService.list_messages(
-            channel_id, tenant_id, page, page_size
-        )
+        result = MessagingService.list_messages(channel_id, tenant_id, page, page_size)
     except MessagingServiceError as exc:
         raise HttpError(404, str(exc))
     return {
@@ -220,16 +216,12 @@ def send_message(request, channel_id: int, payload: MessageCreateSchema):
 
 
 @router.get("/{channel_id}/messages/{message_id}/replies", response=MessageListResponseSchema)
-def list_replies(
-    request, channel_id: int, message_id: int, page: int = 1, page_size: int = 50
-):
+def list_replies(request, channel_id: int, message_id: int, page: int = 1, page_size: int = 50):
     """List thread replies to a message."""
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
     try:
-        result = MessagingService.list_thread_replies(
-            message_id, tenant_id, page, page_size
-        )
+        result = MessagingService.list_thread_replies(message_id, tenant_id, page, page_size)
     except MessagingServiceError as exc:
         raise HttpError(404, str(exc))
     return {
@@ -241,9 +233,7 @@ def list_replies(
 
 
 @router.post("/{channel_id}/messages/{message_id}/reply", response=MessageSchema)
-def reply_to_message(
-    request, channel_id: int, message_id: int, payload: ThreadReplySchema
-):
+def reply_to_message(request, channel_id: int, message_id: int, payload: ThreadReplySchema):
     """Reply to a message in a thread."""
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
@@ -265,17 +255,13 @@ def reply_to_message(
 
 
 @router.put("/{channel_id}/messages/{message_id}", response=MessageSchema)
-def edit_message(
-    request, channel_id: int, message_id: int, content: str
-):
+def edit_message(request, channel_id: int, message_id: int, content: str):
     """Edit a message. Only the original author can edit."""
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
     author_id = getattr(user, "user_id", "")
     try:
-        message = MessagingService.edit_message(
-            message_id, tenant_id, author_id, content
-        )
+        message = MessagingService.edit_message(message_id, tenant_id, author_id, content)
     except MessagingServiceError as exc:
         raise HttpError(400, str(exc))
     return _message_to_dict(message)

@@ -7,7 +7,7 @@ tax calculation, numbering, and lifecycle management.
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -35,9 +35,7 @@ def generate_invoice_number(tenant_id: str) -> str:
     return f"{prefix}-{today_str}-{suffix}"
 
 
-def calculate_line_item_amount(
-    quantity: Decimal, rate: Decimal | None
-) -> Decimal:
+def calculate_line_item_amount(quantity: Decimal, rate: Decimal | None) -> Decimal:
     """Calculate line item amount.
 
     Args:
@@ -92,7 +90,18 @@ def build_time_line_items(
             }
         grouped[key]["quantity"] += hours
         grouped[key]["amount"] += calculate_line_item_amount(hours, rate)
-    return [{"type": v["type"], "description": v["description"], "quantity": round(v["quantity"], 2), "unit": v["unit"], "rate": str(v["rate"]), "amount": str(round(v["amount"], 2)), "project_id": v["project_id"]} for v in grouped.values()]
+    return [
+        {
+            "type": v["type"],
+            "description": v["description"],
+            "quantity": round(v["quantity"], 2),
+            "unit": v["unit"],
+            "rate": str(v["rate"]),
+            "amount": str(round(v["amount"], 2)),
+            "project_id": v["project_id"],
+        }
+        for v in grouped.values()
+    ]
 
 
 def build_expense_line_items(
@@ -170,9 +179,7 @@ def build_retainer_line_items(
     return result
 
 
-def calculate_tax(
-    subtotal: Decimal, tax_rates: list[dict[str, Any]]
-) -> dict[str, Any]:
+def calculate_tax(subtotal: Decimal, tax_rates: list[dict[str, Any]]) -> dict[str, Any]:
     """Calculate tax on a subtotal.
 
     Args:
@@ -231,16 +238,10 @@ def create_invoice(
         Created Invoice instance.
     """
     with transaction.atomic():
-        line_data = build_time_line_items(
-            tenant_id, client_id, date_from, date_to
-        )
-        line_data += build_expense_line_items(
-            tenant_id, client_id, date_from, date_to
-        )
+        line_data = build_time_line_items(tenant_id, client_id, date_from, date_to)
+        line_data += build_expense_line_items(tenant_id, client_id, date_from, date_to)
         if invoice_type == "retainer":
-            line_data += build_retainer_line_items(
-                tenant_id, client_id, date_from
-            )
+            line_data += build_retainer_line_items(tenant_id, client_id, date_from)
         subtotal = Decimal("0")
         for li in line_data:
             subtotal += Decimal(str(li["amount"]))

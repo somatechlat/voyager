@@ -127,18 +127,10 @@ class AgentResourceLimit(models.Model):
     tenant_id = models.CharField(
         max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation"
     )
-    max_api_calls = models.IntegerField(
-        default=100, help_text="Daily API call budget"
-    )
-    used_api_calls = models.IntegerField(
-        default=0, help_text="API calls consumed today"
-    )
-    max_memory_mb = models.IntegerField(
-        default=512, help_text="Memory budget in megabytes"
-    )
-    used_memory_mb = models.IntegerField(
-        default=0, help_text="Memory consumed in megabytes"
-    )
+    max_api_calls = models.IntegerField(default=100, help_text="Daily API call budget")
+    used_api_calls = models.IntegerField(default=0, help_text="API calls consumed today")
+    max_memory_mb = models.IntegerField(default=512, help_text="Memory budget in megabytes")
+    used_memory_mb = models.IntegerField(default=0, help_text="Memory consumed in megabytes")
     max_cost_per_day = models.DecimalField(
         max_digits=8, decimal_places=4, default=5.0000, help_text="Daily cost budget in dollars"
     )

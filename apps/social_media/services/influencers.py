@@ -7,8 +7,6 @@ analysis, and outreach tracking.
 from __future__ import annotations
 
 import logging
-import statistics
-from datetime import timedelta
 from typing import Any
 
 from django.utils import timezone
@@ -99,26 +97,32 @@ def verify_authenticity(influencer: InfluencerProfile) -> dict[str, Any]:
     following = influencer.following or 0
 
     if followers > 0 and following / followers > 0.8:
-        red_flags.append({
-            "type": "high_followback",
-            "severity": "medium",
-            "detail": f"following/followers ratio: {following/followers:.2f}",
-        })
+        red_flags.append(
+            {
+                "type": "high_followback",
+                "severity": "medium",
+                "detail": f"following/followers ratio: {following/followers:.2f}",
+            }
+        )
 
     engagement = float(influencer.engagement_rate) if influencer.engagement_rate else 0
     if followers > 10000 and engagement < 0.005:
-        red_flags.append({
-            "type": "low_engagement",
-            "severity": "high",
-            "detail": f"Engagement rate {engagement:.4f} is very low for {followers} followers",
-        })
+        red_flags.append(
+            {
+                "type": "low_engagement",
+                "severity": "high",
+                "detail": f"Engagement rate {engagement:.4f} is very low for {followers} followers",
+            }
+        )
 
     if followers > 0 and followers < 500 and engagement > 0.5:
-        red_flags.append({
-            "type": "suspicious_engagement",
-            "severity": "medium",
-            "detail": "Engagement rate unrealistically high for follower count",
-        })
+        red_flags.append(
+            {
+                "type": "suspicious_engagement",
+                "severity": "medium",
+                "detail": "Engagement rate unrealistically high for follower count",
+            }
+        )
 
     penalty = sum(SEVERITY_WEIGHTS.get(f["severity"], 5) for f in red_flags)
     score = max(0, 100 - penalty)

@@ -16,7 +16,6 @@ from ..serializers import (
     CompetitorMonitorCreateSchema,
     CompetitorMonitorListResponse,
     CompetitorMonitorSchema,
-    CompetitorMonitorUpdateSchema,
     CompetitorSnapshotSchema,
 )
 from ..services.competitors import CompetitorAnalyzer
@@ -176,10 +175,9 @@ def list_snapshots(
     except CompetitorMonitor.DoesNotExist:
         raise HttpError(404, f"Competitor monitor {monitor_id} not found")
 
-    snapshots = (
-        CompetitorSnapshot.objects.filter(competitor=monitor)
-        .order_by("-scraped_at")[:limit]
-    )
+    snapshots = CompetitorSnapshot.objects.filter(competitor=monitor).order_by("-scraped_at")[
+        :limit
+    ]
 
     return [
         CompetitorSnapshotSchema(
@@ -221,10 +219,7 @@ def list_changes(
     except CompetitorMonitor.DoesNotExist:
         raise HttpError(404, f"Competitor monitor {monitor_id} not found")
 
-    changes = (
-        CompetitorChange.objects.filter(competitor=monitor)
-        .order_by("-detected_at")[:limit]
-    )
+    changes = CompetitorChange.objects.filter(competitor=monitor).order_by("-detected_at")[:limit]
 
     return [
         CompetitorChangeSchema(

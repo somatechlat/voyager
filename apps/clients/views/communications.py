@@ -30,9 +30,7 @@ def list_communications(
 ):
     """List communication logs for the current tenant."""
     tenant_id = _get_tenant(request)
-    qs = CommunicationService.list_communications(
-        tenant_id, client_id, comm_type, project_id
-    )
+    qs = CommunicationService.list_communications(tenant_id, client_id, comm_type, project_id)
     items = list(qs[:100])
     return PaginatedCommunicationsSchema(
         count=qs.count(),
@@ -95,9 +93,7 @@ def list_client_communications(request, client_id: int):
     response=CommunicationSchema,
     tags=["Communications"],
 )
-def create_communication(
-    request, client_id: int, payload: CommunicationCreateSchema
-):
+def create_communication(request, client_id: int, payload: CommunicationCreateSchema):
     """Create a communication log entry."""
     tenant_id = _get_tenant(request)
     data = payload.dict()

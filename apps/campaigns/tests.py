@@ -6,31 +6,27 @@ A/B testing, performance tracking, and brief generation.
 
 from __future__ import annotations
 
-import pytest
 from datetime import date, timedelta
 from decimal import Decimal
 
+import pytest
+
 from apps.campaigns.models import (
     Campaign,
-    CampaignChannel,
     CampaignABTest,
     CampaignBudget,
-    CampaignPerformance,
-    CampaignBrief,
+    CampaignChannel,
 )
-from apps.campaigns.services.lifecycle import (
-    validate_transition,
-    transition_stage,
-    get_available_stages,
-)
-from apps.campaigns.services.budget import calculate_pacing, check_budget_alerts
 from apps.campaigns.services.ab_testing import calculate_sample_size
-from apps.campaigns.services.performance import get_campaign_summary
+from apps.campaigns.services.budget import calculate_pacing
 from apps.campaigns.services.channels import (
-    build_dependency_graph,
+    get_channel_recommendations,
     has_cycle,
     topological_sort,
-    get_channel_recommendations,
+)
+from apps.campaigns.services.lifecycle import (
+    get_available_stages,
+    validate_transition,
 )
 
 

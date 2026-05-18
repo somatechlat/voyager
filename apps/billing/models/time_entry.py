@@ -32,12 +32,8 @@ class TimeEntry(TimestampedModel):
         REJECTED = "rejected", "Rejected"
         INVOICED = "invoiced", "Invoiced"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
-    user_id = models.CharField(
-        max_length=128, db_index=True, help_text="User who logged time"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
+    user_id = models.CharField(max_length=128, db_index=True, help_text="User who logged time")
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.CASCADE,
@@ -52,9 +48,7 @@ class TimeEntry(TimestampedModel):
         null=True,
         help_text="The project this time is for",
     )
-    task_name = models.CharField(
-        max_length=500, blank=True, help_text="Name of the task worked on"
-    )
+    task_name = models.CharField(max_length=500, blank=True, help_text="Name of the task worked on")
     description = models.TextField(blank=True, help_text="Detailed description of work")
     tracking_mode = models.CharField(
         max_length=20,
@@ -63,18 +57,10 @@ class TimeEntry(TimestampedModel):
         db_index=True,
         help_text="How the time was tracked",
     )
-    started_at = models.DateTimeField(
-        db_index=True, help_text="When the work session started"
-    )
-    ended_at = models.DateTimeField(
-        blank=True, null=True, help_text="When the work session ended"
-    )
-    duration_minutes = models.PositiveIntegerField(
-        help_text="Actual duration in minutes"
-    )
-    rounded_minutes = models.PositiveIntegerField(
-        help_text="Duration after rounding rules applied"
-    )
+    started_at = models.DateTimeField(db_index=True, help_text="When the work session started")
+    ended_at = models.DateTimeField(blank=True, null=True, help_text="When the work session ended")
+    duration_minutes = models.PositiveIntegerField(help_text="Actual duration in minutes")
+    rounded_minutes = models.PositiveIntegerField(help_text="Duration after rounding rules applied")
     rounding_mode = models.CharField(
         max_length=20,
         choices=RoundingMode.choices,
@@ -98,9 +84,7 @@ class TimeEntry(TimestampedModel):
         null=True,
         help_text="Calculated billable amount",
     )
-    is_billable = models.BooleanField(
-        default=True, help_text="Whether this entry is billable"
-    )
+    is_billable = models.BooleanField(default=True, help_text="Whether this entry is billable")
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -117,9 +101,7 @@ class TimeEntry(TimestampedModel):
     approved_at = models.DateTimeField(
         blank=True, null=True, help_text="When the entry was approved"
     )
-    rejection_reason = models.TextField(
-        blank=True, help_text="Reason for rejection"
-    )
+    rejection_reason = models.TextField(blank=True, help_text="Reason for rejection")
     source_data = models.JSONField(
         blank=True,
         default=dict,

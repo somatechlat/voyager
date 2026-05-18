@@ -91,9 +91,7 @@ class SEOReport(models.Model):
         blank=True,
         help_text="Generated report file (PDF/HTML)",
     )
-    file_format = models.CharField(
-        max_length=10, default="pdf", help_text="pdf or html"
-    )
+    file_format = models.CharField(max_length=10, default="pdf", help_text="pdf or html")
 
     # Comparison
     compare_with_previous = models.BooleanField(

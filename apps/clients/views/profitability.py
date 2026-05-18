@@ -58,9 +58,7 @@ def list_client_profitability(request, client_id: int):
     response=ProfitabilitySchema,
     tags=["Profitability"],
 )
-def create_profitability(
-    request, client_id: int, payload: ProfitabilityCreateSchema
-):
+def create_profitability(request, client_id: int, payload: ProfitabilityCreateSchema):
     """Create a profitability record for a client."""
     tenant_id = _get_tenant(request)
     data = payload.dict()
@@ -111,9 +109,7 @@ def get_profitability(request, record_id: int):
     response=ProfitabilitySchema,
     tags=["Profitability"],
 )
-def update_profitability(
-    request, record_id: int, payload: ProfitabilityUpdateSchema
-):
+def update_profitability(request, record_id: int, payload: ProfitabilityUpdateSchema):
     """Update a profitability record."""
     tenant_id = _get_tenant(request)
     record = ProfitabilityService.get_by_id(tenant_id, record_id)

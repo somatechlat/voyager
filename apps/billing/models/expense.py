@@ -31,9 +31,7 @@ class Expense(TimestampedModel):
         INVOICED = "invoiced", "Invoiced"
         CANCELLED = "cancelled", "Cancelled"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     user_id = models.CharField(
         max_length=128, db_index=True, help_text="User who incurred the expense"
     )
@@ -61,15 +59,9 @@ class Expense(TimestampedModel):
         help_text="Expense category",
     )
     description = models.TextField(help_text="Description of the expense")
-    amount = models.DecimalField(
-        max_digits=10, decimal_places=2, help_text="Expense amount"
-    )
-    currency = models.CharField(
-        max_length=3, default="USD", help_text="Currency code"
-    )
-    receipt_url = models.URLField(
-        blank=True, default="", help_text="URL to uploaded receipt image"
-    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Expense amount")
+    currency = models.CharField(max_length=3, default="USD", help_text="Currency code")
+    receipt_url = models.URLField(blank=True, default="", help_text="URL to uploaded receipt image")
     receipt_ocr_data = models.JSONField(
         blank=True, default=dict, help_text="OCR-extracted data from receipt"
     )
@@ -93,21 +85,15 @@ class Expense(TimestampedModel):
         db_index=True,
         help_text="Approval status",
     )
-    expense_date = models.DateField(
-        db_index=True, help_text="Date the expense was incurred"
-    )
+    expense_date = models.DateField(db_index=True, help_text="Date the expense was incurred")
     approver_id = models.CharField(
         max_length=128, blank=True, default="", help_text="Who approved the expense"
     )
     approved_at = models.DateTimeField(
         blank=True, null=True, help_text="When the expense was approved"
     )
-    rejection_reason = models.TextField(
-        blank=True, help_text="Reason if rejected"
-    )
-    vendor = models.CharField(
-        max_length=255, blank=True, default="", help_text="Vendor name"
-    )
+    rejection_reason = models.TextField(blank=True, help_text="Reason if rejected")
+    vendor = models.CharField(max_length=255, blank=True, default="", help_text="Vendor name")
     invoice = models.ForeignKey(
         "billing.Invoice",
         on_delete=models.SET_NULL,
@@ -116,12 +102,8 @@ class Expense(TimestampedModel):
         null=True,
         help_text="Invoice this expense was billed on",
     )
-    tags = models.JSONField(
-        blank=True, default=list, help_text="Expense tags"
-    )
-    metadata = models.JSONField(
-        blank=True, default=dict, help_text="Extra metadata"
-    )
+    tags = models.JSONField(blank=True, default=list, help_text="Expense tags")
+    metadata = models.JSONField(blank=True, default=dict, help_text="Extra metadata")
 
     class Meta:
         db_table = "voyager_expense"

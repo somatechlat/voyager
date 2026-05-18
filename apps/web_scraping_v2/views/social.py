@@ -115,7 +115,9 @@ def collect_mention(
     # Check for cross-post
     cross_post = _check_cross_post(payload, fingerprint)
     if cross_post:
-        platforms: list[str] = list(cross_post.cross_platforms) if cross_post.cross_platforms else []
+        platforms: list[str] = (
+            list(cross_post.cross_platforms) if cross_post.cross_platforms else []
+        )
         if payload.platform not in platforms:
             platforms.append(payload.platform)
         cross_post.cross_platforms = platforms
@@ -192,9 +194,7 @@ def list_social_mentions(
     Returns:
         Paginated social mention list.
     """
-    qs = SocialMention.objects.filter(
-        collected_at__gte=timezone.now() - timedelta(days=days)
-    )
+    qs = SocialMention.objects.filter(collected_at__gte=timezone.now() - timedelta(days=days))
 
     if tenant_id:
         qs = qs.filter(tenant_id=tenant_id)
@@ -251,10 +251,14 @@ def share_of_voice(
     """
     since = timezone.now() - timedelta(days=payload.days)
 
-    brand_count = SocialMention.objects.filter(
-        brand__iexact=payload.brand,
-        collected_at__gte=since,
-    ).count() if payload.brand else 0
+    brand_count = (
+        SocialMention.objects.filter(
+            brand__iexact=payload.brand,
+            collected_at__gte=since,
+        ).count()
+        if payload.brand
+        else 0
+    )
 
     competitor_results: list[dict[str, Any]] = []
     total_mentions = brand_count

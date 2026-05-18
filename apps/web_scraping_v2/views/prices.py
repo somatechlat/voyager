@@ -16,7 +16,7 @@ from ..serializers import (
     PriceTrackListResponse,
     PriceTrackSchema,
 )
-from ..services.prices import CurrencyNormalizer, PriceExtractor
+from ..services.prices import CurrencyNormalizer
 
 logger = logging.getLogger(__name__)
 

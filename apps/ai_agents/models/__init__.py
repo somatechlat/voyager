@@ -5,7 +5,7 @@ context assembly, multi-agent collaboration, MCP tool calls,
 learning loops, and resource limits.
 """
 
-from .agent import AIAgent, AgentResourceLimit
+from .agent import AgentResourceLimit, AIAgent
 from .collaboration import AgentCollaboration
 from .context import AgentContext
 from .learning import AgentLearningLoop

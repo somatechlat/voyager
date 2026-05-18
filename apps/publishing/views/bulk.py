@@ -9,7 +9,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
-from datetime import datetime, timedelta, timezone as tz
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.utils import timezone
@@ -139,7 +139,9 @@ def bulk_validate(request, payload: BulkImportIn) -> dict[str, Any]:
     }
 
 
-def _validate_row(row: dict[str, str], row_num: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def _validate_row(
+    row: dict[str, str], row_num: int
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Validate a single CSV row."""
     row_errors: list[dict[str, Any]] = []
     row_warnings: list[dict[str, Any]] = []
@@ -154,53 +156,96 @@ def _validate_row(row: dict[str, str], row_num: int) -> tuple[list[dict[str, Any
     if not platform:
         row_errors.append({"row": row_num, "field": "platform", "error": "platform is required"})
     elif platform not in _PUBLISHER_MAP:
-        row_errors.append({"row": row_num, "field": "platform", "error": f"unsupported platform: {platform}"})
+        row_errors.append(
+            {"row": row_num, "field": "platform", "error": f"unsupported platform: {platform}"}
+        )
 
     if not text and not image_url and not video_url:
-        row_errors.append({"row": row_num, "field": "content", "error": "at least one of text, image_url, or video_url is required"})
+        row_errors.append(
+            {
+                "row": row_num,
+                "field": "content",
+                "error": "at least one of text, image_url, or video_url is required",
+            }
+        )
 
     # Text length
     if text:
         max_chars = PLATFORM_MAX_CHARS.get(platform, 2000)
         if max_chars and len(text) > max_chars:
-            row_errors.append({"row": row_num, "field": "text", "error": f"text exceeds {platform} limit of {max_chars} chars ({len(text)} given)"})
+            row_errors.append(
+                {
+                    "row": row_num,
+                    "field": "text",
+                    "error": f"text exceeds {platform} limit of {max_chars} chars ({len(text)} given)",
+                }
+            )
 
     # Image URL validation
     if image_url:
         if not image_url.startswith(("http://", "https://")):
-            row_errors.append({"row": row_num, "field": "image_url", "error": "image_url must be HTTP(S) URL"})
+            row_errors.append(
+                {"row": row_num, "field": "image_url", "error": "image_url must be HTTP(S) URL"}
+            )
         if not any(image_url.lower().endswith(ext) for ext in VALID_IMAGE_FORMATS):
-            row_warnings.append({"row": row_num, "field": "image_url", "warning": f"image format may be unsupported: {image_url}"})
+            row_warnings.append(
+                {
+                    "row": row_num,
+                    "field": "image_url",
+                    "warning": f"image format may be unsupported: {image_url}",
+                }
+            )
 
     # Date validation
     if scheduled_at_str:
         try:
             dt = datetime.fromisoformat(scheduled_at_str.replace("Z", "+00:00"))
             if dt < timezone.now() + timedelta(minutes=5):
-                row_errors.append({"row": row_num, "field": "scheduled_at", "error": "scheduled_at must be at least 5 minutes in the future"})
+                row_errors.append(
+                    {
+                        "row": row_num,
+                        "field": "scheduled_at",
+                        "error": "scheduled_at must be at least 5 minutes in the future",
+                    }
+                )
         except ValueError:
-            row_errors.append({"row": row_num, "field": "scheduled_at", "error": "invalid datetime format"})
+            row_errors.append(
+                {"row": row_num, "field": "scheduled_at", "error": "invalid datetime format"}
+            )
     else:
-        row_errors.append({"row": row_num, "field": "scheduled_at", "error": "scheduled_at is required"})
+        row_errors.append(
+            {"row": row_num, "field": "scheduled_at", "error": "scheduled_at is required"}
+        )
 
     # Duplicate check
     if text and platform:
         # Check for duplicate content within last 24h
-        from django.db.models import Q
         yesterday = timezone.now() - timedelta(hours=24)
-        existing = ScheduledPost.objects.filter(
-            platform=platform,
-            caption=text,
-            scheduled_at__gte=yesterday,
-        ).exclude(status=ScheduledPost.Status.CANCELLED).first()
+        existing = (
+            ScheduledPost.objects.filter(
+                platform=platform,
+                caption=text,
+                scheduled_at__gte=yesterday,
+            )
+            .exclude(status=ScheduledPost.Status.CANCELLED)
+            .first()
+        )
         if existing:
-            row_warnings.append({"row": row_num, "field": "text", "warning": f"potential duplicate: post {existing.id} has same content"})
+            row_warnings.append(
+                {
+                    "row": row_num,
+                    "field": "text",
+                    "warning": f"potential duplicate: post {existing.id} has same content",
+                }
+            )
 
     return row_errors, row_warnings
 
 
 def _create_post_from_row(
-    row: dict[str, str], tenant_id: str, user_id: str,
+    row: dict[str, str],
+    tenant_id: str,
+    user_id: str,
 ) -> ScheduledPost:
     """Create a ScheduledPost from a validated CSV row."""
     platform = row.get("platform", "").strip()

@@ -13,7 +13,6 @@ from django.db import models
 
 from apps.rbac.models import TenantScopedMixin
 
-
 REPORT_FORMAT_CHOICES = [
     ("pdf", "PDF"),
     ("csv", "CSV"),

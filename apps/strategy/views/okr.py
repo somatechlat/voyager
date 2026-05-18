@@ -74,6 +74,7 @@ def _key_result_to_dict(kr: KeyResult) -> dict[str, Any]:
 # Objectives
 # ---------------------------------------------------------------------------
 
+
 @router.post("/objectives", response=ObjectiveOut)
 def create_objective(request, payload: ObjectiveIn):
     """Create an OKR objective."""
@@ -140,6 +141,7 @@ def delete_objective(request, objective_id: str):
 # Key Results
 # ---------------------------------------------------------------------------
 
+
 @router.post("/objectives/{objective_id}/key-results", response=KeyResultOut)
 def create_key_result(request, objective_id: str, payload: KeyResultIn):
     """Create a key result under an objective."""
@@ -195,6 +197,7 @@ def delete_key_result(request, key_result_id: str):
 # Progress Tracking
 # ---------------------------------------------------------------------------
 
+
 @router.post("/key-results/{key_result_id}/progress", response=ProgressOut)
 def update_progress(request, key_result_id: str, payload: ProgressUpdateIn):
     """Update key result progress with a new current value."""
@@ -224,6 +227,7 @@ def get_progress(request, key_result_id: str):
 # Objective Tree
 # ---------------------------------------------------------------------------
 
+
 @router.get("/objectives/tree", response=list[ObjectiveTreeOut])
 def get_objective_tree(request, quarter: str | None = None):
     """Get full OKR hierarchy with nested children and key results."""
@@ -235,6 +239,7 @@ def get_objective_tree(request, quarter: str | None = None):
 # Confidence Summary
 # ---------------------------------------------------------------------------
 
+
 @router.get("/okrs/confidence-summary", response=ConfidenceSummaryOut)
 def confidence_summary(request, quarter: str | None = None):
     """Get confidence summary across all OKRs."""
@@ -245,6 +250,7 @@ def confidence_summary(request, quarter: str | None = None):
 # ---------------------------------------------------------------------------
 # Data Source Sync
 # ---------------------------------------------------------------------------
+
 
 @router.post("/key-results/{key_result_id}/sync")
 def sync_data_source(request, key_result_id: str, value: float):

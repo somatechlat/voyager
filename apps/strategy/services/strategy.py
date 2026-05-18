@@ -45,7 +45,13 @@ GOAL_CONTENT_MAP = {
 # Platform algorithm preferences (2026)
 ALGORITHM_PREFERENCES = {
     "instagram": {"reels": 0.40, "carousel": 0.30, "stories": 0.20, "feed_image": 0.10},
-    "linkedin": {"text_posts": 0.30, "carousel": 0.25, "video": 0.25, "articles": 0.15, "polls": 0.05},
+    "linkedin": {
+        "text_posts": 0.30,
+        "carousel": 0.25,
+        "video": 0.25,
+        "articles": 0.15,
+        "polls": 0.05,
+    },
     "tiktok": {"short_video": 0.60, "long_video": 0.25, "live": 0.10, "photo": 0.05},
     "twitter": {"threads": 0.30, "text": 0.25, "images": 0.20, "video": 0.15, "polls": 0.10},
     "youtube": {"shorts": 0.35, "long_form": 0.40, "live": 0.15, "community": 0.10},
@@ -107,11 +113,14 @@ class ContentStrategyService:
         Returns:
             Dict with primary, secondary content types and KPIs.
         """
-        return GOAL_CONTENT_MAP.get(goal, {
-            "primary": [],
-            "secondary": [],
-            "kpi": [],
-        })
+        return GOAL_CONTENT_MAP.get(
+            goal,
+            {
+                "primary": [],
+                "secondary": [],
+                "kpi": [],
+            },
+        )
 
     @staticmethod
     def generate_topic_clusters(
@@ -145,7 +154,8 @@ class ContentStrategyService:
             if audience_persona:
                 pref_topics = _extract_preference_topics(audience_persona)
                 sub_topics = [
-                    st for st in sub_topics
+                    st
+                    for st in sub_topics
                     if any(p.lower() in st["name"].lower() for p in pref_topics)
                     or True  # Include all if no match to avoid over-filtering
                 ]
@@ -168,24 +178,28 @@ class ContentStrategyService:
                 for t in cd.get("topics", []):
                     competitor_topics.add(t)
             gaps = [
-                ct for ct in cluster_topics
+                ct
+                for ct in cluster_topics
                 if ct["topic"] in competitor_topics and ct["topic"] not in own_topics
             ]
 
             total_volume = sum(ct["search_volume"] for ct in cluster_topics)
             avg_difficulty = (
                 sum(ct["difficulty"] for ct in cluster_topics) / len(cluster_topics)
-                if cluster_topics else 0
+                if cluster_topics
+                else 0
             )
 
-            clusters.append({
-                "pillar": {"topic": seed, "type": "pillar", "search_volume": total_volume},
-                "clusters": cluster_topics,
-                "gaps": gaps,
-                "total_search_volume": total_volume,
-                "avg_difficulty": round(avg_difficulty, 2),
-                "gap_count": len(gaps),
-            })
+            clusters.append(
+                {
+                    "pillar": {"topic": seed, "type": "pillar", "search_volume": total_volume},
+                    "clusters": cluster_topics,
+                    "gaps": gaps,
+                    "total_search_volume": total_volume,
+                    "avg_difficulty": round(avg_difficulty, 2),
+                    "gap_count": len(gaps),
+                }
+            )
 
         clusters.sort(key=lambda c: c["total_search_volume"], reverse=True)
         return clusters
@@ -211,7 +225,7 @@ class ContentStrategyService:
             return {}
 
         hist_map: dict[str, dict[str, float]] = {}
-        for entry in (historical_data or []):
+        for entry in historical_data or []:
             name = entry.get("format", entry.get("name", ""))
             hist_map[name] = {
                 "engagement": entry.get("avg_engagement", 0.5),
@@ -270,12 +284,15 @@ def _expand_topic(seed: str) -> list[dict[str, Any]]:
             {"name": "social_commerce", "volume": 6400, "difficulty": 50},
         ],
     }
-    result = expansions.get(seed, [
-        {"name": f"{seed}_basics", "volume": 1000, "difficulty": 30},
-        {"name": f"{seed}_advanced", "volume": 800, "difficulty": 50},
-        {"name": f"{seed}_tools", "volume": 1200, "difficulty": 40},
-        {"name": f"{seed}_strategies", "volume": 900, "difficulty": 45},
-    ])
+    result = expansions.get(
+        seed,
+        [
+            {"name": f"{seed}_basics", "volume": 1000, "difficulty": 30},
+            {"name": f"{seed}_advanced", "volume": 800, "difficulty": 50},
+            {"name": f"{seed}_tools", "volume": 1200, "difficulty": 40},
+            {"name": f"{seed}_strategies", "volume": 900, "difficulty": 45},
+        ],
+    )
     return result
 
 

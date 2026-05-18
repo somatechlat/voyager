@@ -96,7 +96,15 @@ def update_dashboard(request, dashboard_id: UUID, payload: DashboardUpdateIn) ->
     tenant_id = _tenant_from_request(request)
     dashboard = get_object_or_404(Dashboard, id=dashboard_id, tenant_id=tenant_id)
 
-    for attr in ["name", "description", "layout", "filters", "is_default", "is_shared", "shared_with"]:
+    for attr in [
+        "name",
+        "description",
+        "layout",
+        "filters",
+        "is_default",
+        "is_shared",
+        "shared_with",
+    ]:
         val = getattr(payload, attr, None)
         if val is not None:
             setattr(dashboard, attr, val)
@@ -224,13 +232,15 @@ def get_dashboard_data(request, dashboard_id: UUID, payload: dict[str, Any]) -> 
             filters,
             tenant_id,
         )
-        widgets_data.append({
-            "widget_id": widget.id,
-            "widget_type": widget.widget_type,
-            "title": widget.title,
-            "data": w_data,
-            "generated_at": __import__("datetime").datetime.utcnow(),
-        })
+        widgets_data.append(
+            {
+                "widget_id": widget.id,
+                "widget_type": widget.widget_type,
+                "title": widget.title,
+                "data": w_data,
+                "generated_at": __import__("datetime").datetime.utcnow(),
+            }
+        )
 
     return {
         "dashboard_id": dashboard.id,

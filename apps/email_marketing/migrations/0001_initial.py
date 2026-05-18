@@ -1,324 +1,331 @@
-# Generated initial migration for email_marketing module
+# Generated initial migration for email_marketing
 
-import django.db.models.deletion
+
 from django.db import migrations, models
 
 
+class Category(models.TextChoices):
+    NEWSLETTER = "newsletter", "Newsletter"
+    PROMOTIONAL = "promotional", "Promotional"
+    WELCOME = "welcome", "Welcome"
+    ABANDONED_CART = "abandoned_cart", "Abandoned Cart"
+    TRANSACTIONAL = "transactional", "Transactional"
+    RE_ENGAGEMENT = "re_engagement", "Re-engagement"
+    EVENT = "event", "Event"
+    ANNOUNCEMENT = "announcement", "Announcement"
+    CUSTOM = "custom", "Custom"
+
+
+class Status(models.TextChoices):
+    DRAFT = "draft", "Draft"
+    SCHEDULED = "scheduled", "Scheduled"
+    SENDING = "sending", "Sending"
+    SENT = "sent", "Sent"
+    PAUSED = "paused", "Paused"
+    ARCHIVED = "archived", "Archived"
+    CANCELLED = "cancelled", "Cancelled"
+
+
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = []
 
     operations = [
-        # EmailSubscriber
-        migrations.CreateModel(
-            name="EmailSubscriber",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("email", models.EmailField(max_length=255, help_text="Subscriber email address")),
-                ("first_name", models.CharField(max_length=100, blank=True, help_text="First name")),
-                ("last_name", models.CharField(max_length=100, blank=True, help_text="Last name")),
-                ("status", models.CharField(max_length=20, choices=[("active", "Active"), ("unsubscribed", "Unsubscribed"), ("bounced", "Bounced"), ("complained", "Complained"), ("suppressed", "Suppressed")], default="active", db_index=True, help_text="Subscriber status")),
-                ("source", models.CharField(max_length=20, choices=[("website", "Website"), ("import", "Import"), ("api", "API"), ("form", "Signup Form"), ("integration", "Integration"), ("manual", "Manual")], default="manual", help_text="Acquisition source")),
-                ("tags", models.JSONField(default=list, blank=True, help_text="Tags for segmentation")),
-                ("custom_fields", models.JSONField(default=dict, blank=True, help_text="Custom field key-value pairs")),
-                ("engagement_score", models.DecimalField(max_digits=5, decimal_places=2, default=50.00, help_text="Normalized engagement score 0-100")),
-                ("subscribed_at", models.DateTimeField(auto_now_add=True, help_text="When the subscriber joined")),
-                ("unsubscribed_at", models.DateTimeField(null=True, blank=True, help_text="When the subscriber opted out")),
-                ("last_opened_at", models.DateTimeField(null=True, blank=True, help_text="Timestamp of last email open")),
-                ("last_clicked_at", models.DateTimeField(null=True, blank=True, help_text="Timestamp of last email click")),
-                ("open_count", models.PositiveIntegerField(default=0, help_text="Total emails opened")),
-                ("click_count", models.PositiveIntegerField(default=0, help_text="Total email clicks")),
-                ("rfm_recency", models.PositiveIntegerField(default=0, help_text="Days since last engagement (RFM recency)")),
-                ("rfm_frequency", models.PositiveIntegerField(default=0, help_text="Number of engagements (RFM frequency)")),
-                ("rfm_monetary", models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Revenue attributed (RFM monetary)")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_email_subscriber",
-                "verbose_name": "Email Subscriber",
-                "verbose_name_plural": "Email Subscribers",
-                "ordering": ["-subscribed_at"],
-            },
-        ),
-        # EmailTemplate
         migrations.CreateModel(
             name="EmailTemplate",
             fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
+                (
+                    "tenant_id",
+                    models.CharField(
+                        max_length=128,
+                        db_index=True,
+                        help_text="Tenant identifier for multi-tenancy isolation",
+                    ),
+                ),
                 ("name", models.CharField(max_length=255, help_text="Template name")),
-                ("category", models.CharField(max_length=30, choices=[("newsletter", "Newsletter"), ("promotional", "Promotional"), ("welcome", "Welcome"), ("abandoned_cart", "Abandoned Cart"), ("transactional", "Transactional"), ("re_engagement", "Re-engagement"), ("event", "Event"), ("announcement", "Announcement"), ("custom", "Custom")], default="custom", db_index=True, help_text="Template category")),
+                (
+                    "category",
+                    models.CharField(
+                        max_length=30,
+                        choices=Category.choices,
+                        default=Category.CUSTOM,
+                        db_index=True,
+                        help_text="Template category",
+                    ),
+                ),
                 ("html", models.TextField(help_text="Rendered HTML with inline CSS")),
-                ("json_design", models.JSONField(default=dict, blank=True, help_text="JSON block definitions for drag-drop builder")),
+                (
+                    "json_design",
+                    models.JSONField(
+                        default=dict,
+                        blank=True,
+                        help_text="JSON block definitions for drag-drop builder",
+                    ),
+                ),
                 ("thumbnail", models.URLField(blank=True, help_text="Thumbnail preview URL")),
-                ("is_amp", models.BooleanField(default=False, help_text="Whether template includes AMP markup")),
-                ("brand_kit", models.JSONField(default=dict, blank=True, help_text="Brand colors, fonts, logo URL")),
-                ("preheader_text", models.CharField(max_length=150, blank=True, help_text="Preview text shown in email clients")),
-                ("compatibility_score", models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Overall compatibility score (0-100)")),
-                ("compatibility_results", models.JSONField(default=dict, blank=True, help_text="Detailed compatibility test results per client")),
-                ("plain_text", models.TextField(blank=True, help_text="Auto-generated plain text fallback")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
+                (
+                    "is_amp",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Whether template includes AMP markup",
+                    ),
+                ),
+                (
+                    "brand_kit",
+                    models.JSONField(
+                        default=dict,
+                        blank=True,
+                        help_text="Brand colors, fonts, logo URL",
+                    ),
+                ),
+                (
+                    "preheader_text",
+                    models.CharField(
+                        max_length=150,
+                        blank=True,
+                        help_text="Preview text shown in email clients",
+                    ),
+                ),
+                (
+                    "compatibility_score",
+                    models.DecimalField(
+                        max_digits=5,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
+                        help_text="Overall compatibility score (0-100)",
+                    ),
+                ),
+                (
+                    "compatibility_results",
+                    models.JSONField(
+                        default=dict,
+                        blank=True,
+                        help_text="Detailed compatibility test results per client",
+                    ),
+                ),
+                (
+                    "plain_text",
+                    models.TextField(
+                        blank=True,
+                        help_text="Auto-generated plain text fallback",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Timestamp when created",
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="Timestamp when last updated",
+                    ),
+                ),
             ],
             options={
                 "db_table": "voyager_email_template",
                 "verbose_name": "Email Template",
                 "verbose_name_plural": "Email Templates",
                 "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "category"]),
+                    models.Index(fields=["tenant_id", "name"]),
+                    models.Index(fields=["tenant_id", "is_amp"]),
+                ],
             },
         ),
-        # EmailCampaign
         migrations.CreateModel(
             name="EmailCampaign",
             fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
+                (
+                    "tenant_id",
+                    models.CharField(
+                        max_length=128,
+                        db_index=True,
+                        help_text="Tenant identifier for multi-tenancy isolation",
+                    ),
+                ),
                 ("name", models.CharField(max_length=255, help_text="Campaign name")),
-                ("subject_line", models.CharField(max_length=200, blank=True, help_text="Email subject line")),
-                ("preview_text", models.CharField(max_length=150, blank=True, help_text="Preview text shown in inbox")),
-                ("from_name", models.CharField(max_length=100, blank=True, help_text="Display name for the sender")),
-                ("from_email", models.EmailField(max_length=255, blank=True, help_text="Sender email address")),
-                ("reply_to", models.EmailField(max_length=255, blank=True, help_text="Reply-to email address")),
-                ("template", models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to="email_marketing.EmailTemplate", null=True, blank=True, related_name="campaigns", help_text="Linked email template")),
-                ("segment_id_ref", models.CharField(max_length=128, blank=True, help_text="Foreign key reference to audience segment")),
-                ("status", models.CharField(max_length=20, choices=[("draft", "Draft"), ("scheduled", "Scheduled"), ("sending", "Sending"), ("sent", "Sent"), ("paused", "Paused"), ("archived", "Archived"), ("cancelled", "Cancelled")], default="draft", db_index=True, help_text="Campaign lifecycle status")),
-                ("scheduled_at", models.DateTimeField(null=True, blank=True, help_text="When the campaign should be sent")),
-                ("sent_at", models.DateTimeField(null=True, blank=True, help_text="When the campaign was actually sent")),
-                ("total_recipients", models.PositiveIntegerField(default=0, help_text="Number of recipients targeted")),
-                ("delivered", models.PositiveIntegerField(default=0, help_text="Number of emails delivered")),
+                (
+                    "subject_line",
+                    models.CharField(
+                        max_length=200,
+                        blank=True,
+                        help_text="Email subject line",
+                    ),
+                ),
+                (
+                    "preview_text",
+                    models.CharField(
+                        max_length=150,
+                        blank=True,
+                        help_text="Preview text shown in inbox",
+                    ),
+                ),
+                (
+                    "from_name",
+                    models.CharField(
+                        max_length=100,
+                        blank=True,
+                        help_text="Display name for the sender",
+                    ),
+                ),
+                (
+                    "from_email",
+                    models.EmailField(
+                        max_length=255,
+                        blank=True,
+                        help_text="Sender email address",
+                    ),
+                ),
+                (
+                    "reply_to",
+                    models.EmailField(
+                        max_length=255,
+                        blank=True,
+                        help_text="Reply-to email address",
+                    ),
+                ),
+                (
+                    "template",
+                    models.ForeignKey(
+                        EmailTemplate,
+                        on_delete=models.SET_NULL,
+                        null=True,
+                        blank=True,
+                        related_name="campaigns",
+                        help_text="Linked email template",
+                    ),
+                ),
+                (
+                    "segment_id_ref",
+                    models.CharField(
+                        max_length=128,
+                        blank=True,
+                        help_text="Foreign key reference to audience segment",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        max_length=20,
+                        choices=Status.choices,
+                        default=Status.DRAFT,
+                        db_index=True,
+                        help_text="Campaign lifecycle status",
+                    ),
+                ),
+                (
+                    "scheduled_at",
+                    models.DateTimeField(
+                        null=True,
+                        blank=True,
+                        help_text="When the campaign should be sent",
+                    ),
+                ),
+                (
+                    "sent_at",
+                    models.DateTimeField(
+                        null=True,
+                        blank=True,
+                        help_text="When the campaign was actually sent",
+                    ),
+                ),
+                (
+                    "total_recipients",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of recipients targeted",
+                    ),
+                ),
+                (
+                    "delivered",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of emails delivered",
+                    ),
+                ),
                 ("opens", models.PositiveIntegerField(default=0, help_text="Total opens")),
                 ("unique_opens", models.PositiveIntegerField(default=0, help_text="Unique opens")),
                 ("clicks", models.PositiveIntegerField(default=0, help_text="Total clicks")),
-                ("unique_clicks", models.PositiveIntegerField(default=0, help_text="Unique clicks")),
+                (
+                    "unique_clicks",
+                    models.PositiveIntegerField(default=0, help_text="Unique clicks"),
+                ),
                 ("bounces", models.PositiveIntegerField(default=0, help_text="Total bounces")),
-                ("hard_bounces", models.PositiveIntegerField(default=0, help_text="Number of hard bounces")),
-                ("spam_complaints", models.PositiveIntegerField(default=0, help_text="Number of spam complaints")),
-                ("unsubscribes", models.PositiveIntegerField(default=0, help_text="Number of unsubscribes")),
-                ("revenue", models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Revenue attributed to the campaign")),
-                ("send_progress_pct", models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Send progress percentage")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
+                (
+                    "hard_bounces",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of hard bounces",
+                    ),
+                ),
+                (
+                    "spam_complaints",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of spam complaints",
+                    ),
+                ),
+                (
+                    "unsubscribes",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of unsubscribes",
+                    ),
+                ),
+                (
+                    "revenue",
+                    models.DecimalField(
+                        max_digits=12,
+                        decimal_places=2,
+                        default=0.0,
+                        help_text="Revenue attributed to the campaign",
+                    ),
+                ),
+                (
+                    "send_progress_pct",
+                    models.DecimalField(
+                        max_digits=5,
+                        decimal_places=2,
+                        default=0.0,
+                        help_text="Send progress percentage",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Timestamp when created",
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="Timestamp when last updated",
+                    ),
+                ),
             ],
             options={
                 "db_table": "voyager_email_campaign",
                 "verbose_name": "Email Campaign",
                 "verbose_name_plural": "Email Campaigns",
                 "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "status"]),
+                    models.Index(fields=["tenant_id", "scheduled_at"]),
+                    models.Index(fields=["tenant_id", "status", "scheduled_at"]),
+                    models.Index(fields=["tenant_id", "sent_at"]),
+                ],
             },
-        ),
-        # AutomationSequence
-        migrations.CreateModel(
-            name="AutomationSequence",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("name", models.CharField(max_length=255, help_text="Sequence name")),
-                ("trigger_type", models.CharField(max_length=20, choices=[("list_signup", "List Signup"), ("purchase", "Purchase"), ("date", "Date"), ("behavior", "Behavior"), ("api_event", "API Event"), ("tag_added", "Tag Added"), ("email_action", "Email Action"), ("score_change", "Score Change"), ("abandoned_cart", "Abandoned Cart"), ("page_visit", "Page Visit")], default="list_signup", db_index=True, help_text="What triggers the sequence")),
-                ("trigger_config", models.JSONField(default=dict, help_text="Trigger configuration (listId, productId, etc.)")),
-                ("steps", models.JSONField(default=list, help_text="JSON array of sequence steps")),
-                ("status", models.CharField(max_length=20, choices=[("draft", "Draft"), ("active", "Active"), ("paused", "Paused"), ("archived", "Archived")], default="draft", db_index=True, help_text="Sequence lifecycle status")),
-                ("total_enrolled", models.PositiveIntegerField(default=0, help_text="Total subscribers enrolled")),
-                ("total_completed", models.PositiveIntegerField(default=0, help_text="Total subscribers who completed")),
-                ("total_exited", models.PositiveIntegerField(default=0, help_text="Total subscribers who exited early")),
-                ("avg_completion_time_hours", models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Average time to complete in hours")),
-                ("entry_criteria", models.JSONField(default=dict, blank=True, help_text="Enrollment criteria")),
-                ("exit_criteria", models.JSONField(default=dict, blank=True, help_text="Early-exit criteria")),
-                ("frequency_cap", models.PositiveIntegerField(default=0, help_text="Max times a subscriber can enter (0=unlimited)")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_automation_sequence",
-                "verbose_name": "Automation Sequence",
-                "verbose_name_plural": "Automation Sequences",
-                "ordering": ["-created_at"],
-            },
-        ),
-        # AudienceSegment
-        migrations.CreateModel(
-            name="AudienceSegment",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("name", models.CharField(max_length=255, help_text="Segment name")),
-                ("segment_type", models.CharField(max_length=20, choices=[("static", "Static"), ("dynamic", "Dynamic"), ("behavioral", "Behavioral"), ("predictive", "Predictive")], default="static", db_index=True, help_text="Segment type")),
-                ("rules", models.JSONField(default=dict, blank=True, help_text="JSON segment rules definition")),
-                ("subscriber_count", models.PositiveIntegerField(default=0, help_text="Cached subscriber count")),
-                ("last_calculated", models.DateTimeField(null=True, blank=True, help_text="When the count was last refreshed")),
-                ("description", models.TextField(blank=True, help_text="Human-readable segment description")),
-                ("rfm_enabled", models.BooleanField(default=False, help_text="Whether RFM scoring is used")),
-                ("rfm_config", models.JSONField(default=dict, blank=True, help_text="RFM scoring configuration")),
-                ("predictive_type", models.CharField(max_length=30, choices=[("churn_risk", "Churn Risk"), ("high_ltv", "High LTV"), ("engagement_propensity", "Engagement Propensity"), ("none", "None")], default="none", help_text="Predictive model type")),
-                ("is_system", models.BooleanField(default=False, help_text="Whether this is a system segment")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_audience_segment",
-                "verbose_name": "Audience Segment",
-                "verbose_name_plural": "Audience Segments",
-                "ordering": ["-created_at"],
-            },
-        ),
-        # DeliverabilityMonitor
-        migrations.CreateModel(
-            name="DeliverabilityMonitor",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("domain", models.CharField(max_length=255, db_index=True, help_text="Sending domain being monitored")),
-                ("spf_configured", models.BooleanField(default=False, help_text="Whether SPF record is present")),
-                ("spf_valid", models.BooleanField(default=False, help_text="Whether SPF record is valid")),
-                ("spf_includes", models.JSONField(default=list, blank=True, help_text="SPF include mechanisms")),
-                ("dkim_configured", models.BooleanField(default=False, help_text="Whether DKIM record is present")),
-                ("dkim_valid", models.BooleanField(default=False, help_text="Whether DKIM record is valid")),
-                ("dkim_selector", models.CharField(max_length=50, blank=True, default="default", help_text="DKIM selector used")),
-                ("dmarc_configured", models.BooleanField(default=False, help_text="Whether DMARC record is present")),
-                ("dmarc_policy", models.CharField(max_length=20, choices=[("none", "None"), ("quarantine", "Quarantine"), ("reject", "Reject"), ("unknown", "Unknown")], default="unknown", help_text="DMARC policy")),
-                ("dmarc_rua", models.URLField(blank=True, help_text="DMARC aggregate report URI")),
-                ("dmarc_ruf", models.URLField(blank=True, help_text="DMARC forensic report URI")),
-                ("bimi_configured", models.BooleanField(default=False, help_text="Whether BIMI record is present")),
-                ("bimi_logo_url", models.URLField(blank=True, help_text="BIMI logo URL")),
-                ("reputation_score", models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Overall sender reputation score (0-100)")),
-                ("reputation_grade", models.CharField(max_length=1, choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D"), ("F", "F")], default="F", help_text="Letter grade")),
-                ("bounce_rate", models.DecimalField(max_digits=6, decimal_places=4, default=0.0000, help_text="Current bounce rate")),
-                ("spam_complaint_rate", models.DecimalField(max_digits=7, decimal_places=6, default=0.000000, help_text="Current spam complaint rate")),
-                ("blacklist_status", models.JSONField(default=dict, blank=True, help_text="Blacklist check results")),
-                ("volume_24h", models.PositiveIntegerField(default=0, help_text="Emails sent in last 24 hours")),
-                ("volume_7d", models.PositiveIntegerField(default=0, help_text="Emails sent in last 7 days")),
-                ("volume_30d", models.PositiveIntegerField(default=0, help_text="Emails sent in last 30 days")),
-                ("inbox_placement_pct", models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Inbox placement rate")),
-                ("checked_at", models.DateTimeField(null=True, blank=True, help_text="Last check timestamp")),
-                ("recommendations", models.JSONField(default=list, blank=True, help_text="Improvement recommendations")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_deliverability_monitor",
-                "verbose_name": "Deliverability Monitor",
-                "verbose_name_plural": "Deliverability Monitors",
-                "ordering": ["-checked_at", "-created_at"],
-            },
-        ),
-        # EmailABTest
-        migrations.CreateModel(
-            name="EmailABTest",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("name", models.CharField(max_length=255, help_text="Test name")),
-                ("test_type", models.CharField(max_length=20, choices=[("subject", "Subject Line"), ("content", "Email Content"), ("sender", "Sender Name"), ("send_time", "Send Time"), ("multi", "Multi-variant")], default="subject", db_index=True, help_text="What element is being tested")),
-                ("status", models.CharField(max_length=20, choices=[("draft", "Draft"), ("scheduled", "Scheduled"), ("running", "Running"), ("winner_selected", "Winner Selected"), ("deployed", "Deployed"), ("paused", "Paused"), ("cancelled", "Cancelled")], default="draft", db_index=True, help_text="Test lifecycle status")),
-                ("campaign_name", models.CharField(max_length=255, blank=True, help_text="Name for the winning campaign")),
-                ("sample_size", models.PositiveIntegerField(null=True, blank=True, help_text="Number of subscribers per variant")),
-                ("sample_pct", models.DecimalField(max_digits=5, decimal_places=2, default=20.00, help_text="Percentage of list to test before winner")),
-                ("confidence_level", models.DecimalField(max_digits=4, decimal_places=3, default=0.950, help_text="Statistical confidence level")),
-                ("winning_metric", models.CharField(max_length=20, choices=[("opens", "Open Rate"), ("clicks", "Click Rate"), ("ctr", "Click-Through Rate"), ("revenue", "Revenue"), ("conversions", "Conversions")], default="opens", help_text="Metric used to pick winner")),
-                ("winner_variant_id", models.CharField(max_length=64, blank=True, help_text="ID of the winning variant")),
-                ("winner_selected_at", models.DateTimeField(null=True, blank=True, help_text="When winner was determined")),
-                ("auto_deploy", models.BooleanField(default=True, help_text="Auto-send winner to remaining list")),
-                ("total_sent", models.PositiveIntegerField(default=0, help_text="Total emails sent across all variants")),
-                ("total_conversions", models.PositiveIntegerField(default=0, help_text="Total conversions across all variants")),
-                ("variants", models.JSONField(default=list, help_text="Variant definitions")),
-                ("results", models.JSONField(default=dict, blank=True, help_text="Per-variant performance results")),
-                ("segment_id_ref", models.CharField(max_length=128, blank=True, help_text="Target audience segment reference")),
-                ("scheduled_at", models.DateTimeField(null=True, blank=True, help_text="When the test should start")),
-                ("started_at", models.DateTimeField(null=True, blank=True, help_text="When the test actually started")),
-                ("completed_at", models.DateTimeField(null=True, blank=True, help_text="When the test completed")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_email_ab_test",
-                "verbose_name": "Email A/B Test",
-                "verbose_name_plural": "Email A/B Tests",
-                "ordering": ["-created_at"],
-            },
-        ),
-        # EmailAnalytics
-        migrations.CreateModel(
-            name="EmailAnalytics",
-            fields=[
-                ("id", models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation")),
-                ("campaign", models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to="email_marketing.EmailCampaign", related_name="analytics", help_text="The campaign these analytics belong to")),
-                ("sent", models.PositiveIntegerField(default=0, help_text="Total emails sent")),
-                ("delivered", models.PositiveIntegerField(default=0, help_text="Total emails delivered")),
-                ("opens", models.PositiveIntegerField(default=0, help_text="Total opens")),
-                ("unique_opens", models.PositiveIntegerField(default=0, help_text="Unique opens")),
-                ("clicks", models.PositiveIntegerField(default=0, help_text="Total clicks")),
-                ("unique_clicks", models.PositiveIntegerField(default=0, help_text="Unique clicks")),
-                ("bounces", models.PositiveIntegerField(default=0, help_text="Total bounces")),
-                ("hard_bounces", models.PositiveIntegerField(default=0, help_text="Hard bounces")),
-                ("soft_bounces", models.PositiveIntegerField(default=0, help_text="Soft bounces")),
-                ("spam_complaints", models.PositiveIntegerField(default=0, help_text="Spam complaints")),
-                ("unsubscribes", models.PositiveIntegerField(default=0, help_text="Unsubscribes")),
-                ("revenue", models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Revenue attributed")),
-                ("conversions", models.PositiveIntegerField(default=0, help_text="Number of conversions")),
-                ("click_heatmap", models.JSONField(default=dict, blank=True, help_text="Click heatmap data per block")),
-                ("device_breakdown", models.JSONField(default=dict, blank=True, help_text="Device and platform statistics")),
-                ("geographic_breakdown", models.JSONField(default=dict, blank=True, help_text="Geographic statistics")),
-                ("hourly_opens", models.JSONField(default=dict, blank=True, help_text="Opens per hour")),
-                ("hourly_clicks", models.JSONField(default=dict, blank=True, help_text="Clicks per hour")),
-                ("time_to_first_open_seconds", models.PositiveIntegerField(null=True, blank=True, help_text="Average time to first open in seconds")),
-                ("time_to_first_click_seconds", models.PositiveIntegerField(null=True, blank=True, help_text="Average time to first click in seconds")),
-                ("forward_count", models.PositiveIntegerField(default=0, help_text="Number of forwards")),
-                ("print_count", models.PositiveIntegerField(default=0, help_text="Number of prints")),
-                ("engagement_tiers", models.JSONField(default=dict, blank=True, help_text="Engagement distribution")),
-                ("calculated_at", models.DateTimeField(null=True, blank=True, help_text="When analytics were last calculated")),
-                ("created_at", models.DateTimeField(auto_now_add=True, help_text="Timestamp when created")),
-                ("updated_at", models.DateTimeField(auto_now=True, help_text="Timestamp when last updated")),
-            ],
-            options={
-                "db_table": "voyager_email_analytics",
-                "verbose_name": "Email Analytics",
-                "verbose_name_plural": "Email Analytics",
-                "ordering": ["-calculated_at", "-created_at"],
-            },
-        ),
-        # Indexes
-        migrations.AddIndex(
-            model_name="emailsubscriber",
-            index=models.Index(fields=["tenant_id", "status"], name="em_sub_tenant_status_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="emailsubscriber",
-            index=models.Index(fields=["tenant_id", "email"], name="em_sub_tenant_email_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="emailtemplate",
-            index=models.Index(fields=["tenant_id", "category"], name="em_tmpl_tenant_cat_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="emailcampaign",
-            index=models.Index(fields=["tenant_id", "status"], name="em_camp_tenant_status_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="emailcampaign",
-            index=models.Index(fields=["tenant_id", "scheduled_at"], name="em_camp_tenant_sched_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="automationsequence",
-            index=models.Index(fields=["tenant_id", "status"], name="em_seq_tenant_status_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="automationsequence",
-            index=models.Index(fields=["tenant_id", "trigger_type"], name="em_seq_tenant_trig_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="audiencesegment",
-            index=models.Index(fields=["tenant_id", "segment_type"], name="em_seg_tenant_type_idx"),
-        ),
-        migrations.AddIndex(
-            model_name="deliverabilitymonitor",
-            index=models.Index(fields=["tenant_id", "domain"], name="em_del_tenant_domain_idx"),
-        ),
-        # Constraints
-        migrations.AddConstraint(
-            model_name="emailsubscriber",
-            constraint=models.UniqueConstraint(fields=["tenant_id", "email"], name="em_subscriber_tenant_email_uniq"),
         ),
     ]

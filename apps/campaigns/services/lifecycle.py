@@ -263,8 +263,7 @@ def auto_advance_if_eligible(campaign: Campaign) -> dict[str, Any]:
     auto_rules: dict[str, Any] = {
         Campaign.Stage.BRIEF: lambda c: c.brief_approved,
         Campaign.Stage.CREATIVE: lambda c: c.all_creatives_approved,
-        Campaign.Stage.APPROVAL: lambda c: c.approval_status
-        == Campaign.ApprovalStatus.APPROVED,
+        Campaign.Stage.APPROVAL: lambda c: c.approval_status == Campaign.ApprovalStatus.APPROVED,
         Campaign.Stage.LAUNCH: lambda c: c.all_platforms_published,
     }
 

@@ -58,9 +58,7 @@ def _content_to_schema(opt: ContentOptimization) -> ContentOptimizationResponse:
 
 
 @router.post("/content/optimize", response=ContentOptimizationResponse, tags=["SEO Content"])
-def optimize_content_endpoint(
-    request, data: ContentOptimizeRequest
-) -> ContentOptimizationResponse:
+def optimize_content_endpoint(request, data: ContentOptimizeRequest) -> ContentOptimizationResponse:
     """Analyze and optimize content for SEO.
 
     Provides readability scoring, keyword density analysis,
@@ -77,7 +75,9 @@ def optimize_content_endpoint(
     return _content_to_schema(opt)
 
 
-@router.get("/content/optimizations", response=list[ContentOptimizationResponse], tags=["SEO Content"])
+@router.get(
+    "/content/optimizations", response=list[ContentOptimizationResponse], tags=["SEO Content"]
+)
 def list_optimizations(
     request,
     limit: int = 50,

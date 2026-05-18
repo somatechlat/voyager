@@ -6,8 +6,8 @@ import logging
 import uuid
 from typing import Any
 
-from django.utils import timezone
 from django.db.models import QuerySet
+from django.utils import timezone
 
 from apps.ai_agents.models import AIAgent
 from apps.ai_agents.models.memory import AgentMemory, MemoryEntry
@@ -83,7 +83,11 @@ class MemoryService:
                 qdrant_id=qdrant_id,
                 content=chunk,
                 importance=importance,
-                metadata={**(metadata or {}), "importance": importance, "created_at": timezone.now().isoformat()},
+                metadata={
+                    **(metadata or {}),
+                    "importance": importance,
+                    "created_at": timezone.now().isoformat(),
+                },
             )
             qdrant_ids.append(qdrant_id)
 
@@ -139,7 +143,12 @@ class MemoryService:
             # Access boost
             access_boost = min(entry.access_count * 0.05, 0.5)
 
-            final_score = keyword_score * 0.5 + float(entry.importance) * 0.3 + recency_score * 0.2 + access_boost
+            final_score = (
+                keyword_score * 0.5
+                + float(entry.importance) * 0.3
+                + recency_score * 0.2
+                + access_boost
+            )
 
             results.append(
                 {
@@ -200,7 +209,12 @@ class MemoryService:
             memory.last_consolidated_at = now
             memory.save(update_fields=["total_vectors", "last_consolidated_at"])
 
-        logger.info("Consolidated memory for agent %s: forgotten=%d remaining=%d", agent_id, forgotten, remaining)
+        logger.info(
+            "Consolidated memory for agent %s: forgotten=%d remaining=%d",
+            agent_id,
+            forgotten,
+            remaining,
+        )
         return {"consolidated": True, "forgotten": forgotten, "memories_remaining": remaining}
 
     @staticmethod

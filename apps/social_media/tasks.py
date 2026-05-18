@@ -13,10 +13,10 @@ from typing import Any
 from celery import shared_task
 from django.utils import timezone
 
-from apps.social_media.models import InboxMessage, SocialComment, SocialMention
+from apps.social_media.models import SocialComment, SocialMention
 from apps.social_media.services.community import update_member_scores
-from apps.social_media.services.listening import analyze_sentiment, check_alerts
 from apps.social_media.services.inbox import detect_spam
+from apps.social_media.services.listening import analyze_sentiment, check_alerts
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,23 @@ def sync_platform_mentions(
 
         mentions_created = 0
         with transaction.atomic():
-            pass
+            # Store new mentions in the database with sentiment analysis.
+            from apps.social_media.services import SocialMediaService
+
+            service = SocialMediaService()
+            new_mentions = service.poll_mentions(tenant_id, platform, since_timestamp)
+            for mention in new_mentions:
+                SocialMention.objects.create(
+                    tenant_id=tenant_id,
+                    platform=platform,
+                    mention_id=mention.get("id", ""),
+                    author_id=mention.get("author_id", ""),
+                    content=mention.get("content", ""),
+                    url=mention.get("url", ""),
+                    published_at=mention.get("published_at"),
+                    sentiment_score=mention.get("sentiment_score"),
+                )
+                mentions_created += 1
 
         return {
             "status": "ok",

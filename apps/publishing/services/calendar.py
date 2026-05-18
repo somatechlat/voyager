@@ -79,25 +79,27 @@ def get_calendar_posts(
             if post.calendar_entry and post.calendar_entry.color_override:
                 color = post.calendar_entry.color_override
         except ContentCalendar.DoesNotExist:
-            pass
+            logger.debug("Calendar entry not found for post")
         if not color:
             color = get_color_for_status(post.status)
 
-        posts.append({
-            "id": str(post.id),
-            "platform": post.platform,
-            "caption": post.caption,
-            "scheduled_at": post.scheduled_at.isoformat(),
-            "status": post.status,
-            "priority": post.priority,
-            "color": color,
-            "publish_type": post.publish_type,
-            "media_count": len(post.media_urls) if post.media_urls else 0,
-            "link": post.link or "",
-            "account_id": str(post.account_id),
-            "campaign_id": str(post.campaign_id) if post.campaign_id else None,
-            "tags": post.tags,
-        })
+        posts.append(
+            {
+                "id": str(post.id),
+                "platform": post.platform,
+                "caption": post.caption,
+                "scheduled_at": post.scheduled_at.isoformat(),
+                "status": post.status,
+                "priority": post.priority,
+                "color": color,
+                "publish_type": post.publish_type,
+                "media_count": len(post.media_urls) if post.media_urls else 0,
+                "link": post.link or "",
+                "account_id": str(post.account_id),
+                "campaign_id": str(post.campaign_id) if post.campaign_id else None,
+                "tags": post.tags,
+            }
+        )
 
     return posts
 
@@ -142,13 +144,15 @@ def detect_conflicts(
 
     conflicts: list[dict[str, Any]] = []
     for post in qs:
-        conflicts.append({
-            "id": str(post.id),
-            "caption": post.caption,
-            "scheduled_at": post.scheduled_at.isoformat(),
-            "status": post.status,
-            "minutes_away": abs((post.scheduled_at - scheduled_at).total_seconds()) / 60,
-        })
+        conflicts.append(
+            {
+                "id": str(post.id),
+                "caption": post.caption,
+                "scheduled_at": post.scheduled_at.isoformat(),
+                "status": post.status,
+                "minutes_away": abs((post.scheduled_at - scheduled_at).total_seconds()) / 60,
+            }
+        )
     return conflicts
 
 
@@ -167,15 +171,18 @@ def is_blackout(
     Returns:
         Dict with is_blackout, reason, and blackout_id.
     """
-    now = timezone.now()
-    windows = BlackoutWindow.objects.filter(
-        is_active=True,
-        start_at__lte=scheduled_at,
-        end_at__gte=scheduled_at,
-    ).filter(
-        models.Q(account_id__isnull=True) | models.Q(account_id=account_id),
-    ).filter(
-        models.Q(platform="") | models.Q(platform=platform),
+    windows = (
+        BlackoutWindow.objects.filter(
+            is_active=True,
+            start_at__lte=scheduled_at,
+            end_at__gte=scheduled_at,
+        )
+        .filter(
+            models.Q(account_id__isnull=True) | models.Q(account_id=account_id),
+        )
+        .filter(
+            models.Q(platform="") | models.Q(platform=platform),
+        )
     )
 
     for bw in windows:
@@ -215,13 +222,19 @@ def reschedule_post(
 
     # Conflict detection
     conflicts = detect_conflicts(
-        tenant_id, post.platform, str(post.account_id), new_datetime,
+        tenant_id,
+        post.platform,
+        str(post.account_id),
+        new_datetime,
         exclude_post_id=post_id,
     )
     if conflicts:
         if queue_mode == "auto":
             adjusted = get_next_available_slot(
-                tenant_id, post.platform, str(post.account_id), new_datetime,
+                tenant_id,
+                post.platform,
+                str(post.account_id),
+                new_datetime,
             )
             if adjusted:
                 post.scheduled_at = adjusted
@@ -233,7 +246,8 @@ def reschedule_post(
                     "original_conflicts": conflicts,
                 }
             return {
-                "adjusted": False, "reason": "no_available_slot",
+                "adjusted": False,
+                "reason": "no_available_slot",
                 "conflicts": conflicts,
             }
         return {
@@ -269,7 +283,9 @@ def reschedule_post(
 
 
 def get_calendar_day_view(
-    tenant_id: str, date: timezone.datetime, filters: dict[str, Any] | None = None,
+    tenant_id: str,
+    date: timezone.datetime,
+    filters: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Get calendar day view data.
 
@@ -301,7 +317,10 @@ def get_calendar_day_view(
 
 
 def get_calendar_month_view(
-    tenant_id: str, year: int, month: int, filters: dict[str, Any] | None = None,
+    tenant_id: str,
+    year: int,
+    month: int,
+    filters: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Get calendar month view data.
 

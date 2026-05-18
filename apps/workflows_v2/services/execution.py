@@ -7,14 +7,15 @@ validating parameters, and tracking execution state.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.utils import timezone
 
-from apps.workflows_v2.models.workflow import Workflow
+from apps.workflows_v2.models.edge import WorkflowEdge
 from apps.workflows_v2.models.execution import WorkflowExecution, WorkflowExecutionLog
 from apps.workflows_v2.models.node import WorkflowNode
-from apps.workflows_v2.models.edge import WorkflowEdge
+from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.services.conditions import evaluate_expression
 
 logger = logging.getLogger(__name__)
@@ -120,7 +121,9 @@ def start_execution(
         The created WorkflowExecution instance.
     """
     if not workflow.can_execute():
-        raise ValueError(f"Workflow '{workflow.name}' cannot be executed (status={workflow.status})")
+        raise ValueError(
+            f"Workflow '{workflow.name}' cannot be executed (status={workflow.status})"
+        )
 
     execution = WorkflowExecution.objects.create(
         workflow=workflow,
@@ -198,7 +201,11 @@ def execute_next_node(
         node_type=node.node_type,
         input_data={"context": execution.context},
         output_data=result.get("output", {}),
-        status=WorkflowExecutionLog.STATUS_SUCCESS if not result.get("error") else WorkflowExecutionLog.STATUS_FAILED,
+        status=(
+            WorkflowExecutionLog.STATUS_SUCCESS
+            if not result.get("error")
+            else WorkflowExecutionLog.STATUS_FAILED
+        ),
         duration_ms=result.get("duration_ms"),
         error=result.get("error", ""),
     )
@@ -479,7 +486,9 @@ def get_execution_progress(execution: WorkflowExecution) -> dict[str, Any]:
     Returns:
         Dict with ``status``, ``progress``, ``current_node``, ``logs``.
     """
-    logs = execution.logs.values("node_id", "node_type", "status", "executed_at").order_by("executed_at")
+    logs = execution.logs.values("node_id", "node_type", "status", "executed_at").order_by(
+        "executed_at"
+    )
     return {
         "status": execution.status,
         "progress": execution.progress,

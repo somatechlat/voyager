@@ -6,7 +6,6 @@ API endpoints for P&L reports, margin analysis, and trend data.
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router
@@ -26,9 +25,7 @@ from apps.rbac.auth import VoyagerKeycloakBearer
 router = Router(auth=VoyagerKeycloakBearer())
 
 
-@router.get(
-    "/profitability", response=list[ProfitabilityListSchema], tags=["Billing"]
-)
+@router.get("/profitability", response=list[ProfitabilityListSchema], tags=["Billing"])
 def list_profitability_reports(
     request,
     dimension: str | None = None,
@@ -55,18 +52,14 @@ def list_profitability_reports(
     return list(qs.order_by("-period_end")[offset : offset + limit])
 
 
-@router.get(
-    "/profitability/{int:report_id}", response=ProfitabilitySchema, tags=["Billing"]
-)
+@router.get("/profitability/{int:report_id}", response=ProfitabilitySchema, tags=["Billing"])
 def get_profitability_report(request, report_id: int):
     """Get a profitability report."""
     tenant_id = getattr(request, "tenant_id", "")
     return get_object_or_404(ProfitabilityReport, tenant_id=tenant_id, pk=report_id)
 
 
-@router.post(
-    "/profitability/compute", response=ProfitabilitySchema, tags=["Billing"]
-)
+@router.post("/profitability/compute", response=ProfitabilitySchema, tags=["Billing"])
 def compute_profitability(
     request,
     client_id: int,
@@ -81,9 +74,7 @@ def compute_profitability(
         period_start = today.replace(day=1)
     if period_end is None:
         period_end = today
-    report = compute_client_profitability(
-        tenant_id, client_id, dimension, period_start, period_end
-    )
+    report = compute_client_profitability(tenant_id, client_id, dimension, period_start, period_end)
     return report
 
 

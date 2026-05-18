@@ -10,7 +10,7 @@ import logging
 from datetime import date, timedelta
 from typing import Any
 
-from django.db.models import Avg, Count, F, Sum
+from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncHour
 
 from apps.campaigns.models import Campaign, CampaignChannel, CampaignPerformance
@@ -85,9 +85,7 @@ def get_channel_performance(
     results: list[dict[str, Any]] = []
 
     for ch in channels:
-        aggs = CampaignPerformance.objects.filter(
-            campaign=campaign, channel=ch
-        ).aggregate(
+        aggs = CampaignPerformance.objects.filter(campaign=campaign, channel=ch).aggregate(
             total_impressions=Sum("impressions"),
             total_clicks=Sum("clicks"),
             total_conversions=Sum("conversions"),
@@ -150,14 +148,18 @@ def get_time_series(
     else:
         qs = qs.annotate(bucket=TruncDate("metric_date"))
 
-    results = qs.values("bucket").annotate(
-        impressions=Sum("impressions"),
-        clicks=Sum("clicks"),
-        conversions=Sum("conversions"),
-        spend=Sum("spend"),
-        revenue=Sum("revenue"),
-        engagement=Sum("engagement_actions"),
-    ).order_by("bucket")
+    results = (
+        qs.values("bucket")
+        .annotate(
+            impressions=Sum("impressions"),
+            clicks=Sum("clicks"),
+            conversions=Sum("conversions"),
+            spend=Sum("spend"),
+            revenue=Sum("revenue"),
+            engagement=Sum("engagement_actions"),
+        )
+        .order_by("bucket")
+    )
 
     output: list[dict[str, Any]] = []
     for row in results:

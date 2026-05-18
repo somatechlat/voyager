@@ -13,7 +13,7 @@ from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
 from apps.social_media.models import InboxMessage
-from apps.social_media.services.inbox import aggregate_messages, thread_messages
+from apps.social_media.services.inbox import aggregate_messages
 
 router = Router(auth=VoyagerKeycloakBearer())
 

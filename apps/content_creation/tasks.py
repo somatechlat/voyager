@@ -145,16 +145,14 @@ def generate_content_async(
     except Exception as exc:
         gen.status = ContentGeneration.Status.FAILED
         gen.save()
-        logger.error(
-            "Async generation failed id=%s: %s", gen.id, exc, exc_info=True
-        )
+        logger.error("Async generation failed id=%s: %s", gen.id, exc, exc_info=True)
         try:
             self.retry(
-                countdown=_RETRY_BACKOFF_BASE * (2 ** self.request.retries),
+                countdown=_RETRY_BACKOFF_BASE * (2**self.request.retries),
                 exc=exc,
             )
         except Exception:
-            pass
+            logger.warning("Generation retry exhausted for id=%s", gen.id)
         return {
             "status": "failed",
             "generation_id": str(gen.id),
@@ -188,9 +186,7 @@ def apply_brand_voice(
     )
 
     try:
-        gen = ContentGeneration.objects.get(
-            id=content_id, tenant_id=tenant_id
-        )
+        gen = ContentGeneration.objects.get(id=content_id, tenant_id=tenant_id)
     except ContentGeneration.DoesNotExist:
         return {
             "status": "error",

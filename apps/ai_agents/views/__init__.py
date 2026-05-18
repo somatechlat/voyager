@@ -39,10 +39,10 @@ from apps.ai_agents.serializers.memory import (
     StoreMemoryResponse,
 )
 from apps.ai_agents.serializers.resources import (
+    ResetResourcesResponse,
     ResourceCheckResponse,
     ResourceLimitSchema,
     ResourceStatusSchema,
-    ResetResourcesResponse,
 )
 from apps.rbac.auth import VoyagerKeycloakBearer
 
@@ -103,7 +103,9 @@ router.get(
     response=list[MemoryEntrySchema],
     tags=["Memory"],
 )(get_memory_entries)
-router.post("/agents/{agent_id}/memory", response=StoreMemoryResponse, tags=["Memory"])(store_memory)
+router.post("/agents/{agent_id}/memory", response=StoreMemoryResponse, tags=["Memory"])(
+    store_memory
+)
 router.post(
     "/agents/{agent_id}/memory/search",
     response=SearchMemoryResponse,

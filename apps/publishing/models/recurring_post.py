@@ -41,59 +41,77 @@ class RecurringPost(UUIDModel, TimeStampedModel, TenantModel):
 
     # Identity
     name = models.CharField(
-        max_length=512, help_text="Series name",
+        max_length=512,
+        help_text="Series name",
     )
     platform = models.CharField(
-        max_length=32, help_text="Target platform",
+        max_length=32,
+        help_text="Target platform",
     )
     account_id = models.UUIDField(
-        db_index=True, help_text="Platform connection UUID",
+        db_index=True,
+        help_text="Platform connection UUID",
     )
     publish_type = models.CharField(
-        max_length=32, default="feed", help_text="Post type",
+        max_length=32,
+        default="feed",
+        help_text="Post type",
     )
 
     # Recurrence
     cron_expression = models.CharField(
-        max_length=128, help_text="Cron expression for scheduling",
+        max_length=128,
+        help_text="Cron expression for scheduling",
     )
     start_date = models.DateTimeField(help_text="Series start date")
     end_date = models.DateTimeField(
-        null=True, blank=True, help_text="Optional series end",
+        null=True,
+        blank=True,
+        help_text="Optional series end",
     )
     timezone = models.CharField(
-        max_length=100, default="UTC", help_text="IANA timezone",
+        max_length=100,
+        default="UTC",
+        help_text="IANA timezone",
     )
 
     # Content
     content_pool = models.JSONField(
-        default=list, blank=True,
+        default=list,
+        blank=True,
         help_text="List of content variations",
     )
     variation_strategy = models.CharField(
-        max_length=32, choices=VariationStrategy.choices,
+        max_length=32,
+        choices=VariationStrategy.choices,
         default=VariationStrategy.ROUND_ROBIN,
     )
     base_content = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text="Base content template: {caption, hashtags, media_urls, link, alt_text}",
     )
     context_json = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text="Extra context for AI adaptation",
     )
 
     # Tracking
     last_instance_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Last generated instance timestamp",
     )
     last_instance_number = models.PositiveIntegerField(
-        default=0, help_text="Last generated instance number",
+        default=0,
+        help_text="Last generated instance number",
     )
     is_active = models.BooleanField(default=True, db_index=True)
     created_by = models.CharField(
-        max_length=256, db_index=True, help_text="User UUID",
+        max_length=256,
+        db_index=True,
+        help_text="User UUID",
     )
 
     class Meta:

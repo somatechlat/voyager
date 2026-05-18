@@ -66,9 +66,7 @@ class SocialMention(UUIDModel, TenantModel, TimeStampedModel):
 
     platform = models.CharField(max_length=50, choices=PLATFORMS, db_index=True)
     platform_mention_id = models.CharField(max_length=255, blank=True, db_index=True)
-    mention_type = models.CharField(
-        max_length=20, choices=MENTION_TYPES, db_index=True
-    )
+    mention_type = models.CharField(max_length=20, choices=MENTION_TYPES, db_index=True)
     tracked_term = models.CharField(max_length=255, db_index=True)
     author_name = models.CharField(max_length=255, blank=True)
     author_platform_id = models.CharField(max_length=255, blank=True)
@@ -76,15 +74,9 @@ class SocialMention(UUIDModel, TenantModel, TimeStampedModel):
     author_followers = models.PositiveIntegerField(default=0)
     text = models.TextField(blank=True)
     url = models.URLField(blank=True)
-    sentiment = models.CharField(
-        max_length=20, choices=SENTIMENTS, blank=True, db_index=True
-    )
-    sentiment_score = models.DecimalField(
-        max_digits=4, decimal_places=3, null=True, blank=True
-    )
-    influence_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    sentiment = models.CharField(max_length=20, choices=SENTIMENTS, blank=True, db_index=True)
+    sentiment_score = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
+    influence_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     reach_estimate = models.PositiveIntegerField(default=0)
     language = models.CharField(max_length=10, blank=True)
     media_urls = models.JSONField(default=list, blank=True)
@@ -157,15 +149,11 @@ class CompetitorBenchmark(UUIDModel, TenantModel, TimeStampedModel):
     competitor_name = models.CharField(max_length=255, blank=True)
     competitor_handle = models.CharField(max_length=255, blank=True, db_index=True)
     competitor_avatar = models.URLField(blank=True)
-    metric_period = models.CharField(
-        max_length=20, choices=METRIC_PERIODS, default="weekly"
-    )
+    metric_period = models.CharField(max_length=20, choices=METRIC_PERIODS, default="weekly")
     period_start = models.DateField(db_index=True)
     period_end = models.DateField(db_index=True)
     posts_count = models.PositiveIntegerField(default=0)
-    avg_engagement_rate = models.DecimalField(
-        max_digits=5, decimal_places=4, null=True, blank=True
-    )
+    avg_engagement_rate = models.DecimalField(max_digits=5, decimal_places=4, null=True, blank=True)
     avg_likes = models.PositiveIntegerField(default=0)
     avg_comments = models.PositiveIntegerField(default=0)
     avg_shares = models.PositiveIntegerField(default=0)
@@ -179,9 +167,7 @@ class CompetitorBenchmark(UUIDModel, TenantModel, TimeStampedModel):
     )
     brand_total_followers = models.PositiveIntegerField(default=0)
     brand_follower_growth = models.IntegerField(default=0)
-    engagement_diff = models.DecimalField(
-        max_digits=6, decimal_places=4, null=True, blank=True
-    )
+    engagement_diff = models.DecimalField(max_digits=6, decimal_places=4, null=True, blank=True)
     follower_diff = models.IntegerField(default=0)
     content_themes = models.JSONField(default=list, blank=True)
 

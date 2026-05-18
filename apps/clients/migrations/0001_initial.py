@@ -1,83 +1,85 @@
-"""Initial migration for the Clients CRM module (part 1).
+# Generated initial migration for clients
 
-Creates Client, ClientContact, and Project models.
-"""
 
-from __future__ import annotations
-
-import django.db.models.deletion
 from django.db import migrations, models
 
 
+class BudgetType(models.TextChoices):
+    FIXED = "fixed", "Fixed Price"
+    HOURLY = "hourly", "Hourly"
+    RETAINER = "retainer", "Retainer"
+    HYBRID = "hybrid", "Hybrid"
+
+
+class Status(models.TextChoices):
+    ACTIVE = "active", "Active"
+    INACTIVE = "inactive", "Inactive"
+    PAUSED = "paused", "Paused"
+    ONBOARDING = "onboarding", "Onboarding"
+    CHURNED = "churned", "Churned"
+
+
+class Tier(models.TextChoices):
+    BASIC = "basic", "Basic"
+    PRO = "pro", "Pro"
+    ENTERPRISE = "enterprise", "Enterprise"
+
+
 class Migration(migrations.Migration):
-    """Initial migration for clients app — part 1."""
 
     initial = True
 
-    dependencies: list[tuple[str, str]] = []
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name="Client",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
                 (
                     "tenant_id",
                     models.CharField(
-                        db_index=True, max_length=128,
+                        max_length=128,
+                        db_index=True,
                         help_text="Tenant identifier for multi-tenancy isolation",
                     ),
                 ),
                 ("name", models.CharField(max_length=255, help_text="Client company name")),
-                (
-                    "slug",
-                    models.SlugField(max_length=255, help_text="URL-safe unique identifier"),
-                ),
+                ("slug", models.SlugField(max_length=255, help_text="URL-safe unique identifier")),
                 (
                     "industry",
                     models.CharField(
-                        blank=True, max_length=100,
+                        max_length=100,
+                        blank=True,
                         help_text="Industry sector (e.g. 'Technology', 'Healthcare')",
                     ),
                 ),
-                (
-                    "website",
-                    models.URLField(blank=True, help_text="Client website URL"),
-                ),
-                (
-                    "logo_url",
-                    models.URLField(blank=True, help_text="URL to the client logo image"),
-                ),
+                ("website", models.URLField(blank=True, help_text="Client website URL")),
+                ("logo_url", models.URLField(blank=True, help_text="URL to the client logo image")),
                 (
                     "contact_name",
                     models.CharField(
-                        blank=True, max_length=255,
+                        max_length=255,
+                        blank=True,
                         help_text="Primary contact person's full name",
                     ),
                 ),
                 (
                     "contact_email",
-                    models.EmailField(blank=True, help_text="Primary contact email address"),
+                    models.EmailField(
+                        blank=True,
+                        help_text="Primary contact email address",
+                    ),
                 ),
                 (
                     "contact_phone",
                     models.CharField(
-                        blank=True, max_length=50,
+                        max_length=50,
+                        blank=True,
                         help_text="Primary contact phone number",
                     ),
                 ),
-                (
-                    "address",
-                    models.TextField(blank=True, help_text="Physical office address"),
-                ),
+                ("address", models.TextField(blank=True, help_text="Physical office address")),
                 (
                     "billing_address",
                     models.TextField(
@@ -88,61 +90,59 @@ class Migration(migrations.Migration):
                 (
                     "tax_id",
                     models.CharField(
-                        blank=True, max_length=100,
+                        max_length=100,
+                        blank=True,
                         help_text="Tax or VAT identification number",
                     ),
                 ),
                 (
                     "status",
                     models.CharField(
-                        choices=[
-                            ("active", "Active"),
-                            ("inactive", "Inactive"),
-                            ("paused", "Paused"),
-                            ("onboarding", "Onboarding"),
-                            ("churned", "Churned"),
-                        ],
-                        db_index=True, default="active", max_length=20,
+                        max_length=20,
+                        choices=Status.choices,
+                        default=Status.ACTIVE,
+                        db_index=True,
                         help_text="Current client lifecycle status",
                     ),
                 ),
                 (
                     "tier",
                     models.CharField(
-                        choices=[
-                            ("basic", "Basic"),
-                            ("pro", "Pro"),
-                            ("enterprise", "Enterprise"),
-                        ],
-                        default="basic", max_length=20,
+                        max_length=20,
+                        choices=Tier.choices,
+                        default=Tier.BASIC,
                         help_text="Service tier subscription level",
                     ),
                 ),
                 (
                     "settings",
                     models.JSONField(
-                        blank=True, default=dict,
+                        default=dict,
+                        blank=True,
                         help_text="Client-specific configuration settings",
                     ),
                 ),
                 (
                     "metadata",
                     models.JSONField(
-                        blank=True, default=dict,
+                        default=dict,
+                        blank=True,
                         help_text="Extensible metadata for custom attributes",
                     ),
                 ),
                 (
                     "created_at",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True,
+                        auto_now_add=True,
+                        db_index=True,
                         help_text="Timestamp when the record was created",
                     ),
                 ),
                 (
                     "updated_at",
                     models.DateTimeField(
-                        auto_now=True, db_index=True,
+                        auto_now=True,
+                        db_index=True,
                         help_text="Timestamp when the record was last updated",
                     ),
                 ),
@@ -152,53 +152,30 @@ class Migration(migrations.Migration):
                 "verbose_name": "Client",
                 "verbose_name_plural": "Clients",
                 "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "status"]),
+                    models.Index(fields=["tenant_id", "tier"]),
+                    models.Index(fields=["tenant_id", "slug"]),
+                    models.Index(fields=["tenant_id", "-created_at"]),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=["tenant_id", "slug"], name="clients_client_tenant_slug_uniq"
+                    )
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="client",
-            index=models.Index(
-                fields=["tenant_id", "slug"],
-                name="voyager_client_tenant_slug_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="client",
-            index=models.Index(
-                fields=["tenant_id", "status"],
-                name="voyager_client_tenant_status_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="client",
-            index=models.Index(
-                fields=["tenant_id", "tier"],
-                name="voyager_client_tenant_tier_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="client",
-            index=models.Index(
-                fields=["tenant_id", "-created_at"],
-                name="voyager_client_tenant_created_idx",
-            ),
-        ),
-        migrations.AddConstraint(
-            model_name="client",
-            constraint=models.UniqueConstraint(
-                fields=["tenant_id", "slug"],
-                name="clients_client_tenant_slug_uniq",
-            ),
         ),
         migrations.CreateModel(
             name="ClientContact",
             fields=[
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
                 (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
+                    "client",
+                    models.ForeignKey(
+                        Client,
+                        on_delete=models.CASCADE,
+                        related_name="contacts",
+                        help_text="The parent client this contact belongs to",
                     ),
                 ),
                 ("name", models.CharField(max_length=255, help_text="Contact person's full name")),
@@ -206,13 +183,16 @@ class Migration(migrations.Migration):
                 (
                     "phone",
                     models.CharField(
-                        blank=True, max_length=50, help_text="Contact phone number",
+                        max_length=50,
+                        blank=True,
+                        help_text="Contact phone number",
                     ),
                 ),
                 (
                     "role",
                     models.CharField(
-                        blank=True, max_length=100,
+                        max_length=100,
+                        blank=True,
                         help_text="Job role or title (e.g. 'Marketing Director')",
                     ),
                 ),
@@ -237,47 +217,37 @@ class Migration(migrations.Migration):
                         help_text="Timestamp when the record was last updated",
                     ),
                 ),
-                (
-                    "client",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="contacts",
-                        to="clients.client",
-                        help_text="The parent client this contact belongs to",
-                    ),
-                ),
             ],
             options={
                 "db_table": "voyager_client_contact",
                 "verbose_name": "Client Contact",
                 "verbose_name_plural": "Client Contacts",
                 "ordering": ["-is_primary", "name"],
+                "indexes": [
+                    models.Index(fields=["client", "is_primary"]),
+                    models.Index(fields=["client", "email"]),
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="clientcontact",
-            index=models.Index(
-                fields=["client", "is_primary"],
-                name="voyager_contact_client_primary_idx",
-            ),
         ),
         migrations.CreateModel(
             name="Project",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
                 (
                     "tenant_id",
                     models.CharField(
-                        db_index=True, max_length=128,
+                        max_length=128,
+                        db_index=True,
                         help_text="Tenant identifier for multi-tenancy isolation",
+                    ),
+                ),
+                (
+                    "client",
+                    models.ForeignKey(
+                        Client,
+                        on_delete=models.CASCADE,
+                        related_name="projects",
+                        help_text="The client this project belongs to",
                     ),
                 ),
                 ("name", models.CharField(max_length=255, help_text="Project name")),
@@ -288,89 +258,83 @@ class Migration(migrations.Migration):
                 (
                     "status",
                     models.CharField(
-                        choices=[
-                            ("planning", "Planning"),
-                            ("active", "Active"),
-                            ("completed", "Completed"),
-                            ("archived", "Archived"),
-                        ],
-                        db_index=True, default="planning", max_length=20,
+                        max_length=20,
+                        choices=Status.choices,
+                        default=Status.PLANNING,
+                        db_index=True,
                         help_text="Current project status",
                     ),
                 ),
                 (
                     "start_date",
-                    models.DateField(blank=True, null=True, help_text="Project start date"),
+                    models.DateField(null=True, blank=True, help_text="Project start date"),
                 ),
                 (
                     "end_date",
                     models.DateField(
-                        blank=True, null=True,
+                        null=True,
+                        blank=True,
                         help_text="Project end date (estimated or actual)",
                     ),
                 ),
                 (
                     "budget_amount",
                     models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=14, null=True,
+                        max_digits=14,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
                         help_text="Allocated budget amount",
                     ),
                 ),
                 (
                     "budget_type",
                     models.CharField(
-                        choices=[
-                            ("fixed", "Fixed Price"),
-                            ("hourly", "Hourly"),
-                            ("retainer", "Retainer"),
-                            ("hybrid", "Hybrid"),
-                        ],
-                        default="fixed", max_length=20,
+                        max_length=20,
+                        choices=BudgetType.choices,
+                        default=BudgetType.FIXED,
                         help_text="How the project is billed",
                     ),
                 ),
                 (
                     "manager_id",
                     models.CharField(
-                        blank=True, db_index=True, max_length=256,
+                        max_length=256,
+                        blank=True,
+                        db_index=True,
                         help_text="User ID of the project manager",
                     ),
                 ),
                 (
                     "team_ids",
                     models.JSONField(
-                        blank=True, default=list,
+                        default=list,
+                        blank=True,
                         help_text="List of team member user IDs",
                     ),
                 ),
                 (
                     "settings",
                     models.JSONField(
-                        blank=True, default=dict,
+                        default=dict,
+                        blank=True,
                         help_text="Project-specific configuration",
                     ),
                 ),
                 (
                     "created_at",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True,
+                        auto_now_add=True,
+                        db_index=True,
                         help_text="Timestamp when the record was created",
                     ),
                 ),
                 (
                     "updated_at",
                     models.DateTimeField(
-                        auto_now=True, db_index=True,
+                        auto_now=True,
+                        db_index=True,
                         help_text="Timestamp when the record was last updated",
-                    ),
-                ),
-                (
-                    "client",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="projects",
-                        to="clients.client",
-                        help_text="The client this project belongs to",
                     ),
                 ),
             ],
@@ -379,27 +343,12 @@ class Migration(migrations.Migration):
                 "verbose_name": "Project",
                 "verbose_name_plural": "Projects",
                 "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "status"]),
+                    models.Index(fields=["tenant_id", "client", "status"]),
+                    models.Index(fields=["tenant_id", "manager_id"]),
+                    models.Index(fields=["tenant_id", "-created_at"]),
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="project",
-            index=models.Index(
-                fields=["tenant_id", "status"],
-                name="voyager_project_tenant_status_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="project",
-            index=models.Index(
-                fields=["tenant_id", "client", "status"],
-                name="voyager_project_tenant_client_status_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="project",
-            index=models.Index(
-                fields=["tenant_id", "manager_id"],
-                name="voyager_project_tenant_manager_idx",
-            ),
         ),
     ]

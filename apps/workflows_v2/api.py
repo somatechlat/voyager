@@ -19,13 +19,12 @@ from __future__ import annotations
 from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
-
-from apps.workflows_v2.views.workflows import router as workflows_router
-from apps.workflows_v2.views.nodes import router as nodes_router
-from apps.workflows_v2.views.triggers import router as triggers_router
 from apps.workflows_v2.views.execution import router as execution_router
 from apps.workflows_v2.views.human_loop import router as approvals_router
+from apps.workflows_v2.views.nodes import router as nodes_router
 from apps.workflows_v2.views.templates import router as templates_router
+from apps.workflows_v2.views.triggers import router as triggers_router
+from apps.workflows_v2.views.workflows import router as workflows_router
 
 router = Router(auth=VoyagerKeycloakBearer())
 

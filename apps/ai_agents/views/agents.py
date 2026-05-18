@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from django.http import HttpRequest
 
 from apps.ai_agents.models import AIAgent
@@ -54,9 +52,7 @@ def get_agent(request: HttpRequest, agent_id: int) -> AIAgent:
     return AIAgent.objects.get(pk=agent_id)
 
 
-def update_agent(
-    request: HttpRequest, agent_id: int, payload: AgentUpdateSchema
-) -> AIAgent:
+def update_agent(request: HttpRequest, agent_id: int, payload: AgentUpdateSchema) -> AIAgent:
     """Update an agent's configuration."""
     agent = AIAgent.objects.get(pk=agent_id)
     if payload.name is not None:
@@ -80,9 +76,7 @@ def delete_agent(request: HttpRequest, agent_id: int) -> dict[str, bool]:
     return {"deleted": deleted}
 
 
-def run_agent(
-    request: HttpRequest, agent_id: int, payload: RunAgentRequest
-) -> RunAgentResponse:
+def run_agent(request: HttpRequest, agent_id: int, payload: RunAgentRequest) -> RunAgentResponse:
     """Execute a task on an agent."""
     result = AgentOrchestrator.run_agent(
         agent_id=agent_id,

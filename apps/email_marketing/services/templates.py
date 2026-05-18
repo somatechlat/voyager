@@ -10,7 +10,6 @@ import html
 import re
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Responsive CSS
 # ---------------------------------------------------------------------------
@@ -61,9 +60,10 @@ def generate_responsive_css(
 # Block renderers - helper for building html tags
 # ---------------------------------------------------------------------------
 
+
 def _tag(tag_name: str, content: str = "", **attrs: str) -> str:
     """Build an HTML tag with attributes."""
-    attr_str = " ".join('{}="{}"'.format(k, v) for k, v in attrs.items() if v)
+    attr_str = " ".join(f'{k}="{v}"' for k, v in attrs.items() if v)
     if attr_str:
         attr_str = " " + attr_str
     if content:
@@ -91,13 +91,30 @@ def _render_header(block: dict[str, Any]) -> str:
         pre_tag = (
             '<div class="preheader" style="display:none;font-size:1px;color:#ffffff;'
             'line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">'
-            + preheader + "</div>"
+            + preheader
+            + "</div>"
         )
         parts.append(pre_tag)
     inner = ""
     if logo_url:
-        inner = '<img src="' + html.escape(logo_url) + '" alt="' + logo_alt + '" style="max-width:200px;height:auto;display:inline-block;" />'
-    parts.append('<div style="text-align:' + alignment + ";padding:" + padding + ";background-color:" + bg_color + ';">' + inner + "</div>")
+        inner = (
+            '<img src="'
+            + html.escape(logo_url)
+            + '" alt="'
+            + logo_alt
+            + '" style="max-width:200px;height:auto;display:inline-block;" />'
+        )
+    parts.append(
+        '<div style="text-align:'
+        + alignment
+        + ";padding:"
+        + padding
+        + ";background-color:"
+        + bg_color
+        + ';">'
+        + inner
+        + "</div>"
+    )
     return "\n".join(parts)
 
 
@@ -112,9 +129,21 @@ def _render_text(block: dict[str, Any]) -> str:
     font_family = style.get("fontFamily", "Arial, Helvetica, sans-serif")
     padding = style.get("padding", "16px 20px")
     return (
-        '<div class="mobile-pad" style="padding:' + str(padding) + ";font-size:" + str(font_size)
-        + "px;color:" + str(color) + ";text-align:" + str(alignment) + ";line-height:"
-        + str(line_height) + ";font-family:" + str(font_family) + ';">' + str(content) + "</div>"
+        '<div class="mobile-pad" style="padding:'
+        + str(padding)
+        + ";font-size:"
+        + str(font_size)
+        + "px;color:"
+        + str(color)
+        + ";text-align:"
+        + str(alignment)
+        + ";line-height:"
+        + str(line_height)
+        + ";font-family:"
+        + str(font_family)
+        + ';">'
+        + str(content)
+        + "</div>"
     )
 
 
@@ -127,7 +156,17 @@ def _render_image(block: dict[str, Any]) -> str:
     border_radius = block.get("border_radius", 0)
     style = block.get("style", {})
     padding = style.get("padding", "0")
-    img_html = '<img src="' + src + '" alt="' + alt + '" style="width:' + str(width) + ";height:auto;display:block;border-radius:" + str(border_radius) + 'px;" />'
+    img_html = (
+        '<img src="'
+        + src
+        + '" alt="'
+        + alt
+        + '" style="width:'
+        + str(width)
+        + ";height:auto;display:block;border-radius:"
+        + str(border_radius)
+        + 'px;" />'
+    )
     if link:
         img_html = '<a href="' + html.escape(link) + '">' + img_html + "</a>"
     return '<div style="padding:' + str(padding) + ';text-align:center;">' + img_html + "</div>"
@@ -146,12 +185,25 @@ def _render_button(block: dict[str, Any]) -> str:
     font_size = {"small": 14, "medium": 16, "large": 18}.get(size, 16)
     btn_html = (
         '<a href="' + url + '" class="btn" style="display:inline-block;padding:14px 32px;'
-        "background-color:" + btn_color + ";color:" + text_color
-        + ";text-decoration:none;border-radius:" + str(border_radius) + "px;font-size:"
-        + str(font_size) + 'px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">'
-        + text + "</a>"
+        "background-color:"
+        + btn_color
+        + ";color:"
+        + text_color
+        + ";text-decoration:none;border-radius:"
+        + str(border_radius)
+        + "px;font-size:"
+        + str(font_size)
+        + 'px;font-weight:600;font-family:Arial,Helvetica,sans-serif;">'
+        + text
+        + "</a>"
     )
-    return '<div class="mobile-pad" style="padding:' + str(padding) + ';text-align:center;">' + btn_html + "</div>"
+    return (
+        '<div class="mobile-pad" style="padding:'
+        + str(padding)
+        + ';text-align:center;">'
+        + btn_html
+        + "</div>"
+    )
 
 
 def _render_divider(block: dict[str, Any]) -> str:
@@ -161,7 +213,17 @@ def _render_divider(block: dict[str, Any]) -> str:
     color = style.get("color", "#dddddd")
     width = style.get("width", "100%")
     margin = style.get("margin", "20px auto")
-    return '<div style="margin:' + str(margin) + ";width:" + str(width) + ';"><hr style="border:none;border-top:1px ' + divider_style + " " + color + ';" /></div>'
+    return (
+        '<div style="margin:'
+        + str(margin)
+        + ";width:"
+        + str(width)
+        + ';"><hr style="border:none;border-top:1px '
+        + divider_style
+        + " "
+        + color
+        + ';" /></div>'
+    )
 
 
 def _render_spacer(block: dict[str, Any]) -> str:
@@ -199,7 +261,13 @@ def _render_social(block: dict[str, Any]) -> str:
     if not platforms:
         return ""
     separator = " | "
-    parts = ['<div style="padding:' + str(padding) + ';text-align:' + str(alignment) + ';font-family:Arial,Helvetica,sans-serif;">']
+    parts = [
+        '<div style="padding:'
+        + str(padding)
+        + ";text-align:"
+        + str(alignment)
+        + ';font-family:Arial,Helvetica,sans-serif;">'
+    ]
     links = []
     for p in platforms:
         name = p.get("name", "")
@@ -210,14 +278,16 @@ def _render_social(block: dict[str, Any]) -> str:
             link_html = (
                 '<a href="' + url + '" style="display:inline-block;margin:0 6px;">'
                 '<img src="' + icon_url + '" alt="' + html.escape(name) + '" '
-                'style="width:32px;height:32px;border-radius:' + border_radius + ';" />'
-                + "</a>"
+                'style="width:32px;height:32px;border-radius:' + border_radius + ';" />' + "</a>"
             )
             links.append(link_html)
         else:
             links.append(
-                '<a href="' + url + '" style="display:inline-block;margin:0 8px;font-family:Arial,Helvetica,sans-serif;color:#333;">'
-                + html.escape(name) + "</a>",
+                '<a href="'
+                + url
+                + '" style="display:inline-block;margin:0 8px;font-family:Arial,Helvetica,sans-serif;color:#333;">'
+                + html.escape(name)
+                + "</a>",
             )
     parts.append(separator.join(links))
     parts.append("</div>")
@@ -231,8 +301,22 @@ def _render_video(block: dict[str, Any]) -> str:
     alt = html.escape(block.get("alt", "Video"))
     style = block.get("style", {})
     padding = style.get("padding", "0")
-    img_html = '<img src="' + thumbnail + '" alt="' + alt + '" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;" />'
-    return '<div style="padding:' + str(padding) + ';text-align:center;"><a href="' + link + '">' + img_html + "</a></div>"
+    img_html = (
+        '<img src="'
+        + thumbnail
+        + '" alt="'
+        + alt
+        + '" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto;" />'
+    )
+    return (
+        '<div style="padding:'
+        + str(padding)
+        + ';text-align:center;"><a href="'
+        + link
+        + '">'
+        + img_html
+        + "</a></div>"
+    )
 
 
 def _render_product(block: dict[str, Any]) -> str:
@@ -249,26 +333,50 @@ def _render_product(block: dict[str, Any]) -> str:
     border = style.get("border", "1px solid #eeeeee")
     border_radius = style.get("border_radius", 8)
     parts = [
-        '<div style="padding:' + str(padding) + ";background-color:" + str(bg_color) + ";border:" + str(border) + ";border-radius:" + str(border_radius) + 'px;text-align:center;">',
+        '<div style="padding:'
+        + str(padding)
+        + ";background-color:"
+        + str(bg_color)
+        + ";border:"
+        + str(border)
+        + ";border-radius:"
+        + str(border_radius)
+        + 'px;text-align:center;">',
     ]
     if image:
         parts.append(
-            '<img src="' + image + '" alt="' + title + '" '
+            '<img src="'
+            + image
+            + '" alt="'
+            + title
+            + '" '
             + 'style="width:100%;max-width:280px;height:auto;display:block;margin:0 auto 12px;" />',
         )
     if title:
-        parts.append('<h3 style="margin:0 0 8px;font-size:18px;color:#333;font-family:Arial,Helvetica,sans-serif;">' + title + "</h3>")
+        parts.append(
+            '<h3 style="margin:0 0 8px;font-size:18px;color:#333;font-family:Arial,Helvetica,sans-serif;">'
+            + title
+            + "</h3>"
+        )
     if description:
-        parts.append('<p style="margin:0 0 12px;font-size:14px;color:#666;font-family:Arial,Helvetica,sans-serif;">' + description + "</p>")
+        parts.append(
+            '<p style="margin:0 0 12px;font-size:14px;color:#666;font-family:Arial,Helvetica,sans-serif;">'
+            + description
+            + "</p>"
+        )
     if price:
         parts.append(
             '<p style="margin:0 0 16px;font-size:20px;font-weight:700;color:#1a73e8;">'
-            + html.escape(str(price)) + "</p>",
+            + html.escape(str(price))
+            + "</p>",
         )
     parts.append(
-        '<a href="' + cta_url + '" class="btn" style="display:inline-block;padding:12px 24px;'
+        '<a href="'
+        + cta_url
+        + '" class="btn" style="display:inline-block;padding:12px 24px;'
         + 'background-color:#1a73e8;color:#ffffff;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">'
-        + html.escape(str(cta)) + "</a>",
+        + html.escape(str(cta))
+        + "</a>",
     )
     parts.append("</div>")
     return "\n".join(parts)
@@ -284,14 +392,24 @@ def _render_navigation(block: dict[str, Any]) -> str:
     if not items:
         return ""
     parts = [
-        '<div style="padding:' + str(padding) + ";background-color:" + str(bg_color) + ";text-align:" + str(alignment) + ';font-family:Arial,Helvetica,sans-serif;">',
+        '<div style="padding:'
+        + str(padding)
+        + ";background-color:"
+        + str(bg_color)
+        + ";text-align:"
+        + str(alignment)
+        + ';font-family:Arial,Helvetica,sans-serif;">',
     ]
     links = []
     for item in items:
         label = html.escape(item.get("label", ""))
         url = html.escape(item.get("url", "#"))
         links.append(
-            '<a href="' + url + '" style="color:#333;text-decoration:none;font-size:14px;">' + label + "</a>",
+            '<a href="'
+            + url
+            + '" style="color:#333;text-decoration:none;font-size:14px;">'
+            + label
+            + "</a>",
         )
     parts.append(" | ".join(links))
     parts.append("</div>")
@@ -309,15 +427,27 @@ def _render_footer(block: dict[str, Any]) -> str:
     color = style.get("color", "#666666")
     font_size = style.get("fontSize", 12)
     parts = [
-        '<div style="padding:' + str(padding) + ";background-color:" + str(bg_color) + ";text-align:center;font-size:" + str(font_size) + "px;color:" + str(color) + ';font-family:Arial,Helvetica,sans-serif;">',
+        '<div style="padding:'
+        + str(padding)
+        + ";background-color:"
+        + str(bg_color)
+        + ";text-align:center;font-size:"
+        + str(font_size)
+        + "px;color:"
+        + str(color)
+        + ';font-family:Arial,Helvetica,sans-serif;">',
     ]
     if company:
         parts.append('<p style="margin:0 0 4px;">' + company + "</p>")
     if address:
         parts.append('<p style="margin:0 0 12px;">' + address + "</p>")
     parts.append(
-        '<p style="margin:0;"><a href="' + unsubscribe_url + '" '
-        + 'style="color:' + str(color) + ';text-decoration:underline;">Unsubscribe</a></p>',
+        '<p style="margin:0;"><a href="'
+        + unsubscribe_url
+        + '" '
+        + 'style="color:'
+        + str(color)
+        + ';text-decoration:underline;">Unsubscribe</a></p>',
     )
     parts.append("</div>")
     return "\n".join(parts)
@@ -384,22 +514,29 @@ def render_template_html(
         preheader_html = (
             '<div class="preheader" style="display:none;font-size:1px;'
             + 'color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">'
-            + html.escape(preheader) + "</div>"
+            + html.escape(preheader)
+            + "</div>"
         )
     escaped_title = html.escape(title)
     return (
-        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+        '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
         + '<meta charset="UTF-8" />\n'
         + '<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n'
-        + "<title>" + escaped_title + "</title>\n"
-        + "<style>" + css + "</style>\n"
+        + "<title>"
+        + escaped_title
+        + "</title>\n"
+        + "<style>"
+        + css
+        + "</style>\n"
         + "</head>\n"
         + '<body style="margin:0;padding:0;background-color:#f4f4f4;">\n'
-        + preheader_html + "\n"
+        + preheader_html
+        + "\n"
         + '<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">\n'
         + '<tr><td align="center" style="padding:20px 0;">\n'
         + '<div class="email-wrapper" style="width:100%;max-width:600px;margin:0 auto;">\n'
-        + body_html + "\n"
+        + body_html
+        + "\n"
         + "</div>\n</td></tr>\n</table>\n</body>\n</html>"
     )
 
@@ -429,15 +566,33 @@ def generate_plain_text(html_content: str) -> str:
 # ---------------------------------------------------------------------------
 
 EMAIL_CLIENTS = [
-    "gmail_web", "gmail_app", "outlook_365", "outlook_desktop",
-    "apple_mail", "yahoo_mail", "thunderbird", "samsung_mail",
+    "gmail_web",
+    "gmail_app",
+    "outlook_365",
+    "outlook_desktop",
+    "apple_mail",
+    "yahoo_mail",
+    "thunderbird",
+    "samsung_mail",
 ]
 
 _CLIENT_SCORES: dict[str, dict[str, Any]] = {
     "gmail_web": {"style_block": False, "inline_css": True, "flex": False, "max_score": 40},
     "gmail_app": {"style_block": False, "inline_css": True, "flex": False, "max_score": 40},
-    "outlook_365": {"style_block": True, "inline_css": True, "flex": False, "border_radius": False, "max_score": 50},
-    "outlook_desktop": {"style_block": True, "inline_css": True, "flex": False, "border_radius": False, "max_score": 35},
+    "outlook_365": {
+        "style_block": True,
+        "inline_css": True,
+        "flex": False,
+        "border_radius": False,
+        "max_score": 50,
+    },
+    "outlook_desktop": {
+        "style_block": True,
+        "inline_css": True,
+        "flex": False,
+        "border_radius": False,
+        "max_score": 35,
+    },
     "apple_mail": {"style_block": True, "inline_css": True, "flex": True, "max_score": 100},
     "yahoo_mail": {"style_block": False, "inline_css": True, "flex": False, "max_score": 45},
     "thunderbird": {"style_block": True, "inline_css": True, "flex": True, "max_score": 90},
@@ -463,19 +618,45 @@ def test_compatibility(html_content: str) -> dict[str, Any]:
         issues = []
         score = profile.get("max_score", 50)
         if "<style" in html_content and not profile.get("style_block", False):
-            issues.append({"type": "unsupported_css", "severity": "warning", "detail": "<style> block ignored"})
+            issues.append(
+                {
+                    "type": "unsupported_css",
+                    "severity": "warning",
+                    "detail": "<style> block ignored",
+                }
+            )
             score -= 10
         if profile.get("inline_css", True) and 'style="' not in html_content:
-            issues.append({"type": "missing_inline_css", "severity": "critical", "detail": "No inline styles"})
+            issues.append(
+                {"type": "missing_inline_css", "severity": "critical", "detail": "No inline styles"}
+            )
             score -= 30
         if "display:flex" in html_content and not profile.get("flex", False):
-            issues.append({"type": "unsupported_css", "severity": "critical", "detail": "Flexbox not supported"})
+            issues.append(
+                {
+                    "type": "unsupported_css",
+                    "severity": "critical",
+                    "detail": "Flexbox not supported",
+                }
+            )
             score -= 20
         if "border-radius" in html_content and not profile.get("border_radius", True):
-            issues.append({"type": "unsupported_css", "severity": "warning", "detail": "border-radius ignored"})
+            issues.append(
+                {
+                    "type": "unsupported_css",
+                    "severity": "warning",
+                    "detail": "border-radius ignored",
+                }
+            )
             score -= 5
         if "background-image" in html_content:
-            issues.append({"type": "unsupported_feature", "severity": "warning", "detail": "Background images unreliable"})
+            issues.append(
+                {
+                    "type": "unsupported_feature",
+                    "severity": "warning",
+                    "detail": "Background images unreliable",
+                }
+            )
             score -= 5
         results.append({"client": client, "score": max(0, score), "issues": issues})
     overall = round(sum(r["score"] for r in results) / len(results), 2) if results else 0

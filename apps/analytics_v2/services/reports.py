@@ -12,7 +12,6 @@ import json
 import logging
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from apps.analytics_v2.services.dashboards import compute_date_range
 
@@ -46,7 +45,10 @@ def generate_report(
 
     logger.info(
         "Generating %s report for tenant %s, range %s to %s",
-        output_format, tenant_id, start_dt, end_dt,
+        output_format,
+        tenant_id,
+        start_dt,
+        end_dt,
     )
 
     # 1. Collect data from ClickHouse
@@ -114,7 +116,9 @@ def _collect_report_data(
                 metric_selects.append(f"{agg}(metric_value) as {alias}")
             else:
                 metric_selects.append(f"sum(metric_value) as {m}")
-        metric_select = ", ".join(metric_selects) if metric_selects else "sum(metric_value) as total"
+        metric_select = (
+            ", ".join(metric_selects) if metric_selects else "sum(metric_value) as total"
+        )
 
         sql = f"""
             SELECT {dim_select}, {metric_select}
@@ -253,10 +257,7 @@ def _format_excel(
     ws2.cell(row=1, column=1, value="Metric")
     ws2.cell(row=1, column=2, value="Total")
     if rows:
-        numeric_cols = [
-            k for k, v in rows[0].items()
-            if isinstance(v, (int, float))
-        ]
+        numeric_cols = [k for k, v in rows[0].items() if isinstance(v, (int, float))]
         for idx, col in enumerate(numeric_cols, 2):
             total = sum(row.get(col, 0) for row in rows)
             ws2.cell(row=idx, column=1, value=col)
@@ -309,10 +310,12 @@ def _format_pdf(
     styles = getSampleStyleSheet()
     elements.append(Paragraph(config.get("title", "Analytics Report"), styles["Title"]))
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph(
-        f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
-        styles["Normal"],
-    ))
+    elements.append(
+        Paragraph(
+            f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 20))
 
     # Data table
@@ -321,14 +324,23 @@ def _format_pdf(
         headers = list(rows[0].keys())
         table_data = [headers] + [[str(row.get(h, "")) for h in headers] for row in rows[:500]]
         table = Table(table_data)
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#366092")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("FONTSIZE", (0, 0), (-1, 0), 10),
-            ("FONTSIZE", (0, 1), (-1, -1), 8),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f0f0f0")]),
-        ]))
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#366092")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("FONTSIZE", (0, 0), (-1, 0), 10),
+                    ("FONTSIZE", (0, 1), (-1, -1), 8),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [colors.white, colors.HexColor("#f0f0f0")],
+                    ),
+                ]
+            )
+        )
         elements.append(table)
     else:
         elements.append(Paragraph("No data available.", styles["Normal"]))
@@ -397,7 +409,6 @@ def _deliver_email(result: dict[str, Any], cfg: dict[str, Any]) -> None:
 
 def _deliver_slack(result: dict[str, Any], cfg: dict[str, Any]) -> None:
     """Send report summary via Slack webhook."""
-    import json
 
     import httpx
 
@@ -418,12 +429,16 @@ def _deliver_webhook(result: dict[str, Any], cfg: dict[str, Any]) -> None:
     url = cfg.get("url", "")
     if not url:
         return
-    httpx.post(url, json={
-        "filename": result.get("filename"),
-        "row_count": result.get("row_count"),
-        "format": result.get("format"),
-        "generated_at": result.get("generated_at"),
-    }, timeout=30)
+    httpx.post(
+        url,
+        json={
+            "filename": result.get("filename"),
+            "row_count": result.get("row_count"),
+            "format": result.get("format"),
+            "generated_at": result.get("generated_at"),
+        },
+        timeout=30,
+    )
 
 
 def _deliver_s3(result: dict[str, Any], cfg: dict[str, Any]) -> None:

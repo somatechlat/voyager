@@ -4,13 +4,13 @@ Business logic for scraping, competitor monitoring, price tracking,
 trend detection, sentiment analysis, SERP tracking, and OCR processing.
 """
 
-from .scraper import PlaywrightScraper, ProxyPool
 from .competitors import CompetitorAnalyzer
-from .prices import PriceExtractor, CurrencyNormalizer
-from .trends import TrendAnalyzer
+from .ocr import OCRProcessor
+from .prices import CurrencyNormalizer, PriceExtractor
+from .scraper import PlaywrightScraper, ProxyPool
 from .sentiment import SentimentAnalyzer
 from .serp import SERPTracker
-from .ocr import OCRProcessor
+from .trends import TrendAnalyzer
 
 __all__ = [
     "PlaywrightScraper",

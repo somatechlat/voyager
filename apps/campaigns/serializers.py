@@ -11,7 +11,6 @@ from decimal import Decimal
 from typing import Any
 
 from ninja import Schema
-from ninja.orm import create_schema
 
 # ---------------------------------------------------------------------------
 # Campaign schemas

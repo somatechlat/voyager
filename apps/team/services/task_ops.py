@@ -19,8 +19,14 @@ from apps.team.services.task_core import TaskCoreService, TaskServiceError
 logger = logging.getLogger(__name__)
 
 SUPPORTED_BULK_FIELDS = [
-    "status", "assignee_id", "priority", "due_date", "task_type",
-    "project_id", "client_id", "campaign_id",
+    "status",
+    "assignee_id",
+    "priority",
+    "due_date",
+    "task_type",
+    "project_id",
+    "client_id",
+    "campaign_id",
 ]
 
 VALID_STATUS_TRANSITIONS = {
@@ -51,9 +57,7 @@ class TaskOpsService:
         task = TaskCoreService.get_task(task_id, tenant_id)
         task.assignee_id = assignee_id
         task.save()
-        logger.info(
-            "Assigned task #%d to %s (tenant %s)", task_id, assignee_id, tenant_id
-        )
+        logger.info("Assigned task #%d to %s (tenant %s)", task_id, assignee_id, tenant_id)
         return task
 
     # -- Status transitions ------------------------------------------------
@@ -90,9 +94,7 @@ class TaskOpsService:
             blockers = task.blocked_by()
             if blockers:
                 blocker_str = ", ".join(str(b) for b in blockers)
-                raise TaskServiceError(
-                    f"Cannot complete task: blocked by {blocker_str}"
-                )
+                raise TaskServiceError(f"Cannot complete task: blocked by {blocker_str}")
 
         task.status = new_status
         task.save()
@@ -218,9 +220,7 @@ class TaskOpsService:
 
     @staticmethod
     @transaction.atomic
-    def bulk_update(
-        tenant_id: str, task_ids: list[int], updates: dict[str, Any]
-    ) -> dict[str, Any]:
+    def bulk_update(tenant_id: str, task_ids: list[int], updates: dict[str, Any]) -> dict[str, Any]:
         """Bulk update multiple tasks.
 
         Args:
@@ -251,9 +251,7 @@ class TaskOpsService:
             if updates.get("status") == "done":
                 blockers = task.blocked_by()
                 if blockers:
-                    skipped.append(
-                        {"task_id": task_id, "reason": f"blocked by {blockers}"}
-                    )
+                    skipped.append({"task_id": task_id, "reason": f"blocked by {blockers}"})
                     continue
 
             for field, value in updates.items():
@@ -288,9 +286,7 @@ class TaskOpsService:
         return task
 
     @staticmethod
-    def remove_dependency(
-        task_id: int, tenant_id: str, depends_on_task_id: int
-    ) -> Task:
+    def remove_dependency(task_id: int, tenant_id: str, depends_on_task_id: int) -> Task:
         """Remove a dependency from a task.
 
         Args:

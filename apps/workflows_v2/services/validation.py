@@ -11,9 +11,9 @@ import logging
 from collections import deque
 from typing import Any
 
-from apps.workflows_v2.models.workflow import Workflow, WorkflowVersion
-from apps.workflows_v2.models.node import WorkflowNode
 from apps.workflows_v2.models.edge import WorkflowEdge
+from apps.workflows_v2.models.node import WorkflowNode
+from apps.workflows_v2.models.workflow import Workflow, WorkflowVersion
 
 logger = logging.getLogger(__name__)
 
@@ -367,10 +367,14 @@ def compare_versions(
     """
     nodes_a = {n.get("node_id", n.get("id", str(i))): n for i, n in enumerate(version_a.nodes)}
     nodes_b = {n.get("node_id", n.get("id", str(i))): n for i, n in enumerate(version_b.nodes)}
-    conn_a = {(c.get("source", c.get("from")), c.get("target", c.get("to"))): c
-              for c in version_a.connections}
-    conn_b = {(c.get("source", c.get("from")), c.get("target", c.get("to"))): c
-              for c in version_b.connections}
+    conn_a = {
+        (c.get("source", c.get("from")), c.get("target", c.get("to"))): c
+        for c in version_a.connections
+    }
+    conn_b = {
+        (c.get("source", c.get("from")), c.get("target", c.get("to"))): c
+        for c in version_b.connections
+    }
 
     nodes_added = [nodes_b[k] for k in nodes_b if k not in nodes_a]
     nodes_removed = [nodes_a[k] for k in nodes_a if k not in nodes_b]
@@ -378,9 +382,7 @@ def compare_versions(
     nodes_modified: list[dict[str, Any]] = []
     for k, node_a in nodes_a.items():
         if k in nodes_b and nodes_b[k] != node_a:
-            nodes_modified.append(
-                {"nodeId": k, "changes": _deep_diff(node_a, nodes_b[k])}
-            )
+            nodes_modified.append({"nodeId": k, "changes": _deep_diff(node_a, nodes_b[k])})
 
     connections_added = [conn_b[k] for k in conn_b if k not in conn_a]
     connections_removed = [conn_a[k] for k in conn_a if k not in conn_b]

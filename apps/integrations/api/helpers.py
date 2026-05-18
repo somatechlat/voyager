@@ -8,7 +8,6 @@ from django.http import HttpRequest
 
 from apps.integrations.models import (
     PlatformConnection,
-    PlatformHealth,
     SyncLog,
     WebhookDelivery,
     WebhookEndpoint,

@@ -40,28 +40,36 @@ class PublishQueue(UUIDModel, TimeStampedModel):
         db_index=True,
     )
     queue_priority = models.PositiveSmallIntegerField(
-        default=3, db_index=True,
+        default=3,
+        db_index=True,
         help_text="0=urgent, 1=high, 2=medium, 3=low",
     )
     retry_count = models.PositiveIntegerField(default=0)
     next_retry_at = models.DateTimeField(
-        null=True, blank=True, db_index=True,
+        null=True,
+        blank=True,
+        db_index=True,
         help_text="When to attempt next retry",
     )
     error_log = models.JSONField(
-        default=list, blank=True,
+        default=list,
+        blank=True,
         help_text="List of error entries: [{timestamp, error, attempt}]",
     )
     overflow_reason = models.CharField(
-        max_length=32, choices=OverflowReason.choices,
-        blank=True, help_text="Why this post was overflowed",
+        max_length=32,
+        choices=OverflowReason.choices,
+        blank=True,
+        help_text="Why this post was overflowed",
     )
     overflowed_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When overflow happened",
     )
     processed_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When successfully processed",
     )
 
@@ -111,6 +119,10 @@ class PublishQueue(UUIDModel, TimeStampedModel):
     @classmethod
     def get_pending(cls) -> models.QuerySet:
         """Get pending queue entries ordered by priority."""
-        return cls.objects.filter(
-            processed_at__isnull=True,
-        ).select_related("scheduled_post").order_by("queue_priority", "next_retry_at")
+        return (
+            cls.objects.filter(
+                processed_at__isnull=True,
+            )
+            .select_related("scheduled_post")
+            .order_by("queue_priority", "next_retry_at")
+        )

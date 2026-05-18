@@ -80,31 +80,41 @@ class ScheduledPost(UUIDModel, TimeStampedModel, TenantModel):
 
     # References
     content_id = models.UUIDField(
-        null=True, blank=True, db_index=True,
+        null=True,
+        blank=True,
+        db_index=True,
         help_text="Reference to content generation",
     )
     campaign_id = models.UUIDField(
-        null=True, blank=True, db_index=True,
+        null=True,
+        blank=True,
+        db_index=True,
         help_text="Reference to campaign",
     )
 
     # Platform config
     platform = models.CharField(
-        max_length=32, choices=Platform.choices, db_index=True,
+        max_length=32,
+        choices=Platform.choices,
+        db_index=True,
     )
     account_id = models.UUIDField(
         db_index=True,
         help_text="Platform connection UUID",
     )
     publish_type = models.CharField(
-        max_length=32, choices=PublishType.choices, default=PublishType.FEED,
+        max_length=32,
+        choices=PublishType.choices,
+        default=PublishType.FEED,
     )
 
     # Content
     caption = models.TextField(blank=True, help_text="Post caption / body text")
     hashtags = models.JSONField(default=list, blank=True, help_text="List of hashtags")
     media_urls = models.JSONField(
-        default=list, blank=True, help_text="List of media file URLs",
+        default=list,
+        blank=True,
+        help_text="List of media file URLs",
     )
     link = models.URLField(blank=True, help_text="URL to include in post")
     alt_text = models.TextField(blank=True, help_text="Alt text for media")
@@ -113,37 +123,50 @@ class ScheduledPost(UUIDModel, TimeStampedModel, TenantModel):
         help_text="First comment text (e.g. Instagram hashtag comment)",
     )
     location_json = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text='Location object: {"name": str, "lat": float, "lng": float}',
     )
 
     # Scheduling
     scheduled_at = models.DateTimeField(db_index=True, help_text="When to publish")
     timezone = models.CharField(
-        max_length=100, default="UTC", help_text="IANA timezone",
+        max_length=100,
+        default="UTC",
+        help_text="IANA timezone",
     )
 
     # Status
     status = models.CharField(
-        max_length=32, choices=Status.choices, default=Status.DRAFT, db_index=True,
+        max_length=32,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
     )
     priority = models.PositiveSmallIntegerField(
-        choices=Priority.choices, default=Priority.LOW, db_index=True,
+        choices=Priority.choices,
+        default=Priority.LOW,
+        db_index=True,
     )
 
     # Approval
     approval_workflow_id = models.UUIDField(
-        null=True, blank=True, db_index=True,
+        null=True,
+        blank=True,
+        db_index=True,
         help_text="Approval workflow UUID if required",
     )
     approval_status = models.CharField(
-        max_length=32, choices=ApprovalStatus.choices,
+        max_length=32,
+        choices=ApprovalStatus.choices,
         default=ApprovalStatus.NOT_REQUIRED,
     )
 
     # Publishing metadata
     platform_post_id = models.CharField(
-        max_length=255, blank=True, db_index=True,
+        max_length=255,
+        blank=True,
+        db_index=True,
         help_text="Platform-assigned post ID",
     )
     publish_attempts = models.PositiveIntegerField(default=0)
@@ -153,18 +176,22 @@ class ScheduledPost(UUIDModel, TimeStampedModel, TenantModel):
 
     # Metadata
     metadata_json = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text="Platform-specific metadata",
     )
     created_by = models.CharField(
-        max_length=256, db_index=True,
+        max_length=256,
+        db_index=True,
         help_text="UUID of user who scheduled the post",
     )
     tags = models.JSONField(default=list, blank=True, help_text="Content tags")
 
     # Dedup
     dedup_hash = models.CharField(
-        max_length=64, blank=True, db_index=True,
+        max_length=64,
+        blank=True,
+        db_index=True,
         help_text="SHA-256 hash of caption + media for duplicate detection",
     )
 

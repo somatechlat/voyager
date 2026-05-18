@@ -314,8 +314,12 @@ def get_generation(request, generation_id: UUID) -> dict[str, Any]:
         "generation_time_ms": gen.generation_time_ms or 0,
         "scores": {
             "readability": float(gen.readability_score) if gen.readability_score else 0,
-            "engagement_prediction": float(gen.engagement_prediction) if gen.engagement_prediction else 0,
-            "brand_compliance": float(gen.brand_compliance_score) if gen.brand_compliance_score else 0,
+            "engagement_prediction": (
+                float(gen.engagement_prediction) if gen.engagement_prediction else 0
+            ),
+            "brand_compliance": (
+                float(gen.brand_compliance_score) if gen.brand_compliance_score else 0
+            ),
             "seo_score": float(gen.seo_score) if gen.seo_score else 0,
         },
         "warnings": [],

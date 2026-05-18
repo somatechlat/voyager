@@ -6,11 +6,9 @@ All schemas used by Ninja view functions.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
 from ninja import Schema
-
 
 # ---------------------------------------------------------------------------
 # Inbox schemas

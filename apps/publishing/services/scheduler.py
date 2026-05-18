@@ -10,7 +10,6 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from django.db import models
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -29,20 +28,47 @@ PLATFORM_DEFAULTS: dict[str, dict[str, int]] = {
 
 # Default engagement weights per hour (0-23 UTC)
 DEFAULT_HOURLY_WEIGHTS: dict[int, float] = {
-    0: 0.3, 1: 0.2, 2: 0.1, 3: 0.1, 4: 0.1, 5: 0.2,
-    6: 0.4, 7: 0.6, 8: 0.8, 9: 0.9, 10: 0.85, 11: 0.8,
-    12: 0.75, 13: 0.8, 14: 0.85, 15: 0.9, 16: 0.85, 17: 0.8,
-    18: 0.7, 19: 0.75, 20: 0.8, 21: 0.7, 22: 0.5, 23: 0.4,
+    0: 0.3,
+    1: 0.2,
+    2: 0.1,
+    3: 0.1,
+    4: 0.1,
+    5: 0.2,
+    6: 0.4,
+    7: 0.6,
+    8: 0.8,
+    9: 0.9,
+    10: 0.85,
+    11: 0.8,
+    12: 0.75,
+    13: 0.8,
+    14: 0.85,
+    15: 0.9,
+    16: 0.85,
+    17: 0.8,
+    18: 0.7,
+    19: 0.75,
+    20: 0.8,
+    21: 0.7,
+    22: 0.5,
+    23: 0.4,
 }
 
 # Day-of-week weights (0=Monday)
 DOW_WEIGHTS: dict[int, float] = {
-    0: 0.9, 1: 0.95, 2: 1.0, 3: 0.95, 4: 0.9, 5: 0.6, 6: 0.5,
+    0: 0.9,
+    1: 0.95,
+    2: 1.0,
+    3: 0.95,
+    4: 0.9,
+    5: 0.6,
+    6: 0.5,
 }
 
 
 def get_frequency_limits(
-    account_id: str, platform: str,
+    account_id: str,
+    platform: str,
 ) -> dict[str, int | list[dict[str, Any]]]:
     """Calculate frequency limits for an account/platform.
 
@@ -53,7 +79,9 @@ def get_frequency_limits(
     Returns:
         Dict with maxPerDay, maxPerWeek, minIntervalMinutes, blackoutWindows.
     """
-    defaults = PLATFORM_DEFAULTS.get(platform, {"maxPerDay": 3, "maxPerWeek": 14, "minInterval": 120})
+    defaults = PLATFORM_DEFAULTS.get(
+        platform, {"maxPerDay": 3, "maxPerWeek": 14, "minInterval": 120}
+    )
     return {
         "maxPerDay": defaults["maxPerDay"],
         "maxPerWeek": defaults["maxPerWeek"],
@@ -152,7 +180,11 @@ def score_time_slot(
             mean_val = sum(values) / len(values)
             sorted_vals = sorted(values)
             mid = len(sorted_vals) // 2
-            median_val = sorted_vals[mid] if len(sorted_vals) % 2 else (sorted_vals[mid - 1] + sorted_vals[mid]) / 2
+            median_val = (
+                sorted_vals[mid]
+                if len(sorted_vals) % 2
+                else (sorted_vals[mid - 1] + sorted_vals[mid]) / 2
+            )
             score = mean_val * 0.7 + median_val * 0.3
 
     # Apply penalties
@@ -196,17 +228,22 @@ def find_optimal_slot(
     for hour_offset in range(0, 16 * 60, min_interval):  # type: ignore[operator]
         slot_time = day_start + timedelta(minutes=hour_offset)
         score = score_time_slot(slot_time, platform, account_id, engagement_data)
-        slots.append({
-            "datetime": slot_time,
-            "score": score,
-            "day_of_week": slot_time.weekday(),
-            "hour": slot_time.hour,
-        })
+        slots.append(
+            {
+                "datetime": slot_time,
+                "score": score,
+                "day_of_week": slot_time.weekday(),
+                "hour": slot_time.hour,
+            }
+        )
 
     # Check frequency limits and penalize conflicts
     for slot in slots:
         within_limit = is_within_frequency_limit(
-            tenant_id, platform, account_id, slot["datetime"],
+            tenant_id,
+            platform,
+            account_id,
+            slot["datetime"],
         )
         if not within_limit:
             slot["score"] = 0.0
@@ -242,7 +279,6 @@ def calculate_timezone_spread(
             pct = tz_entry.get("percentage", 0)
             # Convert UTC hour to local hour
             try:
-                from zoneinfo import ZoneInfo
                 import pytz
 
                 tz = pytz.timezone(tz_name)

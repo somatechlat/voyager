@@ -17,31 +17,41 @@ class ActivityFeed(models.Model):
 
     id = models.BigAutoField(primary_key=True, editable=False)
     tenant_id = models.CharField(
-        max_length=128, db_index=True,
+        max_length=128,
+        db_index=True,
         help_text="Tenant identifier for multi-tenancy isolation",
     )
     actor_id = models.CharField(
-        max_length=128, db_index=True,
+        max_length=128,
+        db_index=True,
         help_text="UUID of the user who performed the action",
     )
     action_type = models.CharField(
-        max_length=50, db_index=True,
+        max_length=50,
+        db_index=True,
         help_text="Type of action (e.g. task.created, task.assigned)",
     )
     target_type = models.CharField(
-        max_length=50, blank=True, db_index=True,
+        max_length=50,
+        blank=True,
+        db_index=True,
         help_text="Type of resource affected (e.g. task, message)",
     )
     target_id = models.CharField(
-        max_length=128, blank=True, db_index=True,
+        max_length=128,
+        blank=True,
+        db_index=True,
         help_text="ID of the affected resource",
     )
     metadata = models.JSONField(
-        default=dict, blank=True,
+        default=dict,
+        blank=True,
         help_text="Additional context as key-value pairs",
     )
     created_at = models.DateTimeField(
-        auto_now_add=True, db_index=True, help_text="Timestamp when created",
+        auto_now_add=True,
+        db_index=True,
+        help_text="Timestamp when created",
     )
 
     class Meta:

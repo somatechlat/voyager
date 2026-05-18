@@ -11,6 +11,7 @@ from ninja import Schema
 
 class SocialProfilesIn(Schema):
     """Social media profiles input."""
+
     instagram: dict[str, Any] | None = None
     linkedin: dict[str, Any] | None = None
     twitter: dict[str, Any] | None = None
@@ -20,12 +21,14 @@ class SocialProfilesIn(Schema):
 
 class ScrapingConfigIn(Schema):
     """Scraping configuration input."""
+
     frequency: str = "weekly"
     sources: list[str] | None = None
 
 
 class CompetitorIn(Schema):
     """Input for creating/updating a competitor."""
+
     name: str
     website: str = ""
     social_profiles: dict[str, Any] | None = None
@@ -34,6 +37,7 @@ class CompetitorIn(Schema):
 
 class CompetitorOut(Schema):
     """Output for a competitor profile."""
+
     id: str
     name: str
     website: str
@@ -48,6 +52,7 @@ class CompetitorOut(Schema):
 
 class CompetitorContentIn(Schema):
     """Input for adding competitor content."""
+
     platform: str
     content_type: str
     text: str = ""
@@ -60,6 +65,7 @@ class CompetitorContentIn(Schema):
 
 class CompetitorContentOut(Schema):
     """Output for competitor content."""
+
     id: str
     competitor_id: str
     platform: str
@@ -75,6 +81,7 @@ class CompetitorContentOut(Schema):
 
 class ThemeOut(Schema):
     """Output for an extracted content theme."""
+
     name: str
     keywords: list[str]
     prevalence: float
@@ -87,6 +94,7 @@ class ThemeOut(Schema):
 
 class SWOTOut(Schema):
     """Output for SWOT analysis."""
+
     strengths: list[dict[str, Any]]
     weaknesses: list[dict[str, Any]]
     opportunities: list[dict[str, Any]]
@@ -95,6 +103,7 @@ class SWOTOut(Schema):
 
 class CompetitorFilter(Schema):
     """Query filters for competitor listing."""
+
     is_active: bool | None = None
     search: str | None = None
     limit: int = 20

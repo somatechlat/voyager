@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from django.http import HttpRequest
 
 from apps.ai_agents.serializers import (
@@ -43,9 +41,7 @@ def assemble_context(
     )
 
 
-def list_contexts(
-    request: HttpRequest, agent_id: int, limit: int = 10
-) -> ContextListResponse:
+def list_contexts(request: HttpRequest, agent_id: int, limit: int = 10) -> ContextListResponse:
     """List recent context snapshots for an agent."""
     tenant_id = request.headers.get("X-Tenant-ID", "")
     contexts = ContextAssembler.get_recent_contexts(

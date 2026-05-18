@@ -7,10 +7,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
 
 from django.shortcuts import get_object_or_404
-from ninja import Query, Router
+from ninja import Router
 
 from apps.billing.models.time_entry import TimeEntry
 from apps.billing.serializers import (
@@ -18,7 +17,6 @@ from apps.billing.serializers import (
     TimeEntryListSchema,
     TimeEntrySchema,
     TimeEntryUpdateSchema,
-    TimesheetSubmitSchema,
     TimesheetValidationSchema,
 )
 from apps.billing.services.time_tracking import (

@@ -276,11 +276,9 @@ def lift_calc(
         Lift calculation result.
     """
     control_rate = (
-        payload.control_conversions / payload.control_total
-        if payload.control_total > 0 else 0.0
+        payload.control_conversions / payload.control_total if payload.control_total > 0 else 0.0
     )
     variant_rate = (
-        payload.variant_conversions / payload.variant_total
-        if payload.variant_total > 0 else 0.0
+        payload.variant_conversions / payload.variant_total if payload.variant_total > 0 else 0.0
     )
     return calculate_lift(control_rate, variant_rate)

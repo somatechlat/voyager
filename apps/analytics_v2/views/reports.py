@@ -47,7 +47,9 @@ def _user_from_request(request) -> str:
 
 
 @router.get("/report-templates", response=list[ReportTemplateOut], tags=["Reports"])
-def list_report_templates(request, category: str = "", favorite: bool = False) -> list[ReportTemplate]:
+def list_report_templates(
+    request, category: str = "", favorite: bool = False
+) -> list[ReportTemplate]:
     """List report templates for the current tenant.
 
     Args:
@@ -90,7 +92,9 @@ def create_report_template(request, payload: ReportTemplateCreateIn) -> ReportTe
 
 
 @router.patch("/report-templates/{template_id}", response=ReportTemplateOut, tags=["Reports"])
-def update_report_template(request, template_id: UUID, payload: ReportTemplateUpdateIn) -> ReportTemplate:
+def update_report_template(
+    request, template_id: UUID, payload: ReportTemplateUpdateIn
+) -> ReportTemplate:
     """Update a report template."""
     tenant_id = _tenant_from_request(request)
     template = get_object_or_404(ReportTemplate, id=template_id, tenant_id=tenant_id)
@@ -216,7 +220,9 @@ def get_report_schedule(request, schedule_id: UUID) -> ReportSchedule:
     return get_object_or_404(ReportSchedule, id=schedule_id, tenant_id=tenant_id)
 
 
-@router.patch("/report-schedules/{schedule_id}/toggle", response=ReportScheduleOut, tags=["Reports"])
+@router.patch(
+    "/report-schedules/{schedule_id}/toggle", response=ReportScheduleOut, tags=["Reports"]
+)
 def toggle_report_schedule(request, schedule_id: UUID) -> ReportSchedule:
     """Toggle a report schedule active/inactive."""
     tenant_id = _tenant_from_request(request)

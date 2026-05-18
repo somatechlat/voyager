@@ -112,6 +112,7 @@ def delete_strategy(request, strategy_id: str):
 # Goal Mapping
 # ---------------------------------------------------------------------------
 
+
 @router.get("/strategies/goal-mapping/{goal}", response=GoalMappingOut)
 def get_goal_mapping(request, goal: str):
     """Get content type mapping for a marketing goal."""
@@ -122,6 +123,7 @@ def get_goal_mapping(request, goal: str):
 # ---------------------------------------------------------------------------
 # Topic Cluster Generation
 # ---------------------------------------------------------------------------
+
 
 @router.post("/strategies/topic-clusters", response=list[TopicClusterOut])
 def generate_topic_clusters(request, payload: TopicClusterIn):
@@ -141,7 +143,7 @@ def generate_topic_clusters(request, payload: TopicClusterIn):
                 "content_preferences": persona.content_preferences,
             }
         except Exception:
-            pass
+            logger.warning("Failed to load persona demographics", exc_info=True)
 
     # Build competitor data
     competitor_data = []
@@ -153,10 +155,12 @@ def generate_topic_clusters(request, payload: TopicClusterIn):
             topics: set[str] = set()
             for c in contents:
                 topics.update(c.topics or [])
-            competitor_data.append({
-                "competitor_id": cid,
-                "topics": list(topics),
-            })
+            competitor_data.append(
+                {
+                    "competitor_id": cid,
+                    "topics": list(topics),
+                }
+            )
 
     clusters = ContentStrategyService.generate_topic_clusters(
         seed_topics=payload.seed_topics,
@@ -169,6 +173,7 @@ def generate_topic_clusters(request, payload: TopicClusterIn):
 # ---------------------------------------------------------------------------
 # Format Mix Optimization
 # ---------------------------------------------------------------------------
+
 
 @router.post("/strategies/format-mix", response=FormatMixOut)
 def optimize_format_mix(request, payload: FormatMixIn):

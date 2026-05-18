@@ -212,7 +212,7 @@ def sync_okr_data_sources(
     """
     logger.info("Syncing OKR data sources for tenant %s", tenant_id)
 
-    from apps.strategy.models.okr import KeyResult, Objective
+    from apps.strategy.models.okr import Objective
     from apps.strategy.services.okr import OKRService
 
     qs = Objective.objects.filter(tenant_id=tenant_id)

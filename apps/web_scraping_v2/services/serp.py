@@ -83,7 +83,9 @@ def _rate_limit_serp() -> bool:
     key = "ws:serp:hourly_count"
     current = cache.get(key, 0)
     if current >= MAX_CHECKS_PER_HOUR:
-        logger.warning("SERP rate limit reached: %s/%s checks this hour", current, MAX_CHECKS_PER_HOUR)
+        logger.warning(
+            "SERP rate limit reached: %s/%s checks this hour", current, MAX_CHECKS_PER_HOUR
+        )
         return False
     cache.set(key, current + 1, timeout=3600)
     return True
@@ -246,8 +248,12 @@ class SERPTracker:
 
             # Organic result selectors
             selectors = [
-                "div.g", "div.Gx5Zad", "div.tF2Cxc", "div.yuRUbf",
-                "div.MjjYud", "div.N54PNb",
+                "div.g",
+                "div.Gx5Zad",
+                "div.tF2Cxc",
+                "div.yuRUbf",
+                "div.MjjYud",
+                "div.N54PNb",
             ]
 
             for selector in selectors:
@@ -265,9 +271,7 @@ class SERPTracker:
                         title_el = element.select_one("h3, .DKV0Md")
                         title = title_el.get_text(strip=True) if title_el else ""
 
-                        desc_el = element.select_one(
-                            ".VwiC3b, .s3v94d, .lEBKkf, .aCOpRe"
-                        )
+                        desc_el = element.select_one(".VwiC3b, .s3v94d, .lEBKkf, .aCOpRe")
                         description = desc_el.get_text(strip=True) if desc_el else ""
 
                         results.append(

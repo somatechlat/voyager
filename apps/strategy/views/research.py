@@ -7,7 +7,6 @@ and competitive landscape aggregation.
 from __future__ import annotations
 
 import logging
-from datetime import date
 from typing import Any
 
 from ninja import Query, Router
@@ -108,6 +107,7 @@ def delete_research(request, research_id: str):
 # Trend Detection
 # ---------------------------------------------------------------------------
 
+
 @router.post("/research/detect-trends", response=list[TrendOut])
 def detect_trends(request, payload: TrendDetectionIn):
     """Detect trends from competitor data."""
@@ -125,6 +125,7 @@ def detect_trends(request, payload: TrendDetectionIn):
 # Market Size
 # ---------------------------------------------------------------------------
 
+
 @router.get("/research/market-size")
 def estimate_market_size(
     request,
@@ -141,6 +142,7 @@ def estimate_market_size(
 # ---------------------------------------------------------------------------
 # Competitive Landscape
 # ---------------------------------------------------------------------------
+
 
 @router.get("/research/competitive-landscape", response=CompetitiveLandscapeOut)
 def competitive_landscape(request):

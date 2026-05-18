@@ -15,8 +15,8 @@ from typing import Any
 
 from django.utils import timezone
 
-from apps.workflows_v2.models.trigger import WorkflowTrigger
 from apps.workflows_v2.models.execution import WorkflowExecution
+from apps.workflows_v2.models.trigger import WorkflowTrigger
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,9 @@ def register_trigger(
         config=config,
         created_by=created_by,
     )
-    logger.info("Trigger registered: %s (type=%s, workflow=%s)", trigger.id, trigger_type, workflow_id)
+    logger.info(
+        "Trigger registered: %s (type=%s, workflow=%s)", trigger.id, trigger_type, workflow_id
+    )
     return trigger
 
 
@@ -336,9 +338,7 @@ def evaluate_trigger(
         WorkflowTrigger.TYPE_FILE_UPLOAD: lambda t: _evaluate_file_upload_trigger(
             t, event_data or {}
         ),
-        WorkflowTrigger.TYPE_EMAIL_RECEIVED: lambda t: _evaluate_email_trigger(
-            t, event_data or {}
-        ),
+        WorkflowTrigger.TYPE_EMAIL_RECEIVED: lambda t: _evaluate_email_trigger(t, event_data or {}),
         WorkflowTrigger.TYPE_WEBSOCKET: lambda t: True,
         WorkflowTrigger.TYPE_QUEUE_MESSAGE: lambda t: True,
         WorkflowTrigger.TYPE_FORM_SUBMIT: lambda t: True,
@@ -377,7 +377,11 @@ def _evaluate_datetime_trigger(trigger: WorkflowTrigger) -> bool:
         scheduled = datetime.fromisoformat(scheduled_at.replace("Z", "+00:00"))
         now = timezone.now()
         # Fire if scheduled time is within the last minute
-        return scheduled <= now <= (scheduled.replace(tzinfo=now.tzinfo) + timezone.timedelta(minutes=1))
+        return (
+            scheduled
+            <= now
+            <= (scheduled.replace(tzinfo=now.tzinfo) + timezone.timedelta(minutes=1))
+        )
     except (ValueError, TypeError) as exc:
         logger.error("Datetime parse error for trigger %s: %s", trigger.id, exc)
         return False
@@ -407,9 +411,7 @@ def _evaluate_platform_event(trigger: WorkflowTrigger, event_data: dict[str, Any
     return True
 
 
-def _evaluate_file_upload_trigger(
-    trigger: WorkflowTrigger, event_data: dict[str, Any]
-) -> bool:
+def _evaluate_file_upload_trigger(trigger: WorkflowTrigger, event_data: dict[str, Any]) -> bool:
     """Evaluate a file upload trigger.
 
     Args:

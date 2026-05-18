@@ -1,35 +1,32 @@
-"""Initial migration for the Audit app.
+# Generated initial migration for audit
 
-Creates AuditLogEntry and AuditLogArchive models with SHA-256 hash chain
-support, composite indexes, and unique constraints for compliance-ready
-audit trail management.
-"""
 
 from django.db import migrations, models
 
 
+class ActorType(models.TextChoices):
+    USER = "user", "User"
+    SERVICE = "service", "Service"
+    AGENT = "agent", "AI Agent"
+
+
+class Outcome(models.TextChoices):
+    SUCCESS = "success", "Success"
+    FAILURE = "failure", "Failure"
+    DENIED = "denied", "Access Denied"
+
+
 class Migration(migrations.Migration):
-    """Initial migration that bootstraps the Audit schema."""
 
     initial = True
 
-    dependencies: list[tuple[str, str]] = []
+    dependencies = []
 
     operations = [
-        # ── AuditLogEntry ─────────────────────────────────────────────────
         migrations.CreateModel(
             name="AuditLogEntry",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
                 (
                     "timestamp",
                     models.DateTimeField(
@@ -58,11 +55,7 @@ class Migration(migrations.Migration):
                     "actor_type",
                     models.CharField(
                         max_length=32,
-                        choices=[
-                            ("user", "User"),
-                            ("service", "Service"),
-                            ("agent", "AI Agent"),
-                        ],
+                        choices=ActorType.choices,
                         help_text="Kind of actor: user, service, or AI agent",
                     ),
                 ),
@@ -101,11 +94,7 @@ class Migration(migrations.Migration):
                     "outcome",
                     models.CharField(
                         max_length=32,
-                        choices=[
-                            ("success", "Success"),
-                            ("failure", "Failure"),
-                            ("denied", "Access Denied"),
-                        ],
+                        choices=Outcome.choices,
                         help_text="Result of the action: success, failure, or denied",
                     ),
                 ),
@@ -119,8 +108,8 @@ class Migration(migrations.Migration):
                 (
                     "ip_address",
                     models.GenericIPAddressField(
-                        blank=True,
                         null=True,
+                        blank=True,
                         help_text="Optional IP address of the actor",
                     ),
                 ),
@@ -169,64 +158,20 @@ class Migration(migrations.Migration):
                 "verbose_name": "Audit Log Entry",
                 "verbose_name_plural": "Audit Log Entries",
                 "ordering": ["-timestamp"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "timestamp"]),
+                    models.Index(fields=["tenant_id", "actor_id", "timestamp"]),
+                    models.Index(fields=["tenant_id", "action", "timestamp"]),
+                    models.Index(fields=["tenant_id", "resource_type", "resource_id"]),
+                    models.Index(fields=["request_id"]),
+                    models.Index(fields=["session_id"]),
+                ],
             },
         ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["tenant_id", "timestamp"],
-                name="voyager_audit_tenant_ts_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["tenant_id", "actor_id", "timestamp"],
-                name="voyager_audit_tenant_actor_ts_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["tenant_id", "action", "timestamp"],
-                name="voyager_audit_tenant_action_ts_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["tenant_id", "resource_type", "resource_id"],
-                name="voyager_audit_tenant_res_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["request_id"],
-                name="voyager_audit_request_id_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogentry",
-            index=models.Index(
-                fields=["session_id"],
-                name="voyager_audit_session_id_idx",
-            ),
-        ),
-        # ── AuditLogArchive ───────────────────────────────────────────────
         migrations.CreateModel(
             name="AuditLogArchive",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(primary_key=True, editable=False)),
                 (
                     "year_month",
                     models.CharField(
@@ -268,27 +213,16 @@ class Migration(migrations.Migration):
                 "verbose_name": "Audit Log Archive",
                 "verbose_name_plural": "Audit Log Archives",
                 "ordering": ["-year_month", "tenant_id"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "year_month"]),
+                    models.Index(fields=["tenant_id", "-created_at"]),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=["tenant_id", "year_month"],
+                        name="%(app_label)s_archive_tenant_month_uniq",
+                    )
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="auditlogarchive",
-            index=models.Index(
-                fields=["tenant_id", "year_month"],
-                name="voyager_archive_tenant_ym_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="auditlogarchive",
-            index=models.Index(
-                fields=["tenant_id", "-created_at"],
-                name="voyager_archive_tenant_created_idx",
-            ),
-        ),
-        migrations.AddConstraint(
-            model_name="auditlogarchive",
-            constraint=models.UniqueConstraint(
-                fields=["tenant_id", "year_month"],
-                name="audit_archive_tenant_month_uniq",
-            ),
         ),
     ]

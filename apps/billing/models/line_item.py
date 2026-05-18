@@ -21,9 +21,7 @@ class LineItem(TimestampedModel):
         CUSTOM = "custom", "Custom"
         DISCOUNT = "discount", "Discount"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     invoice = models.ForeignKey(
         "billing.Invoice",
         on_delete=models.CASCADE,
@@ -38,12 +36,8 @@ class LineItem(TimestampedModel):
         help_text="Type of line item",
     )
     description = models.TextField(help_text="Description shown on invoice")
-    quantity = models.DecimalField(
-        max_digits=10, decimal_places=2, default=1, help_text="Quantity"
-    )
-    unit = models.CharField(
-        max_length=20, default="hours", help_text="Unit of measure"
-    )
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1, help_text="Quantity")
+    unit = models.CharField(max_length=20, default="hours", help_text="Unit of measure")
     rate = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -86,12 +80,8 @@ class LineItem(TimestampedModel):
         null=True,
         help_text="Linked retainer",
     )
-    sort_order = models.PositiveIntegerField(
-        default=0, help_text="Display order on invoice"
-    )
-    tax_applicable = models.BooleanField(
-        default=True, help_text="Whether tax applies to this line"
-    )
+    sort_order = models.PositiveIntegerField(default=0, help_text="Display order on invoice")
+    tax_applicable = models.BooleanField(default=True, help_text="Whether tax applies to this line")
     metadata = models.JSONField(
         blank=True, default=dict, help_text="Extra data (task name, dates, etc.)"
     )

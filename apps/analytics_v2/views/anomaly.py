@@ -47,7 +47,9 @@ def _user_from_request(request) -> str:
 
 
 @router.get("/anomaly-alerts", response=list[AnomalyAlertOut], tags=["Anomaly Detection"])
-def list_anomaly_alerts(request, enabled_only: bool = False, metric: str = "") -> list[AnomalyAlert]:
+def list_anomaly_alerts(
+    request, enabled_only: bool = False, metric: str = ""
+) -> list[AnomalyAlert]:
     """List anomaly alerts for the current tenant.
 
     Args:
@@ -100,9 +102,16 @@ def update_anomaly_alert(request, alert_id: UUID, payload: AnomalyAlertUpdateIn)
     alert = get_object_or_404(AnomalyAlert, id=alert_id, tenant_id=tenant_id)
 
     for attr in [
-        "name", "metric", "platform", "method", "threshold",
-        "lookback_days", "comparison_mode", "channels",
-        "cooldown_minutes", "enabled",
+        "name",
+        "metric",
+        "platform",
+        "method",
+        "threshold",
+        "lookback_days",
+        "comparison_mode",
+        "channels",
+        "cooldown_minutes",
+        "enabled",
     ]:
         val = getattr(payload, attr, None)
         if val is not None:
@@ -111,7 +120,9 @@ def update_anomaly_alert(request, alert_id: UUID, payload: AnomalyAlertUpdateIn)
     return alert
 
 
-@router.patch("/anomaly-alerts/{alert_id}/toggle", response=AnomalyAlertOut, tags=["Anomaly Detection"])
+@router.patch(
+    "/anomaly-alerts/{alert_id}/toggle", response=AnomalyAlertOut, tags=["Anomaly Detection"]
+)
 def toggle_anomaly_alert(request, alert_id: UUID) -> AnomalyAlert:
     """Toggle an alert enabled/disabled."""
     tenant_id = _tenant_from_request(request)
@@ -139,8 +150,8 @@ def delete_anomaly_alert(request, alert_id: UUID) -> dict[str, str]:
 def run_anomaly_detection(request, payload: AnomalyDetectIn) -> dict[str, Any]:
     """Run on-demand anomaly detection on a metric.
 
-    Fetches historical data and applies the specified statistical method
-to detect anomalous values.
+        Fetches historical data and applies the specified statistical method
+    to detect anomalous values.
     """
     tenant_id = _tenant_from_request(request)
 
@@ -175,8 +186,8 @@ to detect anomalous values.
 def run_all_alerts_detection(request) -> dict[str, Any]:
     """Run anomaly detection for all enabled alerts in the tenant.
 
-    Iterates through all enabled anomaly alerts, fetches data, runs
-detection, and creates anomaly events for triggered alerts.
+        Iterates through all enabled anomaly alerts, fetches data, runs
+    detection, and creates anomaly events for triggered alerts.
     """
     tenant_id = _tenant_from_request(request)
     alerts = AnomalyAlert.objects.filter(tenant_id=tenant_id, enabled=True)
@@ -220,12 +231,14 @@ detection, and creates anomaly events for triggered alerts.
                     context={"platform": alert.platform},
                 )
 
-            triggered.append({
-                "alert_id": str(alert.id),
-                "alert_name": alert.name,
-                "metric": alert.metric,
-                "anomalies_found": len(result.get("anomalies", [])),
-            })
+            triggered.append(
+                {
+                    "alert_id": str(alert.id),
+                    "alert_name": alert.name,
+                    "metric": alert.metric,
+                    "anomalies_found": len(result.get("anomalies", [])),
+                }
+            )
 
     return {
         "alerts_checked": alerts.count(),
@@ -269,7 +282,9 @@ def get_anomaly_event(request, event_id: UUID) -> AnomalyEvent:
     return get_object_or_404(AnomalyEvent, id=event_id, tenant_id=tenant_id)
 
 
-@router.patch("/anomaly-events/{event_id}/acknowledge", response=AnomalyEventOut, tags=["Anomaly Detection"])
+@router.patch(
+    "/anomaly-events/{event_id}/acknowledge", response=AnomalyEventOut, tags=["Anomaly Detection"]
+)
 def acknowledge_anomaly_event(request, event_id: UUID) -> AnomalyEvent:
     """Acknowledge an anomaly event."""
     tenant_id = _tenant_from_request(request)
@@ -281,7 +296,9 @@ def acknowledge_anomaly_event(request, event_id: UUID) -> AnomalyEvent:
     return event
 
 
-@router.patch("/anomaly-events/{event_id}/resolve", response=AnomalyEventOut, tags=["Anomaly Detection"])
+@router.patch(
+    "/anomaly-events/{event_id}/resolve", response=AnomalyEventOut, tags=["Anomaly Detection"]
+)
 def resolve_anomaly_event(request, event_id: UUID) -> AnomalyEvent:
     """Resolve an anomaly event."""
     tenant_id = _tenant_from_request(request)
@@ -307,15 +324,26 @@ def get_anomaly_summary(request) -> dict[str, Any]:
     total_alerts = AnomalyAlert.objects.filter(tenant_id=tenant_id).count()
     enabled_alerts = AnomalyAlert.objects.filter(tenant_id=tenant_id, enabled=True).count()
 
-    total_events_24h = AnomalyEvent.objects.filter(tenant_id=tenant_id, detected_at__gte=last_24h).count()
-    critical_events = AnomalyEvent.objects.filter(tenant_id=tenant_id, severity="critical", detected_at__gte=last_24h).count()
-    warning_events = AnomalyEvent.objects.filter(tenant_id=tenant_id, severity="warning", detected_at__gte=last_24h).count()
+    total_events_24h = AnomalyEvent.objects.filter(
+        tenant_id=tenant_id, detected_at__gte=last_24h
+    ).count()
+    critical_events = AnomalyEvent.objects.filter(
+        tenant_id=tenant_id, severity="critical", detected_at__gte=last_24h
+    ).count()
+    warning_events = AnomalyEvent.objects.filter(
+        tenant_id=tenant_id, severity="warning", detected_at__gte=last_24h
+    ).count()
     unresolved = AnomalyEvent.objects.filter(tenant_id=tenant_id, resolved_at__isnull=True).count()
 
-    recent_events = AnomalyEvent.objects.filter(
-        tenant_id=tenant_id,
-        detected_at__gte=last_7d,
-    ).values("metric").distinct().count()
+    recent_events = (
+        AnomalyEvent.objects.filter(
+            tenant_id=tenant_id,
+            detected_at__gte=last_7d,
+        )
+        .values("metric")
+        .distinct()
+        .count()
+    )
 
     return {
         "total_alerts": total_alerts,
@@ -366,7 +394,9 @@ def _fetch_metric_history(
             if date_range.get("end"):
                 end = datetime.fromisoformat(date_range["end"])
 
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         where += f" AND metric_name = '{metric}'"
         if platform:
             where += f" AND platform = '{platform}'"

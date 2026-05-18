@@ -18,8 +18,6 @@ logger = logging.getLogger(__name__)
 class MessagingServiceError(Exception):
     """Raised when a messaging operation fails."""
 
-    pass
-
 
 class MessagingService:
     """Service layer for messaging operations."""
@@ -60,9 +58,7 @@ class MessagingService:
             participants.append(creator_id)
 
         if channel_type == "direct" and len(participants) != 2:
-            raise MessagingServiceError(
-                "Direct channels require exactly 2 participants"
-            )
+            raise MessagingServiceError("Direct channels require exactly 2 participants")
 
         channel = MessageChannel.objects.create(
             tenant_id=tenant_id,
@@ -181,9 +177,7 @@ class MessagingService:
         return channel
 
     @staticmethod
-    def remove_participant(
-        channel_id: int, tenant_id: str, user_id: str
-    ) -> MessageChannel:
+    def remove_participant(channel_id: int, tenant_id: str, user_id: str) -> MessageChannel:
         """Remove a participant from a channel.
 
         Args:
@@ -244,9 +238,7 @@ class MessagingService:
         )
 
         channel.save()
-        logger.info(
-            "Message #%d sent to channel #%d by %s", message.id, channel_id, author_id
-        )
+        logger.info("Message #%d sent to channel #%d by %s", message.id, channel_id, author_id)
         return message
 
     @staticmethod
@@ -365,9 +357,7 @@ class MessagingService:
         )
 
     @staticmethod
-    def edit_message(
-        message_id: int, tenant_id: str, author_id: str, content: str
-    ) -> Message:
+    def edit_message(message_id: int, tenant_id: str, author_id: str, content: str) -> Message:
         """Edit a message. Only the original author can edit.
 
         Args:

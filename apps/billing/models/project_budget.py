@@ -27,9 +27,7 @@ class ProjectBudget(TimestampedModel):
         HIGH = "high", "90%"
         CRITICAL = "critical", "100%"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     project = models.OneToOneField(
         "clients.Project",
         on_delete=models.CASCADE,
@@ -111,12 +109,8 @@ class ProjectBudget(TimestampedModel):
         blank=True, default=dict, help_text="Pre-computed forecast data"
     )
     start_date = models.DateField(help_text="Budget period start")
-    end_date = models.DateField(
-        blank=True, null=True, help_text="Budget period end"
-    )
-    currency = models.CharField(
-        max_length=3, default="USD", help_text="Currency code (ISO 4217)"
-    )
+    end_date = models.DateField(blank=True, null=True, help_text="Budget period end")
+    currency = models.CharField(max_length=3, default="USD", help_text="Currency code (ISO 4217)")
 
     class Meta:
         db_table = "voyager_project_budget"

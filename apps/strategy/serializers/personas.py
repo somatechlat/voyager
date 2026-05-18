@@ -11,6 +11,7 @@ from ninja import Schema
 
 class DemographicsIn(Schema):
     """Demographic input schema."""
+
     ageRange: dict[str, int] | None = None
     gender: list[str] | None = None
     locations: list[dict[str, Any]] | None = None
@@ -23,6 +24,7 @@ class DemographicsIn(Schema):
 
 class PsychographicsIn(Schema):
     """Psychographic input schema."""
+
     values: list[str] | None = None
     interests: list[str] | None = None
     lifestyle: list[str] | None = None
@@ -33,6 +35,7 @@ class PsychographicsIn(Schema):
 
 class ChannelRankingIn(Schema):
     """Channel preference ranking input."""
+
     platform: str
     rank: int
     engagementRate: float | None = None
@@ -44,6 +47,7 @@ class ChannelRankingIn(Schema):
 
 class PersonaIn(Schema):
     """Input for creating/updating a persona."""
+
     name: str
     description: str = ""
     demographics: dict[str, Any]
@@ -56,6 +60,7 @@ class PersonaIn(Schema):
 
 class PersonaOut(Schema):
     """Output for a persona."""
+
     id: str
     name: str
     description: str
@@ -72,12 +77,14 @@ class PersonaOut(Schema):
 
 class PersonaCampaignLinkIn(Schema):
     """Input for linking persona to campaign."""
+
     campaign_id: str
     weight: float = 0.5
 
 
 class PersonaCampaignLinkOut(Schema):
     """Output for persona-campaign link."""
+
     id: str
     persona_id: str
     campaign_id: str
@@ -87,6 +94,7 @@ class PersonaCampaignLinkOut(Schema):
 
 class PersonaFilter(Schema):
     """Query filters for persona listing."""
+
     is_active: bool | None = None
     search: str | None = None
     limit: int = 20
@@ -95,6 +103,7 @@ class PersonaFilter(Schema):
 
 class AggregatedTargetingOut(Schema):
     """Output for aggregated persona targeting."""
+
     age_range: dict[str, int | None]
     gender: list[str]
     languages: list[str]

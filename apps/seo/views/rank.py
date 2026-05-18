@@ -104,25 +104,19 @@ def list_trackings(
 def get_tracking(request, tracking_id: str) -> RankTrackingResponse:
     """Get a single rank tracking entry by ID."""
     tenant_id = getattr(request, "tenant_id", "default")
-    tracking = get_object_or_404(
-        SERPTracking, id=tracking_id, tenant_id=tenant_id
-    )
+    tracking = get_object_or_404(SERPTracking, id=tracking_id, tenant_id=tenant_id)
     return _tracking_to_schema(tracking)
 
 
 @router.post("/rank-tracking/{tracking_id}/update", tags=["SEO Rank Tracking"])
-def update_ranking(
-    request, tracking_id: str, data: RankTrackingUpdateRequest
-) -> dict[str, Any]:
+def update_ranking(request, tracking_id: str, data: RankTrackingUpdateRequest) -> dict[str, Any]:
     """Update a ranking for a tracked keyword.
 
     Records the current position, URL, and SERP features.
     Triggers alerts if the change exceeds the threshold.
     """
     tenant_id = getattr(request, "tenant_id", "default")
-    tracking = get_object_or_404(
-        SERPTracking, id=tracking_id, tenant_id=tenant_id
-    )
+    tracking = get_object_or_404(SERPTracking, id=tracking_id, tenant_id=tenant_id)
     result = collect_ranking(
         tracking=tracking,
         position=data.position,
@@ -153,9 +147,7 @@ def get_trend(
         days: Number of days to look back (default 30).
     """
     tenant_id = getattr(request, "tenant_id", "default")
-    tracking = get_object_or_404(
-        SERPTracking, id=tracking_id, tenant_id=tenant_id
-    )
+    tracking = get_object_or_404(SERPTracking, id=tracking_id, tenant_id=tenant_id)
     trend = get_ranking_trend(tracking, days=days)
     return [
         RankTrendResponse(
@@ -184,9 +176,7 @@ def ranking_distribution(request) -> dict[str, Any]:
 def stop_tracking(request, tracking_id: str) -> dict[str, Any]:
     """Stop tracking a keyword (deactivate, not delete)."""
     tenant_id = getattr(request, "tenant_id", "default")
-    tracking = get_object_or_404(
-        SERPTracking, id=tracking_id, tenant_id=tenant_id
-    )
+    tracking = get_object_or_404(SERPTracking, id=tracking_id, tenant_id=tenant_id)
     tracking.is_active = False
     tracking.save(update_fields=["is_active"])
     return {"status": "ok", "tracking_id": tracking_id, "is_active": False}
@@ -200,13 +190,13 @@ def get_history(
 ) -> dict[str, Any]:
     """Get ranking history for a tracked keyword."""
     tenant_id = getattr(request, "tenant_id", "default")
-    tracking = get_object_or_404(
-        SERPTracking, id=tracking_id, tenant_id=tenant_id
-    )
+    tracking = get_object_or_404(SERPTracking, id=tracking_id, tenant_id=tenant_id)
     history = (
         RankHistory.objects.filter(tracking=tracking)
         .order_by("-tracked_at")
-        .values("position", "previous_position", "position_change", "url", "tracked_at", "device")[:limit]
+        .values("position", "previous_position", "position_change", "url", "tracked_at", "device")[
+            :limit
+        ]
     )
     return {
         "tracking_id": tracking_id,

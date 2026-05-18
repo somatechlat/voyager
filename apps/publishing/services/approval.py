@@ -12,7 +12,7 @@ from typing import Any
 
 from django.utils import timezone
 
-from ..models import ApprovalAction, ApprovalInstance, ApprovalWorkflow, ScheduledPost
+from ..models import ApprovalInstance, ApprovalWorkflow, ScheduledPost
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,9 @@ def create_approval_instance(
 
     logger.info(
         "Approval instance %s created for post %s, workflow %s",
-        instance.id, scheduled_post_id, workflow_id,
+        instance.id,
+        scheduled_post_id,
+        workflow_id,
     )
     return instance
 
@@ -81,7 +83,8 @@ def approve_step(
     """
     try:
         instance = ApprovalInstance.objects.select_related(
-            "workflow", "scheduled_post",
+            "workflow",
+            "scheduled_post",
         ).get(id=instance_id)
     except ApprovalInstance.DoesNotExist:
         return {"success": False, "error": "Approval instance not found"}
@@ -116,7 +119,8 @@ def reject_approval(
     """
     try:
         instance = ApprovalInstance.objects.select_related(
-            "workflow", "scheduled_post",
+            "workflow",
+            "scheduled_post",
         ).get(id=instance_id)
     except ApprovalInstance.DoesNotExist:
         return {"success": False, "error": "Approval instance not found"}
@@ -150,7 +154,8 @@ def request_changes(
     """
     try:
         instance = ApprovalInstance.objects.select_related(
-            "workflow", "scheduled_post",
+            "workflow",
+            "scheduled_post",
         ).get(id=instance_id)
     except ApprovalInstance.DoesNotExist:
         return {"success": False, "error": "Approval instance not found"}
@@ -204,7 +209,9 @@ def check_timeouts() -> dict[str, int]:
                     escalated += 1
                     logger.info(
                         "Approval %s step %s escalated to %s",
-                        instance.id, instance.current_step, escalate_to,
+                        instance.id,
+                        instance.current_step,
+                        escalate_to,
                     )
 
             # Auto-approve after 2x timeout
@@ -231,9 +238,14 @@ def get_approval_status(instance_id: str) -> dict[str, Any] | None:
         Status dict or None.
     """
     try:
-        instance = ApprovalInstance.objects.select_related(
-            "workflow", "scheduled_post",
-        ).prefetch_related("actions").get(id=instance_id)
+        instance = (
+            ApprovalInstance.objects.select_related(
+                "workflow",
+                "scheduled_post",
+            )
+            .prefetch_related("actions")
+            .get(id=instance_id)
+        )
     except ApprovalInstance.DoesNotExist:
         return None
 
@@ -279,10 +291,14 @@ def get_pending_approvals(
     Returns:
         List of pending approval dicts.
     """
-    qs = ApprovalInstance.objects.filter(
-        status=ApprovalInstance.Status.PENDING,
-        workflow__tenant_id=tenant_id,
-    ).select_related("workflow", "scheduled_post").order_by("-created_at")
+    qs = (
+        ApprovalInstance.objects.filter(
+            status=ApprovalInstance.Status.PENDING,
+            workflow__tenant_id=tenant_id,
+        )
+        .select_related("workflow", "scheduled_post")
+        .order_by("-created_at")
+    )
 
     results: list[dict[str, Any]] = []
     for instance in qs:
@@ -292,15 +308,19 @@ def get_pending_approvals(
         if approver_id:
             if approver_id not in approvers and f"user:{approver_id}" not in approvers:
                 continue
-        results.append({
-            "instance_id": str(instance.id),
-            "workflow_name": instance.workflow.name,
-            "current_step": instance.current_step,
-            "step_name": step.get("name", "") if step else "",
-            "post_id": str(instance.scheduled_post_id),
-            "post_caption": instance.scheduled_post.caption[:100] if instance.scheduled_post.caption else "",
-            "approvers": approvers,
-            "is_overdue": instance.is_overdue(),
-            "step_started_at": instance.step_started_at.isoformat(),
-        })
+        results.append(
+            {
+                "instance_id": str(instance.id),
+                "workflow_name": instance.workflow.name,
+                "current_step": instance.current_step,
+                "step_name": step.get("name", "") if step else "",
+                "post_id": str(instance.scheduled_post_id),
+                "post_caption": (
+                    instance.scheduled_post.caption[:100] if instance.scheduled_post.caption else ""
+                ),
+                "approvers": approvers,
+                "is_overdue": instance.is_overdue(),
+                "step_started_at": instance.step_started_at.isoformat(),
+            }
+        )
     return results

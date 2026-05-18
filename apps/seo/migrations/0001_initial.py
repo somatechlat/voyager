@@ -1,496 +1,396 @@
-"""Initial migration for the SEO app.
-
-Creates all tables: keyword_cluster, keyword, onpage_audit, backlink,
-technical_crawl, content_optimization, serp_tracking, rank_history,
-and seo_report.
-"""
-
-from __future__ import annotations
+# Generated initial migration for seo
 
 import uuid
 
 from django.db import migrations, models
 
 
+class CommercialIntent(models.TextChoices):
+    INFORMATIONAL = "informational", "Informational"
+    NAVIGATIONAL = "navigational", "Navigational"
+    COMMERCIAL = "commercial", "Commercial"
+    TRANSACTIONAL = "transactional", "Transactional"
+
+
+class Grade(models.TextChoices):
+    A = "A", "A (90-100)"
+    B = "B", "B (75-89)"
+    C = "C", "C (60-74)"
+    D = "D", "D (45-59)"
+    F = "F", "F (0-44)"
+
+
+class TrendDirection(models.TextChoices):
+    RISING = "rising", "Rising"
+    FALLING = "falling", "Falling"
+    STABLE = "stable", "Stable"
+
+
 class Migration(migrations.Migration):
-    """Initial migration creating all SEO module tables."""
 
     initial = True
 
-    dependencies: list[str] = []
+    dependencies = []
 
     operations = [
-        # KeywordCluster
         migrations.CreateModel(
             name="KeywordCluster",
             fields=[
+                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)),
+                ("tenant_id", models.CharField(max_length=128, db_index=True)),
                 (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
+                    "label",
+                    models.CharField(max_length=255, help_text="Central theme of the cluster"),
+                ),
+                (
+                    "total_volume",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Sum of monthly volumes",
                     ),
                 ),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("label", models.CharField(help_text="Central theme of the cluster", max_length=255)),
-                ("total_volume", models.PositiveIntegerField(default=0)),
                 (
                     "avg_difficulty",
                     models.DecimalField(
-                        decimal_places=2, default=0.0, help_text="Average keyword difficulty", max_digits=5
+                        max_digits=5,
+                        decimal_places=2,
+                        default=0.0,
+                        help_text="Average keyword difficulty",
                     ),
                 ),
                 (
                     "priority_score",
                     models.DecimalField(
-                        decimal_places=4, default=0.0, help_text="Cluster priority = total_volume * (1 - avg_difficulty/100)", max_digits=10
+                        max_digits=10,
+                        decimal_places=4,
+                        default=0.0,
+                        help_text="Cluster priority = total_volume * (1 - avg_difficulty/100)",
                     ),
                 ),
-                ("embedding_vector", models.JSONField(blank=True, default=list)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
+                (
+                    "embedding_vector",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Cluster centroid embedding",
+                    ),
+                ),
+                ("metadata_json", models.JSONField(default=dict, blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
                 "db_table": "voyager_keyword_cluster",
-                "ordering": ["-priority_score"],
                 "verbose_name": "Keyword Cluster",
                 "verbose_name_plural": "Keyword Clusters",
+                "ordering": ["-priority_score"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "-priority_score"]),
+                    models.Index(fields=["tenant_id", "-created_at"]),
+                ],
             },
         ),
-        # Keyword
         migrations.CreateModel(
             name="Keyword",
             fields=[
+                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)),
+                ("tenant_id", models.CharField(max_length=128, db_index=True)),
                 (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
+                    "keyword",
+                    models.CharField(
+                        max_length=500,
+                        db_index=True,
+                        help_text="The keyword phrase",
                     ),
                 ),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("keyword", models.CharField(db_index=True, max_length=500)),
-                ("location", models.CharField(default="US", max_length=10)),
-                ("language", models.CharField(default="en", max_length=10)),
-                ("monthly_volume", models.PositiveIntegerField(blank=True, null=True)),
-                ("difficulty", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("cpc", models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ("trend_direction", models.CharField(blank=True, choices=[("rising", "Rising"), ("falling", "Falling"), ("stable", "Stable")], max_length=20)),
-                ("trend_growth", models.DecimalField(decimal_places=4, default=0.0, max_digits=6)),
-                ("current_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("previous_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("position_change", models.IntegerField(default=0)),
-                ("target_url", models.URLField(blank=True, max_length=2048)),
-                ("serp_features_json", models.JSONField(blank=True, default=list)),
                 (
-                    "opportunity_score",
-                    models.DecimalField(decimal_places=4, default=0.0, max_digits=8),
+                    "location",
+                    models.CharField(
+                        max_length=10,
+                        default="US",
+                        help_text="ISO 3166-1 country code",
+                    ),
                 ),
-                ("commercial_intent", models.CharField(blank=True, choices=[("informational", "Informational"), ("navigational", "Navigational"), ("commercial", "Commercial"), ("transactional", "Transactional")], max_length=20)),
-                ("embedding_vector", models.JSONField(blank=True, default=list)),
-                ("is_tracked", models.BooleanField(db_index=True, default=False)),
-                ("tracked_at", models.DateTimeField(blank=True, null=True)),
-                ("last_synced_at", models.DateTimeField(blank=True, null=True)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "language",
+                    models.CharField(
+                        max_length=10,
+                        default="en",
+                        help_text="ISO 639-1 language code",
+                    ),
+                ),
+                (
+                    "monthly_volume",
+                    models.PositiveIntegerField(
+                        null=True,
+                        blank=True,
+                        help_text="Monthly search volume",
+                    ),
+                ),
+                (
+                    "difficulty",
+                    models.DecimalField(
+                        max_digits=5,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
+                        help_text="Keyword difficulty 0-100",
+                    ),
+                ),
+                (
+                    "cpc",
+                    models.DecimalField(
+                        max_digits=8,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
+                        help_text="Cost per click in USD",
+                    ),
+                ),
+                (
+                    "trend_direction",
+                    models.CharField(
+                        max_length=20,
+                        choices=TrendDirection.choices,
+                        blank=True,
+                        help_text="12-month trend direction",
+                    ),
+                ),
+                (
+                    "trend_growth",
+                    models.DecimalField(
+                        max_digits=6,
+                        decimal_places=4,
+                        default=0.0,
+                        help_text="Trend growth rate (e.g. 0.15 = 15% growth)",
+                    ),
+                ),
+                (
+                    "current_position",
+                    models.PositiveIntegerField(
+                        null=True,
+                        blank=True,
+                        help_text="Current SERP position",
+                    ),
+                ),
+                (
+                    "previous_position",
+                    models.PositiveIntegerField(
+                        null=True,
+                        blank=True,
+                        help_text="Previous SERP position",
+                    ),
+                ),
+                (
+                    "position_change",
+                    models.IntegerField(
+                        default=0,
+                        help_text="Positive = improved, negative = dropped",
+                    ),
+                ),
+                (
+                    "target_url",
+                    models.URLField(
+                        max_length=2048,
+                        blank=True,
+                        help_text="Target URL for this keyword",
+                    ),
+                ),
+                (
+                    "serp_features_json",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Detected SERP features",
+                    ),
+                ),
                 (
                     "cluster",
                     models.ForeignKey(
-                        blank=True,
-                        null=True,
+                        KeywordCluster,
                         on_delete=models.SET_NULL,
+                        null=True,
+                        blank=True,
                         related_name="keywords",
-                        to="seo.KeywordCluster",
                     ),
                 ),
+                (
+                    "opportunity_score",
+                    models.DecimalField(
+                        max_digits=8,
+                        decimal_places=4,
+                        default=0.0,
+                        help_text="Computed opportunity score",
+                    ),
+                ),
+                (
+                    "commercial_intent",
+                    models.CharField(
+                        max_length=20,
+                        choices=CommercialIntent.choices,
+                        blank=True,
+                        help_text="Detected commercial intent",
+                    ),
+                ),
+                (
+                    "embedding_vector",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Keyword embedding vector",
+                    ),
+                ),
+                (
+                    "is_tracked",
+                    models.BooleanField(
+                        default=False,
+                        db_index=True,
+                        help_text="Whether rank tracking is enabled",
+                    ),
+                ),
+                ("tracked_at", models.DateTimeField(null=True, blank=True)),
+                (
+                    "last_synced_at",
+                    models.DateTimeField(
+                        null=True,
+                        blank=True,
+                        help_text="Last third-party API sync",
+                    ),
+                ),
+                ("metadata_json", models.JSONField(default=dict, blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
                 "db_table": "voyager_keyword",
-                "ordering": ["-opportunity_score"],
                 "verbose_name": "Keyword",
                 "verbose_name_plural": "Keywords",
+                "ordering": ["-opportunity_score"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "keyword", "location"]),
+                    models.Index(fields=["tenant_id", "current_position"]),
+                    models.Index(fields=["tenant_id", "is_tracked"]),
+                    models.Index(fields=["tenant_id", "-opportunity_score"]),
+                    models.Index(fields=["cluster", "-opportunity_score"]),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=["tenant_id", "keyword", "location", "language"],
+                        name="%(app_label)s_keyword_tenant_kw_loc_uniq",
+                    )
+                ],
             },
         ),
-        migrations.AddConstraint(
-            model_name="keyword",
-            constraint=models.UniqueConstraint(
-                fields=["tenant_id", "keyword", "location", "language"],
-                name="seo_keyword_tenant_kw_loc_uniq",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="keyword",
-            index=models.Index(fields=["tenant_id", "keyword", "location"], name="seo_kw_tenant_kw_loc"),
-        ),
-        migrations.AddIndex(
-            model_name="keyword",
-            index=models.Index(fields=["tenant_id", "current_position"], name="seo_kw_tenant_pos"),
-        ),
-        migrations.AddIndex(
-            model_name="keyword",
-            index=models.Index(fields=["tenant_id", "is_tracked"], name="seo_kw_tenant_tracked"),
-        ),
-        migrations.AddIndex(
-            model_name="keyword",
-            index=models.Index(fields=["tenant_id", "-opportunity_score"], name="seo_kw_tenant_opp"),
-        ),
-        migrations.AddIndex(
-            model_name="keyword",
-            index=models.Index(fields=["cluster", "-opportunity_score"], name="seo_kw_cluster_opp"),
-        ),
-        # OnPageAudit
         migrations.CreateModel(
             name="OnPageAudit",
             fields=[
+                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)),
+                ("tenant_id", models.CharField(max_length=128, db_index=True)),
+                ("url", models.URLField(max_length=2048, db_index=True, help_text="Audited URL")),
                 (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        primary_key=True,
-                        serialize=False,
+                    "target_keywords_json",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Keywords targeted for this page",
                     ),
                 ),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("url", models.URLField(db_index=True, max_length=2048)),
-                ("target_keywords_json", models.JSONField(blank=True, default=list)),
-                ("score", models.DecimalField(decimal_places=2, default=100.0, max_digits=5)),
-                ("grade", models.CharField(choices=[("A", "A (90-100)"), ("B", "B (75-89)"), ("C", "C (60-74)"), ("D", "D (45-59)"), ("F", "F (0-44)")], default="A", max_length=1)),
-                ("title", models.TextField(blank=True)),
+                (
+                    "score",
+                    models.DecimalField(
+                        max_digits=5,
+                        decimal_places=2,
+                        default=100.0,
+                        help_text="SEO score 0-100",
+                    ),
+                ),
+                (
+                    "grade",
+                    models.CharField(
+                        max_length=1,
+                        choices=Grade.choices,
+                        default=Grade.A,
+                        help_text="Letter grade",
+                    ),
+                ),
+                ("title", models.TextField(blank=True, help_text="Title tag content")),
                 ("title_length", models.PositiveIntegerField(default=0)),
                 ("meta_description", models.TextField(blank=True)),
                 ("meta_description_length", models.PositiveIntegerField(default=0)),
                 ("h1", models.TextField(blank=True)),
                 ("h1_count", models.PositiveIntegerField(default=0)),
-                ("canonical", models.URLField(blank=True, max_length=2048)),
+                ("canonical", models.URLField(max_length=2048, blank=True)),
                 ("word_count", models.PositiveIntegerField(default=0)),
-                ("readability_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("keyword_density_json", models.JSONField(blank=True, default=dict)),
+                (
+                    "readability_score",
+                    models.DecimalField(
+                        max_digits=5,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
+                        help_text="Flesch-Kincaid score",
+                    ),
+                ),
+                (
+                    "keyword_density_json",
+                    models.JSONField(
+                        default=dict,
+                        blank=True,
+                        help_text="Keyword density percentages",
+                    ),
+                ),
                 ("internal_links", models.PositiveIntegerField(default=0)),
                 ("external_links", models.PositiveIntegerField(default=0)),
                 ("images_total", models.PositiveIntegerField(default=0)),
                 ("images_with_alt", models.PositiveIntegerField(default=0)),
-                ("schema_count", models.PositiveIntegerField(default=0)),
-                ("schemas_json", models.JSONField(blank=True, default=list)),
-                ("issues_json", models.JSONField(blank=True, default=list)),
-                ("recommendations_json", models.JSONField(blank=True, default=list)),
-                ("og_tags_json", models.JSONField(blank=True, default=dict)),
-                ("twitter_tags_json", models.JSONField(blank=True, default=dict)),
-                ("headings_json", models.JSONField(blank=True, default=list)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
+                (
+                    "schema_count",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Number of JSON-LD schema blocks",
+                    ),
+                ),
+                ("schemas_json", models.JSONField(default=list, blank=True)),
+                (
+                    "issues_json",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Detected issues with severity",
+                    ),
+                ),
+                (
+                    "recommendations_json",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Generated fix recommendations",
+                    ),
+                ),
+                ("og_tags_json", models.JSONField(default=dict, blank=True)),
+                ("twitter_tags_json", models.JSONField(default=dict, blank=True)),
+                (
+                    "headings_json",
+                    models.JSONField(
+                        default=list,
+                        blank=True,
+                        help_text="Extracted heading structure",
+                    ),
+                ),
+                ("metadata_json", models.JSONField(default=dict, blank=True)),
                 ("audited_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
                 "db_table": "voyager_onpage_audit",
-                "ordering": ["-audited_at"],
                 "verbose_name": "On-Page Audit",
                 "verbose_name_plural": "On-Page Audits",
+                "ordering": ["-audited_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "url"]),
+                    models.Index(fields=["tenant_id", "-score"]),
+                    models.Index(fields=["tenant_id", "-audited_at"]),
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="onpageaudit",
-            index=models.Index(fields=["tenant_id", "url"], name="seo_opa_tenant_url"),
-        ),
-        migrations.AddIndex(
-            model_name="onpageaudit",
-            index=models.Index(fields=["tenant_id", "-score"], name="seo_opa_tenant_score"),
-        ),
-        # Backlink
-        migrations.CreateModel(
-            name="Backlink",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("source_url", models.URLField(max_length=2048)),
-                ("target_url", models.URLField(max_length=2048)),
-                ("anchor_text", models.TextField(blank=True)),
-                ("referring_domain", models.CharField(blank=True, db_index=True, max_length=255)),
-                ("domain_authority", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("page_authority", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("spam_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("is_toxic", models.BooleanField(db_index=True, default=False)),
-                ("toxicity_score", models.DecimalField(decimal_places=2, default=0.0, max_digits=5)),
-                ("toxicity_reasons_json", models.JSONField(blank=True, default=list)),
-                ("recommended_action", models.CharField(choices=[("none", "No Action"), ("review", "Review"), ("disavow", "Disavow")], default="none", max_length=16)),
-                ("link_type", models.CharField(choices=[("dofollow", "Dofollow"), ("nofollow", "Nofollow"), ("ugc", "UGC"), ("sponsored", "Sponsored")], default="dofollow", max_length=16)),
-                ("is_sitewide", models.BooleanField(default=False)),
-                ("source_outbound_links", models.PositiveIntegerField(default=0)),
-                ("source_language", models.CharField(blank=True, max_length=10)),
-                ("status", models.CharField(choices=[("active", "Active"), ("lost", "Lost"), ("new", "New"), ("disavowed", "Disavowed")], db_index=True, default="active", max_length=16)),
-                ("first_seen", models.DateTimeField(blank=True, null=True)),
-                ("last_seen", models.DateTimeField(blank=True, null=True)),
-                ("last_checked_at", models.DateTimeField(blank=True, null=True)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                "db_table": "voyager_backlink",
-                "ordering": ["-created_at"],
-                "verbose_name": "Backlink",
-                "verbose_name_plural": "Backlinks",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="backlink",
-            index=models.Index(fields=["tenant_id", "referring_domain"], name="seo_bl_tenant_domain"),
-        ),
-        migrations.AddIndex(
-            model_name="backlink",
-            index=models.Index(fields=["tenant_id", "is_toxic"], name="seo_bl_tenant_toxic"),
-        ),
-        migrations.AddIndex(
-            model_name="backlink",
-            index=models.Index(fields=["tenant_id", "status"], name="seo_bl_tenant_status"),
-        ),
-        # TechnicalCrawl
-        migrations.CreateModel(
-            name="TechnicalCrawl",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("crawl_job_id", models.CharField(blank=True, db_index=True, max_length=128)),
-                ("url", models.URLField(db_index=True, max_length=2048)),
-                ("status_code", models.PositiveIntegerField(null=True, blank=True)),
-                ("is_indexable", models.BooleanField(default=True)),
-                ("word_count", models.PositiveIntegerField(default=0)),
-                ("title", models.TextField(blank=True)),
-                ("meta_description", models.TextField(blank=True)),
-                ("h1", models.TextField(blank=True)),
-                ("h1_count", models.PositiveIntegerField(default=0)),
-                ("canonical", models.URLField(blank=True, max_length=2048)),
-                ("robots_meta", models.CharField(blank=True, max_length=255)),
-                ("hreflangs_json", models.JSONField(blank=True, default=list)),
-                ("lcp_ms", models.PositiveIntegerField(blank=True, null=True)),
-                ("fid_ms", models.PositiveIntegerField(blank=True, null=True)),
-                ("cls_score", models.DecimalField(blank=True, decimal_places=4, max_digits=6, null=True)),
-                ("ttfb_ms", models.PositiveIntegerField(blank=True, null=True)),
-                ("page_size_kb", models.PositiveIntegerField(blank=True, null=True)),
-                ("load_time_ms", models.PositiveIntegerField(blank=True, null=True)),
-                ("structured_data_json", models.JSONField(blank=True, default=list)),
-                ("schema_errors_json", models.JSONField(blank=True, default=list)),
-                ("issues_json", models.JSONField(blank=True, default=list)),
-                ("seo_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("is_mobile_friendly", models.BooleanField(null=True, blank=True)),
-                ("internal_links_json", models.JSONField(blank=True, default=list)),
-                ("external_links_json", models.JSONField(blank=True, default=list)),
-                ("broken_links_json", models.JSONField(blank=True, default=list)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("crawled_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                "db_table": "voyager_technical_crawl",
-                "ordering": ["-crawled_at"],
-                "verbose_name": "Technical Crawl",
-                "verbose_name_plural": "Technical Crawls",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="technicalcrawl",
-            index=models.Index(fields=["tenant_id", "url"], name="seo_tc_tenant_url"),
-        ),
-        migrations.AddIndex(
-            model_name="technicalcrawl",
-            index=models.Index(fields=["tenant_id", "crawl_job_id"], name="seo_tc_tenant_job"),
-        ),
-        migrations.AddIndex(
-            model_name="technicalcrawl",
-            index=models.Index(fields=["tenant_id", "-seo_score"], name="seo_tc_tenant_score"),
-        ),
-        # ContentOptimization
-        migrations.CreateModel(
-            name="ContentOptimization",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("url", models.URLField(blank=True, max_length=2048)),
-                ("content_hash", models.CharField(blank=True, db_index=True, max_length=64)),
-                ("target_keywords_json", models.JSONField(blank=True, default=list)),
-                ("competitor_urls_json", models.JSONField(blank=True, default=list)),
-                ("word_count", models.PositiveIntegerField(default=0)),
-                ("sentence_count", models.PositiveIntegerField(default=0)),
-                ("paragraph_count", models.PositiveIntegerField(default=0)),
-                ("flesch_reading_ease", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("flesch_kincaid_grade", models.DecimalField(blank=True, decimal_places=2, max_digits=4, null=True)),
-                ("smog_index", models.DecimalField(blank=True, decimal_places=2, max_digits=4, null=True)),
-                ("keyword_density_json", models.JSONField(blank=True, default=dict)),
-                ("lsi_keywords_json", models.JSONField(blank=True, default=list)),
-                ("keyword_placement_json", models.JSONField(blank=True, default=dict)),
-                ("entities_json", models.JSONField(blank=True, default=list)),
-                ("topics_covered_json", models.JSONField(blank=True, default=list)),
-                ("missing_topics_json", models.JSONField(blank=True, default=list)),
-                ("competitor_avg_word_count", models.PositiveIntegerField(blank=True, null=True)),
-                ("competitor_avg_readability", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("competitor_common_topics_json", models.JSONField(blank=True, default=list)),
-                ("heading_structure_json", models.JSONField(blank=True, default=list)),
-                ("content_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("readability_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("seo_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("uniqueness_score", models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ("recommendations_json", models.JSONField(blank=True, default=list)),
-                ("suggested_title", models.TextField(blank=True)),
-                ("suggested_meta_description", models.TextField(blank=True)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("analyzed_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                "db_table": "voyager_content_optimization",
-                "ordering": ["-analyzed_at"],
-                "verbose_name": "Content Optimization",
-                "verbose_name_plural": "Content Optimizations",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="contentoptimization",
-            index=models.Index(fields=["tenant_id", "url"], name="seo_co_tenant_url"),
-        ),
-        migrations.AddIndex(
-            model_name="contentoptimization",
-            index=models.Index(fields=["tenant_id", "content_hash"], name="seo_co_tenant_hash"),
-        ),
-        # SERPTracking
-        migrations.CreateModel(
-            name="SERPTracking",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("target_url", models.URLField(blank=True, max_length=2048)),
-                ("locations_json", models.JSONField(blank=True, default=list)),
-                ("device", models.CharField(choices=[("desktop", "Desktop"), ("mobile", "Mobile"), ("both", "Both")], default="both", max_length=16)),
-                ("alert_threshold", models.CharField(choices=[("none", "No Alerts"), ("small", "3+ Position Changes"), ("medium", "5+ Position Changes"), ("large", "10+ Position Changes")], default="medium", max_length=16)),
-                ("is_active", models.BooleanField(db_index=True, default=True)),
-                ("current_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("previous_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("position_change", models.IntegerField(default=0)),
-                ("current_url", models.URLField(blank=True, max_length=2048)),
-                ("serp_features_json", models.JSONField(blank=True, default=list)),
-                ("last_checked_at", models.DateTimeField(blank=True, null=True)),
-                ("check_count", models.PositiveIntegerField(default=0)),
-                ("best_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("worst_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-                (
-                    "keyword",
-                    models.ForeignKey(on_delete=models.CASCADE, related_name="serp_tracking", to="seo.Keyword"),
-                ),
-            ],
-            options={
-                "db_table": "voyager_serp_tracking",
-                "ordering": ["-created_at"],
-                "verbose_name": "SERP Tracking",
-                "verbose_name_plural": "SERP Trackings",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="serptracking",
-            index=models.Index(fields=["tenant_id", "keyword"], name="seo_st_tenant_kw"),
-        ),
-        migrations.AddIndex(
-            model_name="serptracking",
-            index=models.Index(fields=["tenant_id", "is_active"], name="seo_st_tenant_active"),
-        ),
-        # RankHistory
-        migrations.CreateModel(
-            name="RankHistory",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("keyword_text", models.CharField(db_index=True, max_length=500)),
-                ("position", models.PositiveIntegerField(blank=True, null=True)),
-                ("previous_position", models.PositiveIntegerField(blank=True, null=True)),
-                ("position_change", models.IntegerField(default=0)),
-                ("url", models.URLField(blank=True, max_length=2048)),
-                ("serp_features_json", models.JSONField(blank=True, default=list)),
-                ("location", models.CharField(default="US", max_length=10)),
-                ("device", models.CharField(default="desktop", max_length=16)),
-                ("search_volume", models.PositiveIntegerField(blank=True, null=True)),
-                ("competitors_json", models.JSONField(blank=True, default=list)),
-                ("page_title", models.TextField(blank=True)),
-                ("page_description", models.TextField(blank=True)),
-                ("tracked_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                (
-                    "tracking",
-                    models.ForeignKey(on_delete=models.CASCADE, related_name="history", to="seo.SERPTracking"),
-                ),
-            ],
-            options={
-                "db_table": "voyager_rank_history",
-                "ordering": ["-tracked_at"],
-                "verbose_name": "Rank History",
-                "verbose_name_plural": "Rank History",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="rankhistory",
-            index=models.Index(fields=["tracking", "-tracked_at"], name="seo_rh_tracking_at"),
-        ),
-        migrations.AddIndex(
-            model_name="rankhistory",
-            index=models.Index(fields=["keyword_text", "location", "device", "-tracked_at"], name="seo_rh_kw_loc_dev"),
-        ),
-        # SEOReport
-        migrations.CreateModel(
-            name="SEOReport",
-            fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("tenant_id", models.CharField(db_index=True, max_length=128)),
-                ("name", models.CharField(max_length=255)),
-                ("report_type", models.CharField(choices=[("executive", "Executive Summary"), ("keyword", "Keyword Rankings"), ("backlink", "Backlink Profile"), ("technical", "Technical Health"), ("content", "Content Score"), ("comprehensive", "Comprehensive")], default="comprehensive", max_length=20)),
-                ("frequency", models.CharField(choices=[("one_time", "One Time"), ("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly"), ("quarterly", "Quarterly")], default="monthly", max_length=16)),
-                ("status", models.CharField(choices=[("pending", "Pending"), ("generating", "Generating"), ("completed", "Completed"), ("failed", "Failed")], db_index=True, default="pending", max_length=16)),
-                ("sections_json", models.JSONField(blank=True, default=list)),
-                ("date_from", models.DateField()),
-                ("date_to", models.DateField()),
-                ("brand_logo_url", models.URLField(blank=True, max_length=2048)),
-                ("brand_primary_color", models.CharField(blank=True, max_length=7)),
-                ("brand_name", models.CharField(blank=True, max_length=255)),
-                ("custom_header", models.TextField(blank=True)),
-                ("custom_footer", models.TextField(blank=True)),
-                ("executive_summary_json", models.JSONField(blank=True, default=dict)),
-                ("keyword_rankings_json", models.JSONField(blank=True, default=dict)),
-                ("backlink_profile_json", models.JSONField(blank=True, default=dict)),
-                ("technical_health_json", models.JSONField(blank=True, default=dict)),
-                ("content_score_json", models.JSONField(blank=True, default=dict)),
-                ("report_file", models.FileField(blank=True, upload_to="seo_reports/%Y/%m/")),
-                ("file_format", models.CharField(default="pdf", max_length=10)),
-                ("compare_with_previous", models.BooleanField(default=True)),
-                ("previous_period_json", models.JSONField(blank=True, default=dict)),
-                ("is_scheduled", models.BooleanField(db_index=True, default=False)),
-                ("next_run_at", models.DateTimeField(blank=True, db_index=True, null=True)),
-                ("recipients_json", models.JSONField(blank=True, default=list)),
-                ("error_message", models.TextField(blank=True)),
-                ("metadata_json", models.JSONField(blank=True, default=dict)),
-                ("generated_at", models.DateTimeField(blank=True, null=True)),
-                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                "db_table": "voyager_seo_report",
-                "ordering": ["-created_at"],
-                "verbose_name": "SEO Report",
-                "verbose_name_plural": "SEO Reports",
-            },
-        ),
-        migrations.AddIndex(
-            model_name="seoreport",
-            index=models.Index(fields=["tenant_id", "report_type"], name="seo_rep_tenant_type"),
-        ),
-        migrations.AddIndex(
-            model_name="seoreport",
-            index=models.Index(fields=["tenant_id", "status"], name="seo_rep_tenant_status"),
-        ),
-        migrations.AddIndex(
-            model_name="seoreport",
-            index=models.Index(fields=["tenant_id", "is_scheduled"], name="seo_rep_tenant_sched"),
         ),
     ]

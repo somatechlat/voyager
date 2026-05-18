@@ -51,12 +51,8 @@ class Backlink(models.Model):
     )
 
     # Authority scores
-    domain_authority = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    page_authority = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    domain_authority = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    page_authority = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     spam_score = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -78,12 +74,8 @@ class Backlink(models.Model):
     )
 
     # Link properties
-    link_type = models.CharField(
-        max_length=16, choices=LinkType.choices, default=LinkType.DOFOLLOW
-    )
-    is_sitewide = models.BooleanField(
-        default=False, help_text="Whether this is a site-wide link"
-    )
+    link_type = models.CharField(max_length=16, choices=LinkType.choices, default=LinkType.DOFOLLOW)
+    is_sitewide = models.BooleanField(default=False, help_text="Whether this is a site-wide link")
     source_outbound_links = models.PositiveIntegerField(
         default=0, help_text="Total outbound links from source page"
     )

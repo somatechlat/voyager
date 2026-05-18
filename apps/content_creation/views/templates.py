@@ -10,7 +10,7 @@ POST /api/v1/content/templates/{id}/render  — render template
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from django.db import models
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 router = Router(tags=["Content Templates"])
 
 
-@router.get("/templates", response=List[ContentTemplateOut])
+@router.get("/templates", response=list[ContentTemplateOut])
 def list_templates(request) -> list[ContentTemplate]:
     """List all templates for the current tenant (including public)."""
     tenant_id = get_tenant_id(request)
@@ -70,15 +70,12 @@ def get_template(request, template_id: UUID) -> ContentTemplate:
     tenant_id = get_tenant_id(request)
     return get_object_or_404(
         ContentTemplate,
-        models.Q(id=template_id, tenant_id=tenant_id)
-        | models.Q(id=template_id, is_public=True),
+        models.Q(id=template_id, tenant_id=tenant_id) | models.Q(id=template_id, is_public=True),
     )
 
 
 @router.put("/templates/{template_id}", response=ContentTemplateOut)
-def update_template(
-    request, template_id: UUID, payload: ContentTemplateIn
-) -> ContentTemplate:
+def update_template(request, template_id: UUID, payload: ContentTemplateIn) -> ContentTemplate:
     """Update a content template."""
     tenant_id = get_tenant_id(request)
     template = get_object_or_404(ContentTemplate, id=template_id, tenant_id=tenant_id)
@@ -111,14 +108,11 @@ def render_template_endpoint(
     tenant_id = get_tenant_id(request)
     template = get_object_or_404(
         ContentTemplate,
-        models.Q(id=template_id, tenant_id=tenant_id)
-        | models.Q(id=template_id, is_public=True),
+        models.Q(id=template_id, tenant_id=tenant_id) | models.Q(id=template_id, is_public=True),
     )
 
     # Increment usage count
-    ContentTemplate.objects.filter(id=template_id).update(
-        usage_count=models.F("usage_count") + 1
-    )
+    ContentTemplate.objects.filter(id=template_id).update(usage_count=models.F("usage_count") + 1)
 
     result = render_template(
         template_body=template.body,

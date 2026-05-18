@@ -52,6 +52,7 @@ def publish_due_posts(self) -> dict[str, Any]:
 
         try:
             from apps.publishing.services.publisher import publish_to_platforms
+
             result = publish_to_platforms(post)
             if result.get("success"):
                 published += 1
@@ -60,7 +61,9 @@ def publish_due_posts(self) -> dict[str, Any]:
                 failed += 1
                 logger.warning(
                     "Post %s failed: %s (type=%s, retryable=%s)",
-                    post.id, result.get("error"), result.get("error_type"),
+                    post.id,
+                    result.get("error"),
+                    result.get("error_type"),
                     result.get("retryable"),
                 )
         except Exception:
@@ -231,6 +234,7 @@ def publish_post(
         return {"success": False, "error": "Post not found", "post_id": post_id}
 
     from apps.publishing.services.publisher import publish_to_platforms
+
     result = publish_to_platforms(post)
 
     return {

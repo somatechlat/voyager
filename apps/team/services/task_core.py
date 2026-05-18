@@ -18,8 +18,6 @@ logger = logging.getLogger(__name__)
 class TaskServiceError(Exception):
     """Raised when a task service operation fails."""
 
-    pass
-
 
 class TaskCoreService:
     """Core CRUD service for task management."""
@@ -82,15 +80,11 @@ class TaskCoreService:
 
         valid_priorities = [p[0] for p in Task.Priority.choices]
         if priority not in valid_priorities:
-            raise TaskServiceError(
-                f"Invalid priority '{priority}'. Valid: {valid_priorities}"
-            )
+            raise TaskServiceError(f"Invalid priority '{priority}'. Valid: {valid_priorities}")
 
         valid_statuses = [s[0] for s in Task.Status.choices]
         if status not in valid_statuses:
-            raise TaskServiceError(
-                f"Invalid status '{status}'. Valid: {valid_statuses}"
-            )
+            raise TaskServiceError(f"Invalid status '{status}'. Valid: {valid_statuses}")
 
         if due_date and isinstance(due_date, str):
             due_date = datetime.strptime(due_date, "%Y-%m-%d").date()
@@ -117,9 +111,7 @@ class TaskCoreService:
             attachments=attachments or [],
             position=position,
         )
-        logger.info(
-            "Created task #%d '%s' for tenant %s", task.id, task.title, tenant_id
-        )
+        logger.info("Created task #%d '%s' for tenant %s", task.id, task.title, tenant_id)
         return task
 
     @staticmethod
@@ -189,9 +181,7 @@ class TaskCoreService:
         if due_date_to:
             qs = qs.filter(due_date__lte=due_date_to)
         if search:
-            qs = qs.filter(title__icontains=search) | qs.filter(
-                description__icontains=search
-            )
+            qs = qs.filter(title__icontains=search) | qs.filter(description__icontains=search)
 
         total = qs.count()
         start = (page - 1) * page_size
@@ -223,10 +213,25 @@ class TaskCoreService:
         task = TaskCoreService.get_task(task_id, tenant_id)
 
         allowed_fields = {
-            "title", "description", "project_id", "client_id", "campaign_id",
-            "assignee_id", "reporter_id", "priority", "status", "task_type",
-            "tags", "due_date", "estimated_hours", "actual_hours",
-            "dependencies", "subtasks", "custom_fields", "attachments", "position",
+            "title",
+            "description",
+            "project_id",
+            "client_id",
+            "campaign_id",
+            "assignee_id",
+            "reporter_id",
+            "priority",
+            "status",
+            "task_type",
+            "tags",
+            "due_date",
+            "estimated_hours",
+            "actual_hours",
+            "dependencies",
+            "subtasks",
+            "custom_fields",
+            "attachments",
+            "position",
         }
 
         for key, value in fields.items():

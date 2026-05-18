@@ -13,8 +13,8 @@ from ninja import Router
 
 from apps.campaigns.models import Campaign, CampaignBudget
 from apps.campaigns.serializers import (
-    BudgetAllocationSchema,
     BudgetAlertSchema,
+    BudgetAllocationSchema,
     BudgetSpendSchema,
     PacingResultSchema,
 )

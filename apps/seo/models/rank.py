@@ -41,17 +41,13 @@ class SERPTracking(models.Model):
         related_name="serp_tracking",
         help_text="Tracked keyword",
     )
-    target_url = models.URLField(
-        max_length=2048, blank=True, help_text="Expected ranking URL"
-    )
+    target_url = models.URLField(max_length=2048, blank=True, help_text="Expected ranking URL")
 
     # Tracking config
     locations_json = models.JSONField(
         default=list, blank=True, help_text="ISO country codes to track"
     )
-    device = models.CharField(
-        max_length=16, choices=Device.choices, default=Device.BOTH
-    )
+    device = models.CharField(max_length=16, choices=Device.choices, default=Device.BOTH)
     alert_threshold = models.CharField(
         max_length=16,
         choices=AlertThreshold.choices,

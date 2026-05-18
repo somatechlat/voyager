@@ -136,8 +136,8 @@ def evaluate_scheduled_triggers(self) -> dict[str, Any]:
 
     from apps.workflows_v2.models.trigger import WorkflowTrigger
     from apps.workflows_v2.services.trigger_engine import (
-        list_active_triggers,
         evaluate_trigger,
+        list_active_triggers,
     )
 
     scheduled_types = [
@@ -238,9 +238,7 @@ def sync_vortex_executions(self) -> dict[str, Any]:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             # Note: This requires a token; in production, use a service token
-            result = loop.run_until_complete(
-                sync_execution_status(execution, "")
-            )
+            result = loop.run_until_complete(sync_execution_status(execution, ""))
             loop.close()
             synced += 1
             logger.debug("Synced execution %s: %s", execution.id, result)

@@ -3,32 +3,35 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
-from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.models.execution import WorkflowExecution
+from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.serializers import (
-    ExecutionOutSchema,
-    ExecutionStartSchema,
-    ExecutionProgressSchema,
     ErrorSchema,
+    ExecutionOutSchema,
+    ExecutionProgressSchema,
+    ExecutionStartSchema,
 )
 from apps.workflows_v2.services.execution import (
-    start_execution,
     cancel_execution,
     get_execution_progress,
+    start_execution,
 )
 from apps.workflows_v2.services.vortex_integration import (
-    submit_workflow_to_vortex,
+    cancel_vortex_execution,
     execute_on_vortex,
     get_execution_status,
-    cancel_vortex_execution,
+    submit_workflow_to_vortex,
     sync_execution_status,
 )
+
+logger = logging.getLogger(__name__)
 
 router = Router(auth=VoyagerKeycloakBearer())
 
@@ -91,9 +94,7 @@ def create_execution(
     response=ExecutionOutSchema,
     tags=["Executions"],
 )
-def get_execution(
-    request, workflow_id: int, execution_id: int
-) -> WorkflowExecution:
+def get_execution(request, workflow_id: int, execution_id: int) -> WorkflowExecution:
     """Get a single execution."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
@@ -105,15 +106,11 @@ def get_execution(
     response=ExecutionProgressSchema,
     tags=["Executions"],
 )
-def execution_progress(
-    request, workflow_id: int, execution_id: int
-) -> dict[str, Any]:
+def execution_progress(request, workflow_id: int, execution_id: int) -> dict[str, Any]:
     """Get execution progress."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
     return get_execution_progress(execution)
 
 
@@ -122,15 +119,11 @@ def execution_progress(
     response={200: dict, 404: ErrorSchema},
     tags=["Executions"],
 )
-def cancel_execution_view(
-    request, workflow_id: int, execution_id: int
-) -> dict[str, Any]:
+def cancel_execution_view(request, workflow_id: int, execution_id: int) -> dict[str, Any]:
     """Cancel a running execution."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
     cancel_execution(execution)
 
     # Also cancel on Vortex if applicable
@@ -139,13 +132,11 @@ def cancel_execution_view(
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(
-                cancel_vortex_execution(execution.run_id, token)
-            )
+            result = loop.run_until_complete(cancel_vortex_execution(execution.run_id, token))
             loop.close()
             return {"status": "cancelled", "vortex_cancelled": result}
         except Exception:
-            pass
+            logger.warning("Failed to cancel vortex execution", exc_info=True)
 
     return {"status": "cancelled"}
 
@@ -155,26 +146,18 @@ def cancel_execution_view(
     response=dict,
     tags=["Executions"],
 )
-def submit_to_vortex(
-    request, workflow_id: int, execution_id: int
-) -> dict[str, Any]:
+def submit_to_vortex(request, workflow_id: int, execution_id: int) -> dict[str, Any]:
     """Submit a workflow to Vortex for execution."""
     tenant_id = _get_tenant(request)
     token = _get_token(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
 
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        graph_id = loop.run_until_complete(
-            submit_workflow_to_vortex(workflow, token)
-        )
-        run_id = loop.run_until_complete(
-            execute_on_vortex(graph_id, token, execution)
-        )
+        graph_id = loop.run_until_complete(submit_workflow_to_vortex(workflow, token))
+        run_id = loop.run_until_complete(execute_on_vortex(graph_id, token, execution))
         loop.close()
         return {
             "status": "submitted",
@@ -195,9 +178,7 @@ def vortex_status(request, workflow_id: int, execution_id: int) -> dict[str, Any
     tenant_id = _get_tenant(request)
     token = _get_token(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
 
     if not execution.run_id:
         return {"error": "No Vortex run associated"}
@@ -205,9 +186,7 @@ def vortex_status(request, workflow_id: int, execution_id: int) -> dict[str, Any
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        status = loop.run_until_complete(
-            get_execution_status(execution.run_id, token)
-        )
+        status = loop.run_until_complete(get_execution_status(execution.run_id, token))
         loop.close()
         return status
     except Exception as exc:
@@ -224,16 +203,12 @@ def sync_status(request, workflow_id: int, execution_id: int) -> dict[str, Any]:
     tenant_id = _get_tenant(request)
     token = _get_token(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
 
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        result = loop.run_until_complete(
-            sync_execution_status(execution, token)
-        )
+        result = loop.run_until_complete(sync_execution_status(execution, token))
         loop.close()
         return result
     except Exception as exc:

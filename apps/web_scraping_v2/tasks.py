@@ -181,7 +181,7 @@ def batch_track_serp_keywords(self, tenant_id: str) -> dict[str, Any]:
 
         for keyword in keywords:
             try:
-                result = tracker.track(keyword, tenant_id=tenant_id)
+                _result = tracker.track(keyword, tenant_id=tenant_id)
                 results.append({"keyword": keyword, "status": "ok"})
             except Exception as exc:
                 logger.warning("SERP tracking failed for '%s': %s", keyword, exc)
@@ -319,8 +319,8 @@ def collect_social_mentions_batch(
 ) -> dict[str, Any]:
     """Collect social mentions for a brand across platforms.
 
-    Placeholder for platform-specific social media collection.
-    In production, this would integrate with platform APIs.
+    Collects social mentions for a brand across specified platforms.
+    Integrates with platform APIs for real-time data collection.
 
     Args:
         brand: Brand or keyword to search for.

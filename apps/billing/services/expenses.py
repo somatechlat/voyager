@@ -170,9 +170,7 @@ def apply_ocr_to_expense(expense: Expense, ocr_result: dict[str, Any]) -> None:
     )
 
 
-def approve_expense(
-    expense: Expense, approver_id: str, notes: str = ""
-) -> dict[str, Any]:
+def approve_expense(expense: Expense, approver_id: str, notes: str = "") -> dict[str, Any]:
     """Approve an expense.
 
     Args:
@@ -204,9 +202,7 @@ def approve_expense(
     }
 
 
-def reject_expense(
-    expense: Expense, approver_id: str, reason: str
-) -> dict[str, Any]:
+def reject_expense(expense: Expense, approver_id: str, reason: str) -> dict[str, Any]:
     """Reject an expense.
 
     Args:
@@ -240,4 +236,6 @@ def calculate_billable_amount(expense: Expense) -> Decimal:
     """
     if not expense.is_billable:
         return Decimal("0")
-    return Decimal(str(round(expense.amount * (Decimal("1") + expense.markup_pct / Decimal("100")), 2)))
+    return Decimal(
+        str(round(expense.amount * (Decimal("1") + expense.markup_pct / Decimal("100")), 2))
+    )

@@ -26,18 +26,14 @@ class Retainer(TimestampedModel):
         MANUAL = "manual", "Manual"
         FIXED_TERM = "fixed_term", "Fixed Term"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.CASCADE,
         related_name="retainers",
         help_text="The client this retainer is for",
     )
-    name = models.CharField(
-        max_length=255, help_text="Retainer agreement name"
-    )
+    name = models.CharField(max_length=255, help_text="Retainer agreement name")
     monthly_amount = models.DecimalField(
         max_digits=12, decimal_places=2, help_text="Monthly retainer amount"
     )
@@ -61,9 +57,7 @@ class Retainer(TimestampedModel):
     renewal_term_months = models.PositiveIntegerField(
         default=12, help_text="Renewal term in months"
     )
-    auto_invoice = models.BooleanField(
-        default=True, help_text="Auto-generate monthly invoice"
-    )
+    auto_invoice = models.BooleanField(default=True, help_text="Auto-generate monthly invoice")
     invoice_day = models.PositiveIntegerField(
         default=1, help_text="Day of month to generate invoice"
     )
@@ -91,9 +85,7 @@ class Retainer(TimestampedModel):
         db_index=True,
         help_text="Retainer status",
     )
-    currency = models.CharField(
-        max_length=3, default="USD", help_text="Currency code"
-    )
+    currency = models.CharField(max_length=3, default="USD", help_text="Currency code")
     consumption_alert_thresholds = models.JSONField(
         default=list,
         help_text="Alert thresholds: [75, 90, 100]",
@@ -108,12 +100,8 @@ class Retainer(TimestampedModel):
         max_digits=12, decimal_places=2, default=0, help_text="Total amount invoiced"
     )
     notes = models.TextField(blank=True, help_text="Internal notes")
-    contract_url = models.URLField(
-        blank=True, default="", help_text="Link to contract document"
-    )
-    metadata = models.JSONField(
-        blank=True, default=dict, help_text="Extensible metadata"
-    )
+    contract_url = models.URLField(blank=True, default="", help_text="Link to contract document")
+    metadata = models.JSONField(blank=True, default=dict, help_text="Extensible metadata")
 
     class Meta:
         db_table = "voyager_retainer"

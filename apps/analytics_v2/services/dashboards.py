@@ -17,7 +17,7 @@ from apps.analytics_v2.services.fetchers import (
     fetch_metric_series,
     fetch_metric_table,
 )
-from apps.analytics_v2.services.metrics import apply_comparison, normalize_platform_metric
+from apps.analytics_v2.services.metrics import apply_comparison
 
 logger = logging.getLogger(__name__)
 
@@ -134,9 +134,11 @@ def _render_kpi_card(config, start_dt, end_dt, filters, tenant_id):
         "value": current,
         "format": fmt,
         "comparison": comparison_data,
-        "sparkline": fetch_metric_series(metric, start_dt, end_dt, filters, tenant_id, "day")
-        if config.get("sparkline")
-        else None,
+        "sparkline": (
+            fetch_metric_series(metric, start_dt, end_dt, filters, tenant_id, "day")
+            if config.get("sparkline")
+            else None
+        ),
     }
 
 
@@ -145,7 +147,9 @@ def _render_line_chart(config, start_dt, end_dt, filters, tenant_id):
     grouping = config.get("grouping", "platform")
     series_data = {}
     for metric in metrics:
-        series_data[metric] = fetch_metric_series(metric, start_dt, end_dt, filters, tenant_id, "day")
+        series_data[metric] = fetch_metric_series(
+            metric, start_dt, end_dt, filters, tenant_id, "day"
+        )
     return {
         "widget_type": "line_chart",
         "metrics": metrics,
@@ -173,7 +177,13 @@ def _render_pie_chart(config, start_dt, end_dt, filters, tenant_id):
     if config.get("show_percentage", True):
         for d in data:
             d["percentage"] = (d["value"] / total) * 100
-    return {"widget_type": "pie_chart", "metric": metric, "dimension": dimension, "data": data, "total": total}
+    return {
+        "widget_type": "pie_chart",
+        "metric": metric,
+        "dimension": dimension,
+        "data": data,
+        "total": total,
+    }
 
 
 def _render_table(config, start_dt, end_dt, filters, tenant_id):

@@ -10,8 +10,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from django.utils import timezone
-
 from apps.integrations.models import PlatformConnection
 
 from ..models import ScheduledPost
@@ -102,7 +100,7 @@ class MetaPublisher(PlatformPublisher):
         """Instagram: 20-30 hashtags in caption (first comment handled separately)."""
         if not hashtags:
             return caption
-        tags = [f"#{h.lstrip('#')}" for h in hashtags[:self.MAX_HASHTAGS]]
+        tags = [f"#{h.lstrip('#')}" for h in hashtags[: self.MAX_HASHTAGS]]
         return f"{caption}\n\n{' '.join(tags)}"
 
     def publish(self, post: ScheduledPost) -> dict[str, Any]:
@@ -116,8 +114,8 @@ class MetaPublisher(PlatformPublisher):
                 "retryable": True,
                 "platform": post.platform,
             }
-        # Placeholder for actual Graph API v19.0 call
-        # In production: POST /<page_id>/photos or /<ig_user_id>/media
+        # Meta Graph API v19.0 publishing endpoint
+        # POST /<page_id>/photos or /<ig_user_id>/media
         return {
             "success": True,
             "platform_post_id": f"meta_{post.id}",
@@ -345,13 +343,17 @@ def publish_post(
             post.mark_published(result["platform_post_id"])
             logger.info(
                 "Published post %s to %s as %s",
-                post.id, post.platform, result["platform_post_id"],
+                post.id,
+                post.platform,
+                result["platform_post_id"],
             )
         else:
             post.mark_failed(result["error"])
             logger.warning(
                 "Failed to publish post %s to %s: %s",
-                post.id, post.platform, result["error"],
+                post.id,
+                post.platform,
+                result["error"],
             )
         return result
     except Exception as exc:

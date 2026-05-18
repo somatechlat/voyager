@@ -118,9 +118,9 @@ class ContextAssembler:
         Returns:
             List of context dicts.
         """
-        contexts = AgentContext.objects.filter(
-            agent_id=agent_id, tenant_id=tenant_id
-        ).order_by("-assembled_at")[:limit]
+        contexts = AgentContext.objects.filter(agent_id=agent_id, tenant_id=tenant_id).order_by(
+            "-assembled_at"
+        )[:limit]
 
         return [
             {

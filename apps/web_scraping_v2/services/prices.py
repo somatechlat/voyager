@@ -11,7 +11,6 @@ import re
 from decimal import Decimal
 from typing import Any
 
-from django.conf import settings
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
@@ -122,9 +121,7 @@ class PriceExtractor:
             logger.error("CSS extraction failed: %s", exc)
         return prices
 
-    def _extract_via_json_ld(
-        self, json_ld_data: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _extract_via_json_ld(self, json_ld_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Extract prices from JSON-LD Product structured data.
 
         Args:

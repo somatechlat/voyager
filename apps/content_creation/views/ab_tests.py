@@ -10,7 +10,7 @@ POST /api/v1/content/ab-tests/{id}/winner  — calculate winner
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 router = Router(tags=["A/B Testing"])
 
 
-@router.get("/ab-tests", response=List[ABTestOut])
+@router.get("/ab-tests", response=list[ABTestOut])
 def list_ab_tests(request) -> list[ABTest]:
     """List all A/B tests for the current tenant."""
     tenant_id = get_tenant_id(request)
@@ -74,7 +74,9 @@ def create_ab_test(request, payload: ABTestIn) -> ABTest:
         sample_size=payload.sample_size,
         winner_criteria=payload.winner_criteria,
     )
-    logger.info("Created A/B test id=%s tenant=%s variants=%s", test.id, tenant_id, len(payload.variants))
+    logger.info(
+        "Created A/B test id=%s tenant=%s variants=%s", test.id, tenant_id, len(payload.variants)
+    )
     return test
 
 

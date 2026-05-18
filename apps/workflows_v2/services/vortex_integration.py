@@ -9,10 +9,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.models.execution import WorkflowExecution
 from apps.workflows_v2.models.node import WorkflowNode
-from apps.workflows_v2.models.edge import WorkflowEdge
+from apps.workflows_v2.models.workflow import Workflow
 
 logger = logging.getLogger(__name__)
 

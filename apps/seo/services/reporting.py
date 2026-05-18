@@ -16,7 +16,6 @@ from apps.seo.models.backlink import Backlink
 from apps.seo.models.content import ContentOptimization
 from apps.seo.models.keyword import Keyword
 from apps.seo.models.onpage import OnPageAudit
-from apps.seo.models.rank import SERPTracking
 from apps.seo.models.report import SEOReport
 from apps.seo.models.technical import TechnicalCrawl
 from apps.seo.services.rank_tracking import get_ranking_distribution
@@ -24,9 +23,7 @@ from apps.seo.services.rank_tracking import get_ranking_distribution
 logger = logging.getLogger(__name__)
 
 
-def generate_executive_summary(
-    tenant_id: str, date_from: date, date_to: date
-) -> dict[str, Any]:
+def generate_executive_summary(tenant_id: str, date_from: date, date_to: date) -> dict[str, Any]:
     """Generate executive summary metrics.
 
     Args:
@@ -83,7 +80,9 @@ def generate_executive_summary(
         "avg_position": round(avg_pos, 2),
         "total_backlinks": total_backlinks,
         "toxic_backlinks": toxic_backlinks,
-        "toxic_percentage": round(toxic_backlinks / total_backlinks * 100, 2) if total_backlinks else 0,
+        "toxic_percentage": (
+            round(toxic_backlinks / total_backlinks * 100, 2) if total_backlinks else 0
+        ),
         "pages_crawled": crawl_count,
         "pages_audited": audit_count,
         "avg_audit_score": round(avg_score, 2),
@@ -91,9 +90,7 @@ def generate_executive_summary(
     }
 
 
-def generate_keyword_section(
-    tenant_id: str, date_from: date, date_to: date
-) -> dict[str, Any]:
+def generate_keyword_section(tenant_id: str, date_from: date, date_to: date) -> dict[str, Any]:
     """Generate keyword rankings report section.
 
     Args:
@@ -109,12 +106,14 @@ def generate_keyword_section(
     movers: list[dict[str, Any]] = []
     for kw in keywords:
         if kw.position_change and abs(kw.position_change) >= 3:
-            movers.append({
-                "keyword": kw.keyword,
-                "current_position": kw.current_position,
-                "previous_position": kw.previous_position,
-                "change": kw.position_change,
-            })
+            movers.append(
+                {
+                    "keyword": kw.keyword,
+                    "current_position": kw.current_position,
+                    "previous_position": kw.previous_position,
+                    "change": kw.position_change,
+                }
+            )
 
     movers.sort(key=lambda m: abs(m["change"]), reverse=True)
 
@@ -129,9 +128,7 @@ def generate_keyword_section(
     }
 
 
-def generate_backlink_section(
-    tenant_id: str, date_from: date, date_to: date
-) -> dict[str, Any]:
+def generate_backlink_section(tenant_id: str, date_from: date, date_to: date) -> dict[str, Any]:
     """Generate backlink profile report section.
 
     Args:
@@ -168,16 +165,12 @@ def generate_backlink_section(
         "referring_domains": domains,
         "toxic_links": toxic,
         "toxic_percentage": round(toxic / total * 100, 2) if total else 0,
-        "anchor_distribution": dict(
-            sorted(anchors.items(), key=lambda x: x[1], reverse=True)[:15]
-        ),
+        "anchor_distribution": dict(sorted(anchors.items(), key=lambda x: x[1], reverse=True)[:15]),
         "period": {"from": date_from.isoformat(), "to": date_to.isoformat()},
     }
 
 
-def generate_technical_section(
-    tenant_id: str, date_from: date, date_to: date
-) -> dict[str, Any]:
+def generate_technical_section(tenant_id: str, date_from: date, date_to: date) -> dict[str, Any]:
     """Generate technical health report section.
 
     Args:
@@ -218,9 +211,7 @@ def generate_technical_section(
     }
 
 
-def generate_content_section(
-    tenant_id: str, date_from: date, date_to: date
-) -> dict[str, Any]:
+def generate_content_section(tenant_id: str, date_from: date, date_to: date) -> dict[str, Any]:
     """Generate content score report section.
 
     Args:
@@ -313,29 +304,19 @@ def generate_report(
 
     # Generate each section
     if "executive_summary" in sections:
-        report.executive_summary_json = generate_executive_summary(
-            tenant_id, date_from, date_to
-        )
+        report.executive_summary_json = generate_executive_summary(tenant_id, date_from, date_to)
 
     if "keyword_rankings" in sections:
-        report.keyword_rankings_json = generate_keyword_section(
-            tenant_id, date_from, date_to
-        )
+        report.keyword_rankings_json = generate_keyword_section(tenant_id, date_from, date_to)
 
     if "backlink_profile" in sections:
-        report.backlink_profile_json = generate_backlink_section(
-            tenant_id, date_from, date_to
-        )
+        report.backlink_profile_json = generate_backlink_section(tenant_id, date_from, date_to)
 
     if "technical_health" in sections:
-        report.technical_health_json = generate_technical_section(
-            tenant_id, date_from, date_to
-        )
+        report.technical_health_json = generate_technical_section(tenant_id, date_from, date_to)
 
     if "content_score" in sections:
-        report.content_score_json = generate_content_section(
-            tenant_id, date_from, date_to
-        )
+        report.content_score_json = generate_content_section(tenant_id, date_from, date_to)
 
     # Previous period comparison
     if compare:

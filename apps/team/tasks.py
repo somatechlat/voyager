@@ -59,10 +59,7 @@ def send_deadline_reminders(self, tenant_id: str) -> dict[str, Any]:
                     "task_title": task.title,
                     "assignee_id": task.assignee_id,
                     "due_date": task.due_date.isoformat() if task.due_date else None,
-                    "message": (
-                        f"Task '{task.title}' is due on "
-                        f"{task.due_date}"
-                    ),
+                    "message": (f"Task '{task.title}' is due on " f"{task.due_date}"),
                 },
             )
             notified_users.add(task.assignee_id)
@@ -118,11 +115,7 @@ def check_overdue_tasks(self, tenant_id: str) -> dict[str, Any]:
                 "task_title": task.title,
                 "assignee_id": task.assignee_id,
                 "due_date": task.due_date.isoformat() if task.due_date else None,
-                "days_overdue": (
-                    (date.today() - task.due_date).days
-                    if task.due_date
-                    else 0
-                ),
+                "days_overdue": ((date.today() - task.due_date).days if task.due_date else 0),
                 "priority": task.priority,
             },
         )
@@ -222,9 +215,7 @@ def send_team_digest(self, tenant_id: str) -> dict[str, Any]:
 
     since = datetime.now() - timedelta(hours=24)
 
-    recent_tasks_created = Task.objects.filter(
-        tenant_id=tenant_id, created_at__gte=since
-    ).count()
+    recent_tasks_created = Task.objects.filter(tenant_id=tenant_id, created_at__gte=since).count()
 
     recent_tasks_completed = Task.objects.filter(
         tenant_id=tenant_id,
@@ -232,9 +223,7 @@ def send_team_digest(self, tenant_id: str) -> dict[str, Any]:
         updated_at__gte=since,
     ).count()
 
-    activity_stats = ActivityService.get_stats(
-        tenant_id=tenant_id, date_from=since
-    )
+    activity_stats = ActivityService.get_stats(tenant_id=tenant_id, date_from=since)
 
     assignee_ids = list(
         Task.objects.filter(tenant_id=tenant_id)
@@ -285,17 +274,13 @@ def archive_old_messages(self, tenant_id: str, days: int = 365) -> dict[str, Any
 
     from apps.team.models import Message
 
-    direct_channels = MessageChannel.objects.filter(
-        tenant_id=tenant_id, channel_type="direct"
-    )
+    direct_channels = MessageChannel.objects.filter(tenant_id=tenant_id, channel_type="direct")
     direct_ids = list(direct_channels.values_list("id", flat=True))
     direct_deleted = Message.objects.filter(
         channel_id__in=direct_ids, created_at__lt=cutoff
     ).delete()[0]
 
-    group_channels = MessageChannel.objects.filter(
-        tenant_id=tenant_id, channel_type="group"
-    )
+    group_channels = MessageChannel.objects.filter(tenant_id=tenant_id, channel_type="group")
     group_ids = list(group_channels.values_list("id", flat=True))
     group_deleted = Message.objects.filter(
         channel_id__in=group_ids, created_at__lt=group_cutoff

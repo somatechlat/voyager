@@ -29,10 +29,13 @@ class ApprovalWorkflow(UUIDModel, TimeStampedModel, TenantModel):
 
     name = models.CharField(max_length=255, help_text="Workflow name")
     type = models.CharField(
-        max_length=16, choices=WorkflowType.choices, help_text="Approval type",
+        max_length=16,
+        choices=WorkflowType.choices,
+        help_text="Approval type",
     )
     steps_json = models.JSONField(
-        default=list, help_text="Step definitions: [{step, name, approvers, timeoutHours, escalateTo, actions, condition}]",
+        default=list,
+        help_text="Step definitions: [{step, name, approvers, timeoutHours, escalateTo, actions, condition}]",
     )
     auto_approve_on_timeout = models.BooleanField(
         default=False,
@@ -40,7 +43,9 @@ class ApprovalWorkflow(UUIDModel, TimeStampedModel, TenantModel):
     )
     is_active = models.BooleanField(default=True, db_index=True)
     created_by = models.CharField(
-        max_length=256, db_index=True, help_text="User UUID",
+        max_length=256,
+        db_index=True,
+        help_text="User UUID",
     )
 
     class Meta:
@@ -101,22 +106,27 @@ class ApprovalInstance(UUIDModel, TimeStampedModel):
         db_index=True,
     )
     current_step = models.PositiveIntegerField(
-        default=1, help_text="Current step number (1-indexed)",
+        default=1,
+        help_text="Current step number (1-indexed)",
     )
     status = models.CharField(
-        max_length=16, choices=Status.choices,
-        default=Status.PENDING, db_index=True,
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
     )
     step_started_at = models.DateTimeField(
         default=timezone.now,
         help_text="When current step started",
     )
     completed_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When instance was completed",
     )
     escalated_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="When escalation happened",
     )
 
@@ -237,10 +247,14 @@ class ApprovalAction(UUIDModel, TimeStampedModel):
     )
     step = models.PositiveIntegerField(help_text="Step number")
     approver_id = models.CharField(
-        max_length=256, db_index=True, help_text="User UUID",
+        max_length=256,
+        db_index=True,
+        help_text="User UUID",
     )
     action = models.CharField(
-        max_length=32, choices=Action.choices, db_index=True,
+        max_length=32,
+        choices=Action.choices,
+        db_index=True,
     )
     comment = models.TextField(blank=True)
 

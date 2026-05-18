@@ -74,14 +74,10 @@ def _validate_variables(
                 warnings.append(f"Variable '{name}' should be an integer")
             max_len = vd.get("maxLength")
             if max_len and isinstance(val, str) and len(val) > max_len:
-                warnings.append(
-                    f"Variable '{name}' exceeds max length {max_len}"
-                )
+                warnings.append(f"Variable '{name}' exceeds max length {max_len}")
             max_items = vd.get("maxItems")
             if max_items and isinstance(val, list) and len(val) > max_items:
-                warnings.append(
-                    f"Variable '{name}' exceeds max items {max_items}"
-                )
+                warnings.append(f"Variable '{name}' exceeds max items {max_items}")
     return warnings
 
 
@@ -151,9 +147,7 @@ def render_template(
         limit = platform_limits.get(platform)
         if limit and len(rendered) > limit:
             rendered = rendered[: limit - 3] + "..."
-            warnings.append(
-                f"Truncated to {limit} characters for {platform}"
-            )
+            warnings.append(f"Truncated to {limit} characters for {platform}")
 
     return {
         "rendered": rendered,

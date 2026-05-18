@@ -123,7 +123,14 @@ def get_hashtag_score(request, hashtag_id: str):
     h = get_object_or_404(HashtagResearch, id=hashtag_id)
     result = score_hashtag_competition(h.hashtag, h.platform, h.tenant_id)
     if result is None:
-        return {"hashtag": h.hashtag, "platform": h.platform, "competition": 0, "opportunity": 0, "recommendation": "unknown", "metrics": {}}
+        return {
+            "hashtag": h.hashtag,
+            "platform": h.platform,
+            "competition": 0,
+            "opportunity": 0,
+            "recommendation": "unknown",
+            "metrics": {},
+        }
     return HashtagScoreOut(**result)
 
 

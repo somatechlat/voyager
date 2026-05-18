@@ -14,6 +14,7 @@ from ninja import Schema
 
 # Dashboard schemas
 
+
 class WidgetConfigIn(Schema):
     """Widget configuration embedded in dashboard create/update."""
 
@@ -23,6 +24,7 @@ class WidgetConfigIn(Schema):
     position: dict[str, int] = {}
     config: dict[str, Any] = {}
     refresh_interval: int = 0
+
 
 class DashboardCreateIn(Schema):
     """Request body for creating a dashboard."""
@@ -35,6 +37,7 @@ class DashboardCreateIn(Schema):
     is_shared: bool = False
     shared_with: list[str] = []
 
+
 class DashboardUpdateIn(Schema):
     """Request body for updating a dashboard."""
 
@@ -45,6 +48,7 @@ class DashboardUpdateIn(Schema):
     is_default: bool | None = None
     is_shared: bool | None = None
     shared_with: list[str] | None = None
+
 
 class DashboardOut(Schema):
     """Response schema for a dashboard."""
@@ -62,7 +66,9 @@ class DashboardOut(Schema):
     created_at: datetime
     updated_at: datetime
 
+
 # Widget schemas
+
 
 class WidgetCreateIn(Schema):
     """Request body for creating a widget."""
@@ -74,6 +80,7 @@ class WidgetCreateIn(Schema):
     config: dict[str, Any] = {}
     refresh_interval: int = 0
 
+
 class WidgetUpdateIn(Schema):
     """Request body for updating a widget."""
 
@@ -83,6 +90,7 @@ class WidgetUpdateIn(Schema):
     position: dict[str, int] | None = None
     config: dict[str, Any] | None = None
     refresh_interval: int | None = None
+
 
 class WidgetOut(Schema):
     """Response schema for a widget."""
@@ -98,7 +106,9 @@ class WidgetOut(Schema):
     created_at: datetime
     updated_at: datetime
 
+
 # Report schemas
+
 
 class ReportTemplateCreateIn(Schema):
     """Request body for creating a report template."""
@@ -110,6 +120,7 @@ class ReportTemplateCreateIn(Schema):
     format: str = "pdf"
     is_favorite: bool = False
 
+
 class ReportTemplateUpdateIn(Schema):
     """Request body for updating a report template."""
 
@@ -119,6 +130,7 @@ class ReportTemplateUpdateIn(Schema):
     config: dict[str, Any] | None = None
     format: str | None = None
     is_favorite: bool | None = None
+
 
 class ReportTemplateOut(Schema):
     """Response schema for a report template."""
@@ -135,6 +147,7 @@ class ReportTemplateOut(Schema):
     created_at: datetime
     updated_at: datetime
 
+
 class ReportScheduleCreateIn(Schema):
     """Request body for creating a report schedule."""
 
@@ -145,6 +158,7 @@ class ReportScheduleCreateIn(Schema):
     delivery: dict[str, Any] = {}
     timezone: str = "UTC"
     is_active: bool = True
+
 
 class ReportScheduleOut(Schema):
     """Response schema for a report schedule."""
@@ -164,6 +178,7 @@ class ReportScheduleOut(Schema):
     created_by: str
     created_at: datetime
 
+
 class ReportGenerateIn(Schema):
     """Request body for on-demand report generation."""
 
@@ -172,6 +187,7 @@ class ReportGenerateIn(Schema):
     date_range: dict[str, str] = {}
     filters: dict[str, Any] = {}
     delivery: dict[str, Any] = {}
+
 
 class ReportGenerateOut(Schema):
     """Response schema for report generation."""
@@ -182,7 +198,9 @@ class ReportGenerateOut(Schema):
     download_url: str | None = None
     message: str = ""
 
+
 # Attribution schemas
+
 
 class AttributionModelCreateIn(Schema):
     """Request body for creating an attribution model."""
@@ -193,6 +211,7 @@ class AttributionModelCreateIn(Schema):
     lookback_window_days: int = 30
     is_default: bool = False
 
+
 class AttributionModelUpdateIn(Schema):
     """Request body for updating an attribution model."""
 
@@ -201,6 +220,7 @@ class AttributionModelUpdateIn(Schema):
     config: dict[str, Any] | None = None
     lookback_window_days: int | None = None
     is_default: bool | None = None
+
 
 class AttributionModelOut(Schema):
     """Response schema for an attribution model."""
@@ -216,12 +236,14 @@ class AttributionModelOut(Schema):
     created_at: datetime
     updated_at: datetime
 
+
 class AttributionCalculateIn(Schema):
     """Request body for running attribution calculation."""
 
     model_id: UUID
     conversion_paths: list[dict[str, Any]] = []
     date_range: dict[str, str] = {}
+
 
 class AttributionResultOut(Schema):
     """Response schema for attribution calculation results."""
@@ -232,6 +254,7 @@ class AttributionResultOut(Schema):
     total_revenue: float
     channel_credits: dict[str, Any]
     touchpoint_credits: list[dict[str, Any]]
+
 
 class TouchpointOut(Schema):
     """Response schema for a touchpoint."""
@@ -246,6 +269,7 @@ class TouchpointOut(Schema):
     timestamp: datetime
     credit: float
     revenue_attributed: float
+
 
 class ConversionPathOut(Schema):
     """Response schema for a conversion path."""
@@ -263,7 +287,9 @@ class ConversionPathOut(Schema):
     time_to_conversion_hours: float
     touchpoints: list[TouchpointOut] = []
 
+
 # Anomaly schemas
+
 
 class AnomalyAlertCreateIn(Schema):
     """Request body for creating an anomaly alert."""
@@ -279,6 +305,7 @@ class AnomalyAlertCreateIn(Schema):
     cooldown_minutes: int = 60
     enabled: bool = True
 
+
 class AnomalyAlertUpdateIn(Schema):
     """Request body for updating an anomaly alert."""
 
@@ -292,6 +319,7 @@ class AnomalyAlertUpdateIn(Schema):
     channels: list[dict[str, Any]] | None = None
     cooldown_minutes: int | None = None
     enabled: bool | None = None
+
 
 class AnomalyAlertOut(Schema):
     """Response schema for an anomaly alert."""
@@ -313,6 +341,7 @@ class AnomalyAlertOut(Schema):
     created_by: str
     created_at: datetime
 
+
 class AnomalyDetectIn(Schema):
     """Request body for on-demand anomaly detection."""
 
@@ -322,6 +351,7 @@ class AnomalyDetectIn(Schema):
     date_range: dict[str, str] = {}
     threshold: float = 3.0
     lookback_days: int = 30
+
 
 class AnomalyEventOut(Schema):
     """Response schema for an anomaly event."""
@@ -343,6 +373,7 @@ class AnomalyEventOut(Schema):
     acknowledged_by: str
     resolved_at: datetime | None
 
+
 class AnomalyDetectOut(Schema):
     """Response schema for anomaly detection results."""
 
@@ -352,7 +383,9 @@ class AnomalyDetectOut(Schema):
     anomaly_rate: float
     anomalies: list[AnomalyEventOut]
 
+
 # Export schemas
+
 
 class ExportCreateIn(Schema):
     """Request body for creating an export job."""
@@ -362,6 +395,7 @@ class ExportCreateIn(Schema):
     query: dict[str, Any] = {}
     format: str = "csv"
     columns: list[str] = []
+
 
 class ExportOut(Schema):
     """Response schema for an export job."""
@@ -383,7 +417,9 @@ class ExportOut(Schema):
     created_by: str
     created_at: datetime
 
+
 # Saved Query schemas
+
 
 class SavedQueryCreateIn(Schema):
     """Request body for creating a saved query."""
@@ -395,6 +431,7 @@ class SavedQueryCreateIn(Schema):
     data_source: str = "clickhouse"
     is_public: bool = False
 
+
 class SavedQueryUpdateIn(Schema):
     """Request body for updating a saved query."""
 
@@ -404,6 +441,7 @@ class SavedQueryUpdateIn(Schema):
     query_builder: dict[str, Any] | None = None
     data_source: str | None = None
     is_public: bool | None = None
+
 
 class SavedQueryOut(Schema):
     """Response schema for a saved query."""
@@ -423,6 +461,7 @@ class SavedQueryOut(Schema):
     created_at: datetime
     updated_at: datetime
 
+
 class QueryExecuteIn(Schema):
     """Request body for executing a saved or ad-hoc query."""
 
@@ -431,6 +470,7 @@ class QueryExecuteIn(Schema):
     query_builder: dict[str, Any] = {}
     data_source: str = "clickhouse"
     limit: int = 1000
+
 
 class QueryExecuteOut(Schema):
     """Response schema for query execution."""
@@ -441,7 +481,9 @@ class QueryExecuteOut(Schema):
     execution_time_ms: int
     data_source: str
 
+
 # Dashboard data / widget data schemas
+
 
 class WidgetDataIn(Schema):
     """Request body for fetching widget data."""
@@ -450,6 +492,7 @@ class WidgetDataIn(Schema):
     date_range: dict[str, str] = {}
     filters: dict[str, Any] = {}
     comparison: str = "none"
+
 
 class WidgetDataOut(Schema):
     """Response schema for widget data."""
@@ -460,6 +503,7 @@ class WidgetDataOut(Schema):
     data: dict[str, Any]
     comparison_data: dict[str, Any] | None = None
     generated_at: datetime
+
 
 class DashboardDataOut(Schema):
     """Response schema for full dashboard data."""

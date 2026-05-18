@@ -12,7 +12,6 @@ from typing import Any
 
 from apps.billing.models.time_entry import TimeEntry
 
-
 ROUNDING_MODES = {"nearest": round, "up": math.ceil, "down": math.floor}
 
 
@@ -73,9 +72,7 @@ def get_work_days(week_starting: date) -> list[date]:
     return [week_starting + timedelta(days=i) for i in range(5)]
 
 
-def validate_timesheet(
-    tenant_id: str, user_id: str, week_starting: date
-) -> dict[str, Any]:
+def validate_timesheet(tenant_id: str, user_id: str, week_starting: date) -> dict[str, Any]:
     """Validate a timesheet for the given user and week.
 
     Checks total hours, flags excessive entries, and identifies
@@ -96,18 +93,12 @@ def validate_timesheet(
         started_at__date__gte=week_starting,
         started_at__date__lte=week_end,
     )
-    total_hours = sum(
-        (e.duration_minutes for e in entries), start=0
-    ) / 60.0
+    total_hours = sum((e.duration_minutes for e in entries), start=0) / 60.0
     warnings: list[str] = []
     if total_hours < 35:
-        warnings.append(
-            f"Timesheet has only {total_hours:.1f} hours. Expected 40+."
-        )
+        warnings.append(f"Timesheet has only {total_hours:.1f} hours. Expected 40+.")
     if total_hours > 60:
-        warnings.append(
-            f"Timesheet has {total_hours:.1f} hours. Please verify."
-        )
+        warnings.append(f"Timesheet has {total_hours:.1f} hours. Please verify.")
     entry_dates = {e.started_at.date() for e in entries}
     gap_days = []
     for day in get_work_days(week_starting):
@@ -122,9 +113,7 @@ def validate_timesheet(
     }
 
 
-def submit_timesheet(
-    tenant_id: str, user_id: str, week_starting: date
-) -> dict[str, Any]:
+def submit_timesheet(tenant_id: str, user_id: str, week_starting: date) -> dict[str, Any]:
     """Submit a timesheet for approval.
 
     Updates all draft entries for the week to 'submitted' status

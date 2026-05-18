@@ -183,10 +183,15 @@ def bulk_moderate(
         elif action == "none":
             comment.is_hidden = False
             comment.hidden_reason = ""
-        comment.save(update_fields=[
-            "moderation_action", "moderated_by", "moderated_at",
-            "is_hidden", "hidden_reason",
-        ])
+        comment.save(
+            update_fields=[
+                "moderation_action",
+                "moderated_by",
+                "moderated_at",
+                "is_hidden",
+                "hidden_reason",
+            ]
+        )
         updated += 1
 
     return {"processed": updated, "action": action}
@@ -255,11 +260,13 @@ def suggest_response(
     for tone in tones:
         response = templates.get(tone, templates["professional"])
         confidence = _calculate_relevance(response, comment_text, tone, brand_tone)
-        suggestions.append({
-            "text": response,
-            "tone": tone,
-            "confidence": round(confidence, 2),
-        })
+        suggestions.append(
+            {
+                "text": response,
+                "tone": tone,
+                "confidence": round(confidence, 2),
+            }
+        )
 
     suggestions.sort(key=lambda x: x["confidence"], reverse=True)
     return suggestions
@@ -281,9 +288,7 @@ def _contains_profanity(text: str) -> bool:
     return any(word in lowered for word in PROFANITY_LIST)
 
 
-def _calculate_relevance(
-    response: str, comment: str, tone: str, brand_tone: str
-) -> float:
+def _calculate_relevance(response: str, comment: str, tone: str, brand_tone: str) -> float:
     """Score how relevant a response is to a comment.
 
     :param response: Suggested response text.

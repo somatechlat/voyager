@@ -11,6 +11,7 @@ from ninja import Schema
 
 class ObjectiveIn(Schema):
     """Input for creating/updating objective."""
+
     title: str
     level: str
     owner_id: str
@@ -22,6 +23,7 @@ class ObjectiveIn(Schema):
 
 class ObjectiveOut(Schema):
     """Output for an objective."""
+
     id: str
     title: str
     level: str
@@ -38,6 +40,7 @@ class ObjectiveOut(Schema):
 
 class KeyResultIn(Schema):
     """Input for creating/updating key result."""
+
     title: str
     kr_type: str
     target_value: float
@@ -50,6 +53,7 @@ class KeyResultIn(Schema):
 
 class KeyResultOut(Schema):
     """Output for a key result."""
+
     id: str
     objective_id: str
     title: str
@@ -68,11 +72,13 @@ class KeyResultOut(Schema):
 
 class ProgressUpdateIn(Schema):
     """Input for updating key result progress."""
+
     current_value: float
 
 
 class ProgressOut(Schema):
     """Output for progress calculation."""
+
     progress: float
     progressPercent: float
     currentValue: float
@@ -86,6 +92,7 @@ class ProgressOut(Schema):
 
 class ObjectiveTreeOut(Schema):
     """Output for objective tree with nested children and KRs."""
+
     id: str
     title: str
     level: str
@@ -102,6 +109,7 @@ class ObjectiveTreeOut(Schema):
 
 class OKRFilter(Schema):
     """Query filters for OKR listing."""
+
     quarter: str | None = None
     level: str | None = None
     status: str | None = None
@@ -112,6 +120,7 @@ class OKRFilter(Schema):
 
 class ConfidenceSummaryOut(Schema):
     """Output for OKR confidence summary."""
+
     objectives_by_status: dict[str, int]
     total_objectives: int
     average_progress: float

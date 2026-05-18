@@ -79,20 +79,24 @@ def _backtrack(
 
         if d > 0:
             if x == prev_x:
-                edits.append({
-                    "type": "add",
-                    "old_value": "",
-                    "new_value": new[y - 1] if y > 0 else "",
-                    "position": max(y - 1, 0),
-                })
+                edits.append(
+                    {
+                        "type": "add",
+                        "old_value": "",
+                        "new_value": new[y - 1] if y > 0 else "",
+                        "position": max(y - 1, 0),
+                    }
+                )
                 y -= 1
             else:
-                edits.append({
-                    "type": "delete",
-                    "old_value": old[x - 1] if x > 0 else "",
-                    "new_value": "",
-                    "position": max(x - 1, 0),
-                })
+                edits.append(
+                    {
+                        "type": "delete",
+                        "old_value": old[x - 1] if x > 0 else "",
+                        "new_value": "",
+                        "position": max(x - 1, 0),
+                    }
+                )
                 x -= 1
 
         k_end = prev_k
@@ -170,8 +174,8 @@ def create_revision(
         "changed_by": changed_by,
         "change_summary": change_summary
         or f"v{version_number}: {diff['summary']['words_added']} added, "
-           f"{diff['summary']['words_deleted']} deleted, "
-           f"{diff['summary']['change_percentage']}% changed",
+        f"{diff['summary']['words_deleted']} deleted, "
+        f"{diff['summary']['change_percentage']}% changed",
     }
 
 

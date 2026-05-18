@@ -7,7 +7,6 @@ and rollover calculation.
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router

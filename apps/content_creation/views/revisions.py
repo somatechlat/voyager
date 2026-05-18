@@ -9,7 +9,7 @@ POST /api/v1/content/revisions/{id}/rollback     — rollback to revision
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
@@ -25,16 +25,16 @@ logger = logging.getLogger(__name__)
 router = Router(tags=["Revisions"])
 
 
-@router.get("/generations/{generation_id}/revisions", response=List[RevisionOut])
+@router.get("/generations/{generation_id}/revisions", response=list[RevisionOut])
 def list_revisions(request, generation_id: UUID) -> list[RevisionHistory]:
     """List all revisions for a content generation."""
     tenant_id = get_tenant_id(request)
     # Verify the generation exists and belongs to the tenant
     get_object_or_404(ContentGeneration, id=generation_id, tenant_id=tenant_id)
     return list(
-        RevisionHistory.objects.filter(
-            content_generation_id=generation_id
-        ).order_by("-version_number")
+        RevisionHistory.objects.filter(content_generation_id=generation_id).order_by(
+            "-version_number"
+        )
     )
 
 
@@ -83,9 +83,7 @@ def create_revision_endpoint(
     gen.body_text = payload.body_text
     gen.save(update_fields=["body_text", "updated_at"])
 
-    logger.info(
-        "Created revision v%s for generation=%s", result["version_number"], generation_id
-    )
+    logger.info("Created revision v%s for generation=%s", result["version_number"], generation_id)
     return revision
 
 
@@ -142,9 +140,7 @@ def rollback_endpoint(request, revision_id: UUID) -> dict[str, Any]:
     gen.body_text = new_text
     gen.save(update_fields=["body_text", "updated_at"])
 
-    logger.info(
-        "Rolled back generation=%s to revision v%s", gen.id, revision.version_number
-    )
+    logger.info("Rolled back generation=%s to revision v%s", gen.id, revision.version_number)
     return {
         "rolled_back": True,
         "generation_id": str(gen.id),

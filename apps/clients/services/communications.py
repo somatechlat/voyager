@@ -56,7 +56,7 @@ class CommunicationService:
             try:
                 project = Project.objects.get(tenant_id=tenant_id, id=project_id)
             except Project.DoesNotExist:
-                pass
+                logger.debug("Project %s not found for communication log", project_id)
 
         log = CommunicationLog.objects.create(
             tenant_id=tenant_id,
@@ -216,7 +216,7 @@ class CommunicationService:
                     id=int(project_tag.group(1)),
                 )
             except Project.DoesNotExist:
-                pass
+                logger.debug("Project not found for email thread tag")
 
         metadata: dict[str, Any] = {
             "from_address": email_data.get("from_address", ""),

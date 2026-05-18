@@ -107,14 +107,16 @@ def generate_click_heatmap(
     for bid, data in block_map.items():
         unique = len(data["emails"])
         rate = round(unique / total_delivered, 6) if total_delivered > 0 else 0.0
-        results.append({
-            "block_id": bid,
-            "block_type": data["block_type"],
-            "total_clicks": data["total_clicks"],
-            "unique_clicks": unique,
-            "click_rate": rate,
-            "positions": data["positions"][:100],
-        })
+        results.append(
+            {
+                "block_id": bid,
+                "block_type": data["block_type"],
+                "total_clicks": data["total_clicks"],
+                "unique_clicks": unique,
+                "click_rate": rate,
+                "positions": data["positions"][:100],
+            }
+        )
     results.sort(key=lambda x: x["total_clicks"], reverse=True)
     return results
 

@@ -28,9 +28,7 @@ def build_dependency_graph(
         Dict mapping channel ID to list of dependent channel IDs.
     """
     graph: dict[int, list[int]] = {ch.id: [] for ch in channels}
-    dep_map: dict[str, int] = {
-        f"{ch.channel_type}:{ch.platform}": ch.id for ch in channels
-    }
+    dep_map: dict[str, int] = {f"{ch.channel_type}:{ch.platform}": ch.id for ch in channels}
 
     for ch in channels:
         for dep in ch.dependencies:
@@ -133,18 +131,14 @@ def find_critical_path(
         duration = durations.get(node, 1)
         earliest_finish[node] = earliest_start[node] + duration
         for dep in graph.get(node, []):
-            earliest_start[dep] = max(
-                earliest_start.get(dep, 0), earliest_finish[node]
-            )
+            earliest_start[dep] = max(earliest_start.get(dep, 0), earliest_finish[node])
 
     if not earliest_finish:
         return {"critical_channel_ids": [], "total_duration_days": 0}
 
     # Find the longest path (critical path)
     max_finish = max(earliest_finish.values())
-    critical_end = next(
-        nid for nid, fin in earliest_finish.items() if fin == max_finish
-    )
+    critical_end = next(nid for nid, fin in earliest_finish.items() if fin == max_finish)
 
     # Backtrack to find the critical path
     critical_path: list[int] = []
@@ -238,9 +232,7 @@ def schedule_channels(
                 "scheduled_end": ch_end.isoformat(),
                 "lead_time_days": ch.lead_time_days,
                 "depends_on": [
-                    dep_node
-                    for dep_node, dep_list in graph.items()
-                    if ch_id in dep_list
+                    dep_node for dep_node, dep_list in graph.items() if ch_id in dep_list
                 ],
             }
         )
@@ -271,56 +263,96 @@ def get_channel_recommendations(
             "audience_overlap": 0.85,
             "historical_performance": 0.70,
             "cost_efficiency": 0.90,
-            "objective_fit": {"awareness": 0.9, "engagement": 0.9, "conversion": 0.5, "retention": 0.7},
+            "objective_fit": {
+                "awareness": 0.9,
+                "engagement": 0.9,
+                "conversion": 0.5,
+                "retention": 0.7,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.PAID_SEARCH,
             "audience_overlap": 0.75,
             "historical_performance": 0.85,
             "cost_efficiency": 0.60,
-            "objective_fit": {"awareness": 0.6, "engagement": 0.5, "conversion": 0.95, "retention": 0.4},
+            "objective_fit": {
+                "awareness": 0.6,
+                "engagement": 0.5,
+                "conversion": 0.95,
+                "retention": 0.4,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.PAID_SOCIAL,
             "audience_overlap": 0.90,
             "historical_performance": 0.80,
             "cost_efficiency": 0.65,
-            "objective_fit": {"awareness": 0.9, "engagement": 0.85, "conversion": 0.8, "retention": 0.7},
+            "objective_fit": {
+                "awareness": 0.9,
+                "engagement": 0.85,
+                "conversion": 0.8,
+                "retention": 0.7,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.EMAIL,
             "audience_overlap": 0.70,
             "historical_performance": 0.90,
             "cost_efficiency": 0.95,
-            "objective_fit": {"awareness": 0.4, "engagement": 0.7, "conversion": 0.85, "retention": 0.95},
+            "objective_fit": {
+                "awareness": 0.4,
+                "engagement": 0.7,
+                "conversion": 0.85,
+                "retention": 0.95,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.SEO,
             "audience_overlap": 0.80,
             "historical_performance": 0.75,
             "cost_efficiency": 0.95,
-            "objective_fit": {"awareness": 0.8, "engagement": 0.7, "conversion": 0.7, "retention": 0.5},
+            "objective_fit": {
+                "awareness": 0.8,
+                "engagement": 0.7,
+                "conversion": 0.7,
+                "retention": 0.5,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.INFLUENCER,
             "audience_overlap": 0.65,
             "historical_performance": 0.75,
             "cost_efficiency": 0.50,
-            "objective_fit": {"awareness": 0.95, "engagement": 0.9, "conversion": 0.6, "retention": 0.5},
+            "objective_fit": {
+                "awareness": 0.95,
+                "engagement": 0.9,
+                "conversion": 0.6,
+                "retention": 0.5,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.DISPLAY,
             "audience_overlap": 0.85,
             "historical_performance": 0.60,
             "cost_efficiency": 0.80,
-            "objective_fit": {"awareness": 0.9, "engagement": 0.6, "conversion": 0.6, "retention": 0.5},
+            "objective_fit": {
+                "awareness": 0.9,
+                "engagement": 0.6,
+                "conversion": 0.6,
+                "retention": 0.5,
+            },
         },
         {
             "channel_type": CampaignChannel.ChannelType.VIDEO,
             "audience_overlap": 0.88,
             "historical_performance": 0.82,
             "cost_efficiency": 0.55,
-            "objective_fit": {"awareness": 0.95, "engagement": 0.9, "conversion": 0.7, "retention": 0.6},
+            "objective_fit": {
+                "awareness": 0.95,
+                "engagement": 0.9,
+                "conversion": 0.7,
+                "retention": 0.6,
+            },
         },
     ]
 

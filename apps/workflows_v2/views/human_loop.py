@@ -8,21 +8,20 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
-from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.models.execution import WorkflowExecution
 from apps.workflows_v2.models.human_loop import HumanApprovalNode
+from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.serializers import (
     ApprovalDecisionSchema,
-    ApprovalOutSchema,
     ApprovalFormSchema,
-    ErrorSchema,
+    ApprovalOutSchema,
 )
 from apps.workflows_v2.services.human_loop import (
     build_approval_context,
-    render_approval_form,
-    submit_approval_decision,
     escalate_approval,
     list_pending_approvals,
+    render_approval_form,
+    submit_approval_decision,
 )
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -51,9 +50,7 @@ def list_approvals(
     """List all approval requests for an execution."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
     return list(execution.approval_requests.order_by("-submitted_at"))
 
 
@@ -71,12 +68,8 @@ def get_approval(
     """Get a single approval request."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
-    return get_object_or_404(
-        HumanApprovalNode, id=approval_id, execution=execution
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
+    return get_object_or_404(HumanApprovalNode, id=approval_id, execution=execution)
 
 
 @router.get(
@@ -93,12 +86,8 @@ def approval_context(
     """Get the approval context for an approver."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
-    approval = get_object_or_404(
-        HumanApprovalNode, id=approval_id, execution=execution
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
+    approval = get_object_or_404(HumanApprovalNode, id=approval_id, execution=execution)
     triggered_by = execution.context.get("triggered_by")
     return build_approval_context(approval, workflow.name, triggered_by)
 
@@ -117,12 +106,8 @@ def approval_form(
     """Get the rendered approval form."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
-    approval = get_object_or_404(
-        HumanApprovalNode, id=approval_id, execution=execution
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
+    approval = get_object_or_404(HumanApprovalNode, id=approval_id, execution=execution)
     return render_approval_form(approval)
 
 
@@ -142,12 +127,8 @@ def submit_decision(
     tenant_id = _get_tenant(request)
     user_id = _get_user(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
-    approval = get_object_or_404(
-        HumanApprovalNode, id=approval_id, execution=execution
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
+    approval = get_object_or_404(HumanApprovalNode, id=approval_id, execution=execution)
     return submit_approval_decision(
         approval=approval,
         decision=payload.decision,
@@ -171,12 +152,8 @@ def escalate_approval_view(
     """Escalate a pending approval."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
-    execution = get_object_or_404(
-        WorkflowExecution, id=execution_id, workflow=workflow
-    )
-    approval = get_object_or_404(
-        HumanApprovalNode, id=approval_id, execution=execution
-    )
+    execution = get_object_or_404(WorkflowExecution, id=execution_id, workflow=workflow)
+    approval = get_object_or_404(HumanApprovalNode, id=approval_id, execution=execution)
     return escalate_approval(approval)
 
 

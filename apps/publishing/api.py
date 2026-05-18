@@ -21,11 +21,13 @@ from .views.schedule import router as schedule_router
 
 router = Router(auth=VoyagerKeycloakBearer())
 
+
 # Health check
 @router.get("/health", tags=["Publishing"])
 def module_health(request):
     """Publishing module health check."""
     return {"status": "ok", "module": "publishing"}
+
 
 # Register sub-routers
 router.add_router("/posts", posts_router, tags=["Publishing Posts"])

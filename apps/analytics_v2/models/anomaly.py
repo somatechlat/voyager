@@ -12,7 +12,6 @@ from django.db import models
 
 from apps.rbac.models import TenantScopedMixin
 
-
 ANOMALY_METHOD_CHOICES = [
     ("zscore", "Z-Score"),
     ("iqr", "Interquartile Range (IQR)"),

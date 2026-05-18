@@ -7,7 +7,6 @@ scoring, and fix recommendation generation.
 from __future__ import annotations
 
 import logging
-import math
 import re
 from typing import Any
 
@@ -313,7 +312,9 @@ def audit_page(
         keyword_density[kw] = round(density, 2)
         if density < 0.5:
             score -= 3
-            issues.append({"type": "low_keyword_density", "keyword": kw, "density": round(density, 2)})
+            issues.append(
+                {"type": "low_keyword_density", "keyword": kw, "density": round(density, 2)}
+            )
         elif density > 3.0:
             score -= 5
             issues.append({"type": "keyword_stuffing", "keyword": kw, "density": round(density, 2)})
@@ -322,7 +323,9 @@ def audit_page(
     readability = flesch_kincaid_score(body_text)
     if readability < 30:
         score -= 5
-        issues.append({"type": "low_readability", "score": round(readability, 2), "recommended": "60+"})
+        issues.append(
+            {"type": "low_readability", "score": round(readability, 2), "recommended": "60+"}
+        )
 
     # 10. Schema markup
     if not schemas:

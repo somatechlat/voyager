@@ -39,15 +39,11 @@ class AgentMemory(models.Model):
         unique=True,
         help_text="Qdrant collection identifier for this agent's vectors",
     )
-    vector_size = models.IntegerField(
-        default=1536, help_text="Embedding dimension size"
-    )
+    vector_size = models.IntegerField(default=1536, help_text="Embedding dimension size")
     distance_metric = models.CharField(
         max_length=20, default="cosine", help_text="Distance metric used in Qdrant"
     )
-    total_vectors = models.IntegerField(
-        default=0, help_text="Approximate number of vectors stored"
-    )
+    total_vectors = models.IntegerField(default=0, help_text="Approximate number of vectors stored")
     last_consolidated_at = models.DateTimeField(
         null=True, blank=True, help_text="When memory consolidation last ran"
     )
@@ -116,12 +112,8 @@ class MemoryEntry(models.Model):
     access_count = models.IntegerField(
         default=0, help_text="Number of times this memory was retrieved"
     )
-    last_accessed = models.DateTimeField(
-        auto_now_add=True, help_text="Timestamp of last access"
-    )
-    is_active = models.BooleanField(
-        default=True, help_text="Whether the entry is active"
-    )
+    last_accessed = models.DateTimeField(auto_now_add=True, help_text="Timestamp of last access")
+    is_active = models.BooleanField(default=True, help_text="Whether the entry is active")
     created_at = models.DateTimeField(
         auto_now_add=True, db_index=True, help_text="Timestamp when the memory was created"
     )

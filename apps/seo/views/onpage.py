@@ -7,7 +7,6 @@ and recommendation retrieval.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router

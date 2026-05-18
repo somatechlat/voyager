@@ -22,4 +22,6 @@ class AuditConfig(AppConfig):
         signal handlers for automatic audit log creation on
         model mutations across the platform.
         """
-        pass
+        import logging
+
+        logging.getLogger(__name__).debug("Audit app initialized")

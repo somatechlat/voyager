@@ -114,7 +114,9 @@ def _detect_tone(text: str) -> str:
     """
     lower = text.lower()
     scores = {
-        "professional": len(re.findall(r"\b(solution|enterprise|optimize|leverage|strategy)\b", lower)),
+        "professional": len(
+            re.findall(r"\b(solution|enterprise|optimize|leverage|strategy)\b", lower)
+        ),
         "casual": len(re.findall(r"\b(hey|cool|awesome|check out| folks)\b", lower)),
         "humorous": len(re.findall(r"\b(haha|lol|funny|joke| hilarious)\b", lower)),
         "urgent": len(re.findall(r"\b(now|urgent|limited|act fast|don.t miss)\b", lower)),
@@ -201,12 +203,14 @@ def score_compliance(
             found_forbidden.append(word)
             # Find position
             idx = lower_text.find(word.lower())
-            violations.append({
-                "type": "forbidden_word",
-                "word": word,
-                "severity": "error",
-                "position": {"start": idx, "end": idx + len(word)},
-            })
+            violations.append(
+                {
+                    "type": "forbidden_word",
+                    "word": word,
+                    "severity": "error",
+                    "position": {"start": idx, "end": idx + len(word)},
+                }
+            )
     if found_forbidden:
         score -= 10.0 * len(found_forbidden)
 
@@ -217,12 +221,14 @@ def score_compliance(
         if comp.lower() in lower_text:
             found_competitors.append(comp)
             idx = lower_text.find(comp.lower())
-            violations.append({
-                "type": "competitor_mention",
-                "competitor": comp,
-                "severity": "error",
-                "position": {"start": idx, "end": idx + len(comp)},
-            })
+            violations.append(
+                {
+                    "type": "competitor_mention",
+                    "competitor": comp,
+                    "severity": "error",
+                    "position": {"start": idx, "end": idx + len(comp)},
+                }
+            )
     if found_competitors:
         score -= 15.0 * len(found_competitors)
 
@@ -232,38 +238,48 @@ def score_compliance(
     tdist = _tone_distance(detected_tone, expected_tone)
     if tdist > 0.3:
         score -= 15.0
-        violations.append({
-            "type": "tone_mismatch",
-            "detected": detected_tone,
-            "expected": expected_tone,
-            "severity": "warning",
-        })
+        violations.append(
+            {
+                "type": "tone_mismatch",
+                "detected": detected_tone,
+                "expected": expected_tone,
+                "severity": "warning",
+            }
+        )
 
     # Readability
     readability = _flesch_kincaid(text)
     min_readability = float(brand_kit.get("min_readability", 60.0))
     if readability < min_readability:
         score -= 10.0
-        violations.append({
-            "type": "low_readability",
-            "score": round(readability, 2),
-            "min_required": min_readability,
-            "severity": "warning",
-        })
+        violations.append(
+            {
+                "type": "low_readability",
+                "score": round(readability, 2),
+                "min_required": min_readability,
+                "severity": "warning",
+            }
+        )
 
     # Required phrases
     required = brand_kit.get("required_phrases", [])
     for phrase in required:
         if phrase.lower() not in lower_text:
             score -= 5.0
-            violations.append({
-                "type": "missing_required_phrase",
-                "phrase": phrase,
-                "severity": "warning",
-            })
+            violations.append(
+                {
+                    "type": "missing_required_phrase",
+                    "phrase": phrase,
+                    "severity": "warning",
+                }
+            )
 
     final_score = max(0.0, score)
-    grade = "A" if final_score >= 90 else "B" if final_score >= 75 else "C" if final_score >= 60 else "F"
+    grade = (
+        "A"
+        if final_score >= 90
+        else "B" if final_score >= 75 else "C" if final_score >= 60 else "F"
+    )
     min_compliance = brand_kit.get("min_compliance_score", 75)
 
     return {

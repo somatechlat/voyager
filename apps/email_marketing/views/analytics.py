@@ -229,7 +229,8 @@ def analytics_dashboard(
         "sent": analytics.sent,
         "delivered": analytics.delivered,
         "delivery_rate": round(
-            (analytics.delivered / analytics.sent * 100 if analytics.sent > 0 else 0.0), 2,
+            (analytics.delivered / analytics.sent * 100 if analytics.sent > 0 else 0.0),
+            2,
         ),
         "opens": analytics.opens,
         "unique_opens": analytics.unique_opens,

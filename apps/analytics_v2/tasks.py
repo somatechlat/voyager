@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
 from typing import Any
-from uuid import UUID
 
 from celery import shared_task
 
@@ -32,9 +31,21 @@ def sync_all_platform_metrics(self) -> dict[str, Any]:
     logger.info("Task started: %s", self.name)
 
     platforms = [
-        "instagram", "linkedin", "twitter", "tiktok", "facebook",
-        "youtube", "pinterest", "google_analytics", "google_ads",
-        "meta_ads", "linkedin_ads", "sendgrid", "gsc", "hubspot", "stripe",
+        "instagram",
+        "linkedin",
+        "twitter",
+        "tiktok",
+        "facebook",
+        "youtube",
+        "pinterest",
+        "google_analytics",
+        "google_ads",
+        "meta_ads",
+        "linkedin_ads",
+        "sendgrid",
+        "gsc",
+        "hubspot",
+        "stripe",
     ]
 
     result: dict[str, Any] = {
@@ -48,7 +59,6 @@ def sync_all_platform_metrics(self) -> dict[str, Any]:
 
     for platform in platforms:
         try:
-            from apps.analytics_v2.services.dashboards import normalize_platform_metric
             result["platforms_synced"].append(platform)
             result["records_upserted"] += 0  # Actual fetch would populate
             logger.debug("Synced metrics for platform: %s", platform)
@@ -57,8 +67,12 @@ def sync_all_platform_metrics(self) -> dict[str, Any]:
             logger.warning("Failed to sync %s metrics: %s", platform, exc)
 
     result["completed_at"] = datetime.utcnow().isoformat()
-    logger.info("Task completed: %s — synced=%d failed=%d",
-                self.name, len(result["platforms_synced"]), len(result["platforms_failed"]))
+    logger.info(
+        "Task completed: %s — synced=%d failed=%d",
+        self.name,
+        len(result["platforms_synced"]),
+        len(result["platforms_failed"]),
+    )
     return result
 
 
@@ -83,7 +97,6 @@ def sync_platform_metrics(
     logger.info("Syncing %s metrics for tenant %s", platform, tenant_id)
 
     try:
-        from apps.analytics_v2.services.dashboards import normalize_platform_metric
         logger.debug("Normalised metrics for %s tenant %s", platform, tenant_id)
     except Exception as exc:
         logger.error("Failed to sync %s for tenant %s: %s", platform, tenant_id, exc)
@@ -123,7 +136,9 @@ def generate_report_task(
     Returns:
         Result dict with status, file info, and delivery status.
     """
-    logger.info("Generating report template=%s tenant=%s format=%s", template_id, tenant_id, output_format)
+    logger.info(
+        "Generating report template=%s tenant=%s format=%s", template_id, tenant_id, output_format
+    )
 
     try:
         from apps.analytics_v2.models.report import ReportTemplate
@@ -145,12 +160,15 @@ def generate_report_task(
 
         # Update schedule last_run if applicable
         from apps.analytics_v2.models.report import ReportSchedule
+
         for schedule in ReportSchedule.objects.filter(template_id=template_id, tenant_id=tenant_id):
             schedule.last_run_at = datetime.utcnow()
             schedule.last_run_status = result.get("status", "completed")
             schedule.save(update_fields=["last_run_at", "last_run_status"])
 
-        logger.info("Report generated: %s rows, status=%s", result.get("row_count", 0), result.get("status"))
+        logger.info(
+            "Report generated: %s rows, status=%s", result.get("row_count", 0), result.get("status")
+        )
         return result
 
     except ReportTemplate.DoesNotExist:
@@ -276,7 +294,9 @@ def detect_anomalies_task(self, tenant_id: str = "") -> dict[str, Any]:
         except Exception as exc:
             logger.error("Anomaly detection failed for alert %s: %s", alert.id, exc)
 
-    logger.info("Anomaly detection completed: %s alerts, %s anomalies", alerts_processed, anomalies_created)
+    logger.info(
+        "Anomaly detection completed: %s alerts, %s anomalies", alerts_processed, anomalies_created
+    )
     return {
         "status": "completed",
         "alerts_processed": alerts_processed,

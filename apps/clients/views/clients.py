@@ -7,7 +7,7 @@ import logging
 from ninja import Router
 from ninja.errors import HttpError
 
-from apps.clients.models.client import Client, ClientContact
+from apps.clients.models.client import ClientContact
 from apps.clients.serializers import (
     ClientContactCreateSchema,
     ClientContactSchema,
@@ -123,9 +123,7 @@ def set_client_status(request, client_id: int, status: str):
     response=OnboardingResponseSchema,
     tags=["Clients"],
 )
-def complete_onboarding(
-    request, client_id: int, payload: OnboardingCompleteSchema
-):
+def complete_onboarding(request, client_id: int, payload: OnboardingCompleteSchema):
     """Complete the onboarding process for a client."""
     tenant_id = _get_tenant(request)
     client = ClientService.complete_onboarding(
@@ -183,9 +181,7 @@ def list_client_contacts(request, client_id: int):
     response=ClientContactSchema,
     tags=["Clients"],
 )
-def create_client_contact(
-    request, client_id: int, payload: ClientContactCreateSchema
-):
+def create_client_contact(request, client_id: int, payload: ClientContactCreateSchema):
     """Create a contact for a client."""
     tenant_id = _get_tenant(request)
     client = ClientService.get_by_id(tenant_id, client_id)

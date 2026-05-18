@@ -30,6 +30,7 @@ Module Router Registry:
 
 from __future__ import annotations
 
+import logging
 import sys
 import uuid
 
@@ -63,7 +64,7 @@ if "pytest" in sys.modules:
     try:
         NinjaAPI._registry.clear()
     except Exception:
-        pass
+        logging.getLogger(__name__).debug("NinjaAPI registry clear failed during pytest setup")
     urls_namespace = f"voyager_v1_{uuid.uuid4().hex}"
 
 voyager_api = NinjaAPI(

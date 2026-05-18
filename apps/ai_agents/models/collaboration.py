@@ -73,9 +73,7 @@ class AgentCollaboration(models.Model):
     delegation_chain = models.JSONField(
         default=list, help_text="Ordered list of agent IDs in the delegation chain"
     )
-    max_depth = models.IntegerField(
-        default=5, help_text="Maximum allowed delegation depth"
-    )
+    max_depth = models.IntegerField(default=5, help_text="Maximum allowed delegation depth")
     messages = models.JSONField(
         default=list, blank=True, help_text="JSON log of inter-agent messages"
     )

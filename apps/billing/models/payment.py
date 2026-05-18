@@ -33,9 +33,7 @@ class Payment(TimestampedModel):
         CASH = "cash", "Cash"
         OTHER = "other", "Other"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     invoice = models.ForeignKey(
         "billing.Invoice",
         on_delete=models.CASCADE,
@@ -50,12 +48,8 @@ class Payment(TimestampedModel):
         related_name="payments",
         help_text="The client making the payment",
     )
-    amount = models.DecimalField(
-        max_digits=14, decimal_places=2, help_text="Payment amount"
-    )
-    currency = models.CharField(
-        max_length=3, default="USD", help_text="Currency code"
-    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2, help_text="Payment amount")
+    currency = models.CharField(max_length=3, default="USD", help_text="Currency code")
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -94,9 +88,7 @@ class Payment(TimestampedModel):
         default="",
         help_text="Stripe PaymentMethod ID",
     )
-    stripe_receipt_url = models.URLField(
-        blank=True, default="", help_text="Stripe receipt URL"
-    )
+    stripe_receipt_url = models.URLField(blank=True, default="", help_text="Stripe receipt URL")
     stripe_refund_id = models.CharField(
         max_length=255,
         blank=True,
@@ -109,18 +101,10 @@ class Payment(TimestampedModel):
         default=0,
         help_text="Amount refunded",
     )
-    refund_reason = models.TextField(
-        blank=True, help_text="Reason for refund"
-    )
-    failure_message = models.TextField(
-        blank=True, help_text="Failure reason if payment failed"
-    )
-    paid_at = models.DateTimeField(
-        blank=True, null=True, help_text="When payment succeeded"
-    )
-    metadata = models.JSONField(
-        blank=True, default=dict, help_text="Extra payment metadata"
-    )
+    refund_reason = models.TextField(blank=True, help_text="Reason for refund")
+    failure_message = models.TextField(blank=True, help_text="Failure reason if payment failed")
+    paid_at = models.DateTimeField(blank=True, null=True, help_text="When payment succeeded")
+    metadata = models.JSONField(blank=True, default=dict, help_text="Extra payment metadata")
 
     class Meta:
         db_table = "voyager_payment"

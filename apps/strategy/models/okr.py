@@ -270,9 +270,17 @@ class KeyResult(UUIDModel, TimeStampedModel):
         # Confidence based on velocity (simplified)
         velocity = current - start  # per-period change
         if self.direction == self.Direction.INCREASE:
-            confidence = self.Confidence.ON_TRACK if (current + velocity) >= target else self.Confidence.AT_RISK
+            confidence = (
+                self.Confidence.ON_TRACK
+                if (current + velocity) >= target
+                else self.Confidence.AT_RISK
+            )
         else:
-            confidence = self.Confidence.ON_TRACK if (current + velocity) <= target else self.Confidence.AT_RISK
+            confidence = (
+                self.Confidence.ON_TRACK
+                if (current + velocity) <= target
+                else self.Confidence.AT_RISK
+            )
 
         self.confidence = confidence
         self.save(update_fields=["progress", "confidence", "updated_at"])

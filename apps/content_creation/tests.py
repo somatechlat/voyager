@@ -5,8 +5,6 @@ Tests for models, services, and API endpoints.
 
 from __future__ import annotations
 
-import pytest
-
 from apps.content_creation.services.ab_testing import calculate_winner, create_test
 from apps.content_creation.services.brand_enforcement import score_compliance
 from apps.content_creation.services.generation import (
@@ -113,9 +111,7 @@ class TestABTesting:
     """A/B test engine."""
 
     def test_create_test_insufficient_variants(self):
-        result = create_test(
-            name="Test", content_generation_id="abc", variants=[]
-        )
+        result = create_test(name="Test", content_generation_id="abc", variants=[])
         assert result["valid"] is False
 
     def test_create_test_success(self):

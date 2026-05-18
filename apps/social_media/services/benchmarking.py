@@ -48,18 +48,14 @@ def create_benchmark(
         period_start = period_end - timedelta(days=delta.get(period, 7))
 
     engagement_diff = None
-    if competitor_metrics.get("avg_engagement_rate") and brand_metrics.get(
-        "avg_engagement_rate"
-    ):
+    if competitor_metrics.get("avg_engagement_rate") and brand_metrics.get("avg_engagement_rate"):
         engagement_diff = round(
-            competitor_metrics["avg_engagement_rate"]
-            - brand_metrics["avg_engagement_rate"],
+            competitor_metrics["avg_engagement_rate"] - brand_metrics["avg_engagement_rate"],
             4,
         )
 
-    follower_diff = (
-        competitor_metrics.get("follower_growth", 0)
-        - brand_metrics.get("follower_growth", 0)
+    follower_diff = competitor_metrics.get("follower_growth", 0) - brand_metrics.get(
+        "follower_growth", 0
     )
 
     benchmark = CompetitorBenchmark.objects.create(
@@ -132,7 +128,9 @@ def get_competitor_comparison(
             },
             "brand": {
                 "posts_count": b.brand_posts_count,
-                "avg_engagement_rate": float(b.brand_avg_engagement) if b.brand_avg_engagement else 0,
+                "avg_engagement_rate": (
+                    float(b.brand_avg_engagement) if b.brand_avg_engagement else 0
+                ),
                 "total_followers": b.brand_total_followers,
                 "follower_growth": b.brand_follower_growth,
             },
@@ -225,8 +223,7 @@ def get_trend_analysis(
             "competitor_value": float(getattr(b, metric, 0)) or 0,
             "brand_value": float(getattr(b, f"brand_{metric}", 0)) or 0,
             "diff": (
-                float(getattr(b, metric, 0) or 0)
-                - float(getattr(b, f"brand_{metric}", 0) or 0)
+                float(getattr(b, metric, 0) or 0) - float(getattr(b, f"brand_{metric}", 0) or 0)
             ),
         }
         for b in reversed(list(benchmarks))

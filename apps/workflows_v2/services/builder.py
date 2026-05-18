@@ -10,10 +10,9 @@ from typing import Any
 
 from django.db import models as django_models
 
-from apps.workflows_v2.models.workflow import Workflow
-from apps.workflows_v2.models.node import WorkflowNode
 from apps.workflows_v2.models.edge import WorkflowEdge
-
+from apps.workflows_v2.models.node import WorkflowNode
+from apps.workflows_v2.models.workflow import Workflow
 
 models_q = django_models.Q
 
@@ -163,9 +162,7 @@ def delete_edge(edge: WorkflowEdge) -> None:
 def _sync_nodes_to_json(workflow: Workflow) -> None:
     """Sync all nodes back to the workflow's nodes JSON field."""
     nodes = list(
-        workflow.workflow_nodes.values(
-            "node_id", "node_type", "label", "config", "position"
-        )
+        workflow.workflow_nodes.values("node_id", "node_type", "label", "config", "position")
     )
     workflow.nodes = nodes
     workflow.save(update_fields=["nodes", "updated_at"])
@@ -173,17 +170,9 @@ def _sync_nodes_to_json(workflow: Workflow) -> None:
 
 def _sync_edges_to_json(workflow: Workflow) -> None:
     """Sync all edges back to the workflow's connections JSON field."""
-    edges = list(
-        workflow.workflow_edges.values("source", "target", "label", "condition")
-    )
+    edges = list(workflow.workflow_edges.values("source", "target", "label", "condition"))
     workflow.connections = edges
     workflow.save(update_fields=["connections", "updated_at"])
 
 
 # Re-export from validation module for backward compatibility
-from apps.workflows_v2.services.validation import (  # noqa: E402
-    validate_workflow,
-    simulate_workflow,
-    publish_version,
-    compare_versions,
-)

@@ -6,7 +6,7 @@ AI-generated brief creation, retrieval, and approval.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from django.shortcuts import get_object_or_404
@@ -135,7 +135,7 @@ def approve_brief(
     brief.is_approved = payload.approved
     if payload.approved:
         brief.approved_by = getattr(request, "user_id", "")
-        brief.approved_at = datetime.now(timezone.utc)
+        brief.approved_at = datetime.now(UTC)
         # Also update the campaign brief_approved flag
         campaign = get_object_or_404(Campaign, id=campaign_id)
         campaign.brief_approved = True

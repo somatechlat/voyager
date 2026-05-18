@@ -9,5 +9,3 @@ All routes are registered through the views subpackage.
 """
 
 from __future__ import annotations
-
-from .views import router

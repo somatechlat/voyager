@@ -1,18 +1,10 @@
-"""Initial migration for Social Media module (part 1).
+# Generated initial migration for social_media
 
-Creates InboxMessage and SocialComment tables.
-"""
 
-from __future__ import annotations
-
-import uuid
-
-import django.db.models.deletion
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    """Initial migration part 1."""
 
     initial = True
 
@@ -22,261 +14,224 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="InboxMessage",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        help_text="Globally unique identifier (UUID v4)",
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "created_at",
-                    models.DateTimeField(
-                        auto_now_add=True,
-                        db_index=True,
-                        help_text="Timestamp when the record was created",
-                    ),
-                ),
-                (
-                    "updated_at",
-                    models.DateTimeField(
-                        auto_now=True,
-                        db_index=True,
-                        help_text="Timestamp when the record was last updated",
-                    ),
-                ),
-                (
-                    "tenant_id",
-                    models.CharField(
-                        db_index=True,
-                        help_text="Tenant identifier for multi-tenancy isolation",
-                        max_length=128,
-                    ),
-                ),
-                ("platform", models.CharField(db_index=True, max_length=50)),
+                ("platform", models.CharField(max_length=50, choices=PLATFORMS, db_index=True)),
                 (
                     "platform_message_id",
-                    models.CharField(blank=True, db_index=True, max_length=255),
+                    models.CharField(max_length=255, blank=True, db_index=True),
                 ),
-                ("type", models.CharField(db_index=True, max_length=30)),
-                ("author_name", models.CharField(blank=True, max_length=255)),
-                (
-                    "author_platform_id",
-                    models.CharField(blank=True, db_index=True, max_length=255),
-                ),
+                ("type", models.CharField(max_length=30, choices=MESSAGE_TYPES, db_index=True)),
+                ("author_name", models.CharField(max_length=255, blank=True)),
+                ("author_platform_id", models.CharField(max_length=255, blank=True, db_index=True)),
                 ("author_avatar", models.URLField(blank=True)),
                 ("text", models.TextField(blank=True)),
-                ("media_urls", models.JSONField(blank=True, default=list)),
+                ("media_urls", models.JSONField(default=list, blank=True)),
                 (
-                    "post_id",
-                    models.CharField(blank=True, db_index=True, max_length=255),
+                    "parent",
+                    models.ForeignKey(
+                        to="self",
+                        on_delete=models.SET_NULL,
+                        null=True,
+                        blank=True,
+                        related_name="replies",
+                        help_text="Parent message for threaded replies",
+                    ),
                 ),
-                ("thread_id", models.UUIDField(blank=True, db_index=True, null=True)),
+                ("post_id", models.CharField(max_length=255, blank=True, db_index=True)),
+                ("thread_id", models.UUIDField(null=True, blank=True, db_index=True)),
                 (
                     "sentiment",
-                    models.CharField(blank=True, db_index=True, max_length=20),
+                    models.CharField(
+                        max_length=20,
+                        choices=SENTIMENTS,
+                        blank=True,
+                        db_index=True,
+                    ),
                 ),
                 (
                     "sentiment_score",
                     models.DecimalField(
-                        blank=True, decimal_places=3, max_digits=4, null=True
+                        max_digits=4,
+                        decimal_places=3,
+                        null=True,
+                        blank=True,
                     ),
                 ),
                 (
                     "spam_score",
                     models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=3, null=True
-                    ),
-                ),
-                ("status", models.CharField(db_index=True, default="new", max_length=20)),
-                ("assigned_to", models.CharField(blank=True, max_length=128)),
-                ("assignment_reason", models.TextField(blank=True)),
-                ("replied_at", models.DateTimeField(blank=True, null=True)),
-                (
-                    "response_time_minutes",
-                    models.PositiveIntegerField(blank=True, null=True),
-                ),
-                ("received_at", models.DateTimeField(db_index=True)),
-                (
-                    "parent",
-                    models.ForeignKey(
-                        blank=True,
-                        help_text="Parent message for threaded replies",
+                        max_digits=3,
+                        decimal_places=2,
                         null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="replies",
-                        to="social_media.inboxmessage",
+                        blank=True,
                     ),
                 ),
+                (
+                    "status",
+                    models.CharField(
+                        max_length=20,
+                        choices=STATUSES,
+                        default="new",
+                        db_index=True,
+                    ),
+                ),
+                ("assigned_to", models.CharField(max_length=128, blank=True, db_index=True)),
+                ("assignment_reason", models.TextField(blank=True)),
+                ("replied_at", models.DateTimeField(null=True, blank=True)),
+                ("response_time_minutes", models.PositiveIntegerField(null=True, blank=True)),
+                ("received_at", models.DateTimeField(db_index=True)),
             ],
             options={
                 "db_table": "sm_inbox_messages",
                 "ordering": ["-received_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "received_at"]),
+                    models.Index(fields=["tenant_id", "status"]),
+                    models.Index(fields=["tenant_id", "platform", "status"]),
+                    models.Index(fields=["assigned_to", "status"]),
+                    models.Index(fields=["thread_id"]),
+                    models.Index(fields=["tenant_id", "type", "status"]),
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(
-                fields=["tenant_id", "received_at"], name="sm_inbox_tenant_recv"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(
-                fields=["tenant_id", "status"], name="sm_inbox_tenant_status"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(
-                fields=["tenant_id", "platform", "status"], name="sm_inbox_tenant_plat"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(
-                fields=["assigned_to", "status"], name="sm_inbox_assigned"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(fields=["thread_id"], name="sm_inbox_thread"),
-        ),
-        migrations.AddIndex(
-            model_name="inboxmessage",
-            index=models.Index(
-                fields=["tenant_id", "type", "status"], name="sm_inbox_tenant_type"
-            ),
         ),
         migrations.CreateModel(
             name="SocialComment",
             fields=[
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
-                        help_text="Globally unique identifier (UUID v4)",
-                        primary_key=True,
-                        serialize=False,
-                    ),
-                ),
-                (
-                    "created_at",
-                    models.DateTimeField(
-                        auto_now_add=True,
-                        db_index=True,
-                        help_text="Timestamp when the record was created",
-                    ),
-                ),
-                (
-                    "updated_at",
-                    models.DateTimeField(
-                        auto_now=True,
-                        db_index=True,
-                        help_text="Timestamp when the record was last updated",
-                    ),
-                ),
-                (
-                    "tenant_id",
-                    models.CharField(
-                        db_index=True,
-                        help_text="Tenant identifier for multi-tenancy isolation",
-                        max_length=128,
-                    ),
-                ),
-                ("platform", models.CharField(db_index=True, max_length=50)),
+                ("platform", models.CharField(max_length=50, choices=PLATFORMS, db_index=True)),
                 (
                     "platform_comment_id",
-                    models.CharField(blank=True, db_index=True, max_length=255),
+                    models.CharField(max_length=255, blank=True, db_index=True),
                 ),
-                ("post_id", models.CharField(blank=True, db_index=True, max_length=255)),
-                ("author_name", models.CharField(blank=True, max_length=255)),
+                ("post_id", models.CharField(max_length=255, blank=True, db_index=True)),
                 (
-                    "author_platform_id",
-                    models.CharField(blank=True, db_index=True, max_length=255),
+                    "parent_comment",
+                    models.ForeignKey(
+                        to="self",
+                        on_delete=models.SET_NULL,
+                        null=True,
+                        blank=True,
+                        related_name="replies",
+                    ),
                 ),
+                ("author_name", models.CharField(max_length=255, blank=True)),
+                ("author_platform_id", models.CharField(max_length=255, blank=True, db_index=True)),
                 ("author_avatar", models.URLField(blank=True)),
                 ("text", models.TextField(blank=True)),
-                ("sentiment", models.CharField(blank=True, db_index=True, max_length=20)),
+                (
+                    "sentiment",
+                    models.CharField(
+                        max_length=20,
+                        choices=SENTIMENTS,
+                        blank=True,
+                        db_index=True,
+                    ),
+                ),
                 (
                     "sentiment_score",
                     models.DecimalField(
-                        blank=True, decimal_places=3, max_digits=4, null=True
+                        max_digits=4,
+                        decimal_places=3,
+                        null=True,
+                        blank=True,
                     ),
                 ),
                 (
                     "spam_score",
                     models.DecimalField(
-                        blank=True, decimal_places=2, max_digits=3, null=True
+                        max_digits=3,
+                        decimal_places=2,
+                        null=True,
+                        blank=True,
                     ),
                 ),
-                ("spam_reasons", models.JSONField(blank=True, default=list)),
-                ("is_spam", models.BooleanField(db_index=True, default=False)),
-                ("is_hidden", models.BooleanField(db_index=True, default=False)),
+                ("spam_reasons", models.JSONField(default=list, blank=True)),
+                ("is_spam", models.BooleanField(default=False, db_index=True)),
+                ("is_hidden", models.BooleanField(default=False, db_index=True)),
                 ("hidden_reason", models.TextField(blank=True)),
                 (
                     "moderation_action",
-                    models.CharField(db_index=True, default="none", max_length=20),
-                ),
-                ("moderated_by", models.CharField(blank=True, max_length=128)),
-                ("moderated_at", models.DateTimeField(blank=True, null=True)),
-                ("reply_text", models.TextField(blank=True)),
-                ("replied_by", models.CharField(blank=True, max_length=128)),
-                ("replied_at", models.DateTimeField(blank=True, null=True)),
-                ("ai_suggestions", models.JSONField(blank=True, default=list)),
-                ("like_count", models.PositiveIntegerField(default=0)),
-                ("received_at", models.DateTimeField(db_index=True)),
-                (
-                    "parent_comment",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="replies",
-                        to="social_media.socialcomment",
+                    models.CharField(
+                        max_length=20,
+                        choices=MODERATION_ACTIONS,
+                        default="none",
+                        db_index=True,
                     ),
                 ),
+                ("moderated_by", models.CharField(max_length=128, blank=True)),
+                ("moderated_at", models.DateTimeField(null=True, blank=True)),
+                ("reply_text", models.TextField(blank=True)),
+                ("replied_by", models.CharField(max_length=128, blank=True)),
+                ("replied_at", models.DateTimeField(null=True, blank=True)),
+                ("ai_suggestions", models.JSONField(default=list, blank=True)),
+                ("like_count", models.PositiveIntegerField(default=0)),
+                ("received_at", models.DateTimeField(db_index=True)),
             ],
             options={
                 "db_table": "sm_social_comments",
                 "ordering": ["-received_at"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "post_id", "received_at"]),
+                    models.Index(fields=["tenant_id", "is_spam"]),
+                    models.Index(fields=["tenant_id", "is_hidden"]),
+                    models.Index(fields=["tenant_id", "platform", "received_at"]),
+                    models.Index(fields=["tenant_id", "sentiment", "spam_score"]),
+                ],
             },
         ),
-        migrations.AddIndex(
-            model_name="socialcomment",
-            index=models.Index(
-                fields=["tenant_id", "post_id", "received_at"],
-                name="sm_comment_tpost_recv",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="socialcomment",
-            index=models.Index(
-                fields=["tenant_id", "is_spam"], name="sm_comment_tenant_spam"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="socialcomment",
-            index=models.Index(
-                fields=["tenant_id", "is_hidden"], name="sm_comment_tenant_hidden"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="socialcomment",
-            index=models.Index(
-                fields=["tenant_id", "platform", "received_at"],
-                name="sm_comment_tenant_plat",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="socialcomment",
-            index=models.Index(
-                fields=["tenant_id", "sentiment", "spam_score"],
-                name="sm_comment_sent_spam",
-            ),
+        migrations.CreateModel(
+            name="CommunityMember",
+            fields=[
+                ("platform", models.CharField(max_length=50, choices=PLATFORMS, db_index=True)),
+                ("platform_user_id", models.CharField(max_length=255, blank=True, db_index=True)),
+                ("name", models.CharField(max_length=255, blank=True, db_index=True)),
+                ("avatar", models.URLField(blank=True)),
+                ("bio", models.TextField(blank=True)),
+                ("followers", models.PositiveIntegerField(default=0)),
+                ("following", models.PositiveIntegerField(default=0)),
+                (
+                    "engagement_score",
+                    models.DecimalField(
+                        max_digits=8,
+                        decimal_places=2,
+                        default=0,
+                        db_index=True,
+                    ),
+                ),
+                ("influence_score", models.DecimalField(max_digits=8, decimal_places=2, default=0)),
+                ("loyalty_score", models.DecimalField(max_digits=8, decimal_places=2, default=0)),
+                (
+                    "vip_score",
+                    models.DecimalField(
+                        max_digits=8,
+                        decimal_places=2,
+                        default=0,
+                        db_index=True,
+                    ),
+                ),
+                (
+                    "tier",
+                    models.CharField(
+                        max_length=20,
+                        choices=TIERS,
+                        default="passive",
+                        db_index=True,
+                    ),
+                ),
+                ("first_seen_at", models.DateTimeField(auto_now_add=True)),
+                ("last_active_at", models.DateTimeField(auto_now=True)),
+                ("total_interactions", models.PositiveIntegerField(default=0)),
+                ("interaction_breakdown", models.JSONField(default=dict, blank=True)),
+            ],
+            options={
+                "db_table": "sm_community_members",
+                "ordering": ["-vip_score", "-engagement_score"],
+                "indexes": [
+                    models.Index(fields=["tenant_id", "vip_score"]),
+                    models.Index(fields=["tenant_id", "tier"]),
+                    models.Index(fields=["tenant_id", "platform", "vip_score"]),
+                    models.Index(fields=["tenant_id", "engagement_score"]),
+                    models.Index(fields=["tenant_id", "platform_user_id"]),
+                ],
+                "unique_together": [("tenant_id", "platform", "platform_user_id")],
+            },
         ),
     ]

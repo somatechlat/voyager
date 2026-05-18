@@ -84,7 +84,9 @@ def create_attribution_model(request, payload: AttributionModelCreateIn) -> Attr
 
 
 @router.patch("/attribution-models/{model_id}", response=AttributionModelOut, tags=["Attribution"])
-def update_attribution_model(request, model_id: UUID, payload: AttributionModelUpdateIn) -> AttributionModel:
+def update_attribution_model(
+    request, model_id: UUID, payload: AttributionModelUpdateIn
+) -> AttributionModel:
     """Update an attribution model."""
     tenant_id = _tenant_from_request(request)
     model = get_object_or_404(AttributionModel, id=model_id, tenant_id=tenant_id)
@@ -191,9 +193,15 @@ def compare_attribution_models(request, payload: dict[str, Any]) -> dict[str, An
         for cp in conversion_paths:
             touchpoints = cp.get("touchpoints", [])
             conv_date_str = cp.get("conversion_date", datetime.utcnow().isoformat())
-            conv_date = datetime.fromisoformat(conv_date_str.replace("Z", "+00:00")) if isinstance(conv_date_str, str) else datetime.utcnow()
+            conv_date = (
+                datetime.fromisoformat(conv_date_str.replace("Z", "+00:00"))
+                if isinstance(conv_date_str, str)
+                else datetime.utcnow()
+            )
             conv_value = float(cp.get("conversion_value", 0))
-            credited = calculate_attribution(touchpoints, conv_date, conv_value, model.model_type, model.config)
+            credited = calculate_attribution(
+                touchpoints, conv_date, conv_value, model.model_type, model.config
+            )
             all_credited.extend(credited)
 
         summary = get_attribution_summary(all_credited)
@@ -282,7 +290,9 @@ def get_attribution_dashboard_summary(request) -> dict[str, Any]:
     return {
         "total_conversion_paths": total_paths,
         "total_touchpoints": total_touchpoints,
-        "avg_touchpoints_per_conversion": round(total_touchpoints / total_paths, 2) if total_paths > 0 else 0,
+        "avg_touchpoints_per_conversion": (
+            round(total_touchpoints / total_paths, 2) if total_paths > 0 else 0
+        ),
         "channel_distribution": channel_counts,
         "attribution_models_configured": model_count,
     }

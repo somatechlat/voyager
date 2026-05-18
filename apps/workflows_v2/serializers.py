@@ -7,8 +7,8 @@ from typing import Any, Literal
 
 from ninja import Schema
 
-
 # ── Workflow ────────────────────────────────────────────────────
+
 
 class WorkflowCreateSchema(Schema):
     """Schema for creating a workflow."""
@@ -59,6 +59,7 @@ class WorkflowListSchema(Schema):
 
 # ── Workflow Nodes ──────────────────────────────────────────────
 
+
 class NodeCreateSchema(Schema):
     """Schema for creating a node."""
 
@@ -91,6 +92,7 @@ class NodeOutSchema(Schema):
 
 # ── Workflow Edges ──────────────────────────────────────────────
 
+
 class EdgeCreateSchema(Schema):
     """Schema for creating an edge."""
 
@@ -120,6 +122,7 @@ class EdgeOutSchema(Schema):
 
 # ── Validation ──────────────────────────────────────────────────
 
+
 class ValidationErrorSchema(Schema):
     """Schema for a single validation error."""
 
@@ -136,6 +139,7 @@ class ValidationOutSchema(Schema):
 
 
 # ── Simulation ──────────────────────────────────────────────────
+
 
 class SimulateSchema(Schema):
     """Schema for simulation request."""
@@ -163,6 +167,7 @@ class SimulateOutSchema(Schema):
 
 
 # ── Versioning ──────────────────────────────────────────────────
+
 
 class PublishVersionSchema(Schema):
     """Schema for publishing a version."""
@@ -192,6 +197,7 @@ class VersionDiffSchema(Schema):
 
 
 # ── Triggers ────────────────────────────────────────────────────
+
 
 class TriggerCreateSchema(Schema):
     """Schema for creating a trigger."""
@@ -225,6 +231,7 @@ class TriggerOutSchema(Schema):
 
 
 # ── Executions ──────────────────────────────────────────────────
+
 
 class ExecutionOutSchema(Schema):
     """Schema for execution response."""
@@ -260,6 +267,7 @@ class ExecutionProgressSchema(Schema):
 
 
 # ── Human Approval ──────────────────────────────────────────────
+
 
 class ApprovalDecisionSchema(Schema):
     """Schema for submitting an approval decision."""
@@ -301,6 +309,7 @@ class ApprovalFormSchema(Schema):
 
 
 # ── Templates ───────────────────────────────────────────────────
+
 
 class TemplateCreateSchema(Schema):
     """Schema for creating a template."""
@@ -355,6 +364,7 @@ class TemplateListSchema(Schema):
 
 # ── Webhook ─────────────────────────────────────────────────────
 
+
 class WebhookInSchema(Schema):
     """Schema for inbound webhook payload."""
 
@@ -362,6 +372,7 @@ class WebhookInSchema(Schema):
 
 
 # ── Generic ─────────────────────────────────────────────────────
+
 
 class StatusSchema(Schema):
     """Generic status response."""

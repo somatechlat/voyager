@@ -12,7 +12,6 @@ from typing import Any
 
 from apps.billing.models.project_budget import ProjectBudget
 
-
 DEFAULT_ALERT_THRESHOLDS: dict[str, list[float]] = {
     "fixed": [50.0, 75.0, 90.0, 100.0],
     "hourly": [75.0, 90.0, 100.0],
@@ -52,9 +51,7 @@ def evaluate_budget_alert(budget: ProjectBudget) -> dict[str, Any]:
         Dict with alert_level, consumption_pct, and triggered.
     """
     if budget.total_budget and budget.total_budget > 0:
-        consumption_pct = float(
-            (budget.budget_consumed / budget.total_budget) * 100
-        )
+        consumption_pct = float((budget.budget_consumed / budget.total_budget) * 100)
     else:
         consumption_pct = 0.0
     custom = budget.alert_thresholds or {}

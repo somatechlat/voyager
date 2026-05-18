@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from ninja import Router
-from ninja.errors import HttpError
 
-from apps.clients.models.project import ProjectMilestone
 from apps.clients.serializers import (
     MilestoneCreateSchema,
     MilestoneSchema,
@@ -62,9 +60,7 @@ def list_projects(
     )
 
 
-@router.get(
-    "/clients/{client_id}/projects", response=PaginatedProjectsSchema, tags=["Projects"]
-)
+@router.get("/clients/{client_id}/projects", response=PaginatedProjectsSchema, tags=["Projects"])
 def list_client_projects(request, client_id: int, status: str | None = None):
     """List all projects for a specific client."""
     tenant_id = _get_tenant(request)
@@ -210,9 +206,7 @@ def get_milestone(request, project_id: int, milestone_id: int):
     response=MilestoneSchema,
     tags=["Projects"],
 )
-def update_milestone(
-    request, project_id: int, milestone_id: int, payload: MilestoneUpdateSchema
-):
+def update_milestone(request, project_id: int, milestone_id: int, payload: MilestoneUpdateSchema):
     """Update a milestone."""
     milestone = ProjectService.get_milestone_by_id(project_id, milestone_id)
     data = {k: v for k, v in payload.dict().items() if v is not None}

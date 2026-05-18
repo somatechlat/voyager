@@ -8,7 +8,7 @@ POST /api/v1/content/generations/{id}/repurpose — repurpose content
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 router = Router(tags=["Content Repurposing"])
 
 
-@router.get("/repurposing-rules", response=List[dict[str, Any]])
+@router.get("/repurposing-rules", response=list[dict[str, Any]])
 def list_repurposing_rules(request) -> list[ContentRepurposingRule]:
     """List all active repurposing rules for the current tenant."""
     tenant_id = get_tenant_id(request)
     return list(
-        ContentRepurposingRule.objects.filter(
-            tenant_id=tenant_id, is_active=True
-        ).order_by("-created_at")
+        ContentRepurposingRule.objects.filter(tenant_id=tenant_id, is_active=True).order_by(
+            "-created_at"
+        )
     )
 
 

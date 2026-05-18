@@ -119,24 +119,36 @@ def check_technical_issues(
     # Core Web Vitals
     cwv = check_cwv(lcp_ms, fid_ms, cls_score)
     if cwv.get("lcp") == "poor":
-        issues.append({"type": "slow_lcp", "value": lcp_ms, "threshold": _LCP_GOOD, "severity": "high"})
+        issues.append(
+            {"type": "slow_lcp", "value": lcp_ms, "threshold": _LCP_GOOD, "severity": "high"}
+        )
     elif cwv.get("lcp") == "needs_improvement":
-        issues.append({"type": "slow_lcp", "value": lcp_ms, "threshold": _LCP_GOOD, "severity": "medium"})
+        issues.append(
+            {"type": "slow_lcp", "value": lcp_ms, "threshold": _LCP_GOOD, "severity": "medium"}
+        )
 
     if cwv.get("fid") == "poor":
-        issues.append({"type": "high_fid", "value": fid_ms, "threshold": _FID_GOOD, "severity": "medium"})
+        issues.append(
+            {"type": "high_fid", "value": fid_ms, "threshold": _FID_GOOD, "severity": "medium"}
+        )
 
     if cwv.get("cls") == "poor":
-        issues.append({"type": "high_cls", "value": cls_score, "threshold": _CLS_GOOD, "severity": "medium"})
+        issues.append(
+            {"type": "high_cls", "value": cls_score, "threshold": _CLS_GOOD, "severity": "medium"}
+        )
 
     if ttfb_ms and ttfb_ms > _TTFB_GOOD:
-        issues.append({"type": "slow_ttfb", "value": ttfb_ms, "threshold": _TTFB_GOOD, "severity": "medium"})
+        issues.append(
+            {"type": "slow_ttfb", "value": ttfb_ms, "threshold": _TTFB_GOOD, "severity": "medium"}
+        )
 
     # Canonical
     if not canonical:
         issues.append({"type": "missing_canonical", "severity": "medium"})
     elif canonical != url:
-        issues.append({"type": "canonical_mismatch", "canonical": canonical, "url": url, "severity": "low"})
+        issues.append(
+            {"type": "canonical_mismatch", "canonical": canonical, "url": url, "severity": "low"}
+        )
 
     # Hreflang
     if hreflangs:
@@ -181,7 +193,9 @@ def check_technical_issues(
         issues.append({"type": "broken_links", "count": broken_count, "severity": severity})
 
     if len(internal_links) < 3:
-        issues.append({"type": "few_internal_links", "count": len(internal_links), "severity": "low"})
+        issues.append(
+            {"type": "few_internal_links", "count": len(internal_links), "severity": "low"}
+        )
 
     return issues
 
@@ -272,9 +286,7 @@ def crawl_page(
 
     # Calculate SEO score (100 - penalties)
     severity_penalties = {"critical": 15, "high": 8, "medium": 4, "low": 1}
-    penalty = sum(
-        severity_penalties.get(issue.get("severity", "low"), 1) for issue in issues
-    )
+    penalty = sum(severity_penalties.get(issue.get("severity", "low"), 1) for issue in issues)
     seo_score = max(0.0, 100.0 - penalty)
 
     crawl = TechnicalCrawl.objects.create(
@@ -343,12 +355,8 @@ def get_crawl_summary(tenant_id: str, crawl_job_id: str) -> dict[str, Any]:
 
     return {
         "pages_crawled": total,
-        "critical_issues": sum(
-            1 for i in all_issues if i.get("severity") == "critical"
-        ),
-        "warning_issues": sum(
-            1 for i in all_issues if i.get("severity") in ("high", "medium")
-        ),
+        "critical_issues": sum(1 for i in all_issues if i.get("severity") == "critical"),
+        "warning_issues": sum(1 for i in all_issues if i.get("severity") in ("high", "medium")),
         "avg_load_time_ms": round(sum(load_times) / len(load_times), 2) if load_times else 0,
         "broken_links": broken,
         "avg_seo_score": round(sum(scores) / len(scores), 2) if scores else 0.0,

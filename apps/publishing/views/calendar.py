@@ -47,6 +47,7 @@ def calendar_day(
         dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
     else:
         from django.utils import timezone
+
         dt = timezone.now()
 
     return get_calendar_day_view(tenant_id, dt, filters)
@@ -70,6 +71,7 @@ def calendar_month(
 
     if year == 0 or month == 0:
         from django.utils import timezone
+
         now = timezone.now()
         year = now.year if year == 0 else year
         month = now.month if month == 0 else month

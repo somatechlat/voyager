@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.db.models import Avg, Q
 from django.utils import timezone
-from django.db.models import Avg, Count, Q
 
 from apps.ai_agents.models import AIAgent
 from apps.ai_agents.models.learning import AgentLearningLoop
@@ -34,12 +34,14 @@ class LearningService:
             Dict with success_patterns, failure_patterns, and statistics.
         """
         from apps.ai_agents.models.agent import AIAgent as AgentModel
+
         agent = AgentModel.objects.get(pk=agent_id, tenant_id=tenant_id)
 
         since = timezone.now() - timezone.timedelta(days=period_days)
 
         # Get tasks from memory entries as proxy for task history
         from apps.ai_agents.models.memory import MemoryEntry
+
         tasks = MemoryEntry.objects.filter(
             agent=agent,
             created_at__gte=since,
@@ -71,9 +73,7 @@ class LearningService:
             "success_rate": round(success_rate, 4),
             "success_patterns": success_patterns,
             "failure_patterns": failure_patterns,
-            "avg_importance": float(
-                tasks.aggregate(avg=Avg("importance"))["avg"] or 0.0
-            ),
+            "avg_importance": float(tasks.aggregate(avg=Avg("importance"))["avg"] or 0.0),
         }
 
         logger.info(
@@ -193,9 +193,7 @@ class LearningService:
             strategy_score=0.5,
         )
 
-        logger.info(
-            "A/B test configured for agent %s: split=%.2f", agent_id, traffic_split
-        )
+        logger.info("A/B test configured for agent %s: split=%.2f", agent_id, traffic_split)
         return ab_config
 
     @staticmethod
@@ -216,9 +214,13 @@ class LearningService:
         Returns:
             Updated A/B test state.
         """
-        loop = AgentLearningLoop.objects.filter(
-            agent_id=agent_id, tenant_id=tenant_id, ab_test_enabled=True
-        ).order_by("-applied_at").first()
+        loop = (
+            AgentLearningLoop.objects.filter(
+                agent_id=agent_id, tenant_id=tenant_id, ab_test_enabled=True
+            )
+            .order_by("-applied_at")
+            .first()
+        )
 
         if not loop:
             return {"status": "error", "error": "No active A/B test found"}
@@ -271,9 +273,7 @@ class LearningService:
         return patterns
 
     @staticmethod
-    def _calculate_strategy_score(
-        success_patterns: list, failure_patterns: list
-    ) -> float:
+    def _calculate_strategy_score(success_patterns: list, failure_patterns: list) -> float:
         """Calculate a strategy effectiveness score.
 
         Args:

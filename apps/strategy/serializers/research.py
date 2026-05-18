@@ -10,6 +10,7 @@ from ninja import Schema
 
 class MarketResearchIn(Schema):
     """Input for creating/updating market research."""
+
     industry: str
     trends: list[dict[str, Any]] | None = None
     market_size: dict[str, Any] | None = None
@@ -20,6 +21,7 @@ class MarketResearchIn(Schema):
 
 class MarketResearchOut(Schema):
     """Output for market research."""
+
     id: str
     industry: str
     trends: list[dict[str, Any]]
@@ -32,6 +34,7 @@ class MarketResearchOut(Schema):
 
 class TrendDetectionIn(Schema):
     """Input for trend detection."""
+
     industry: str
     sources: list[str] | None = None
     date_from: date | None = None
@@ -40,6 +43,7 @@ class TrendDetectionIn(Schema):
 
 class TrendOut(Schema):
     """Output for a detected trend."""
+
     name: str
     velocity: float
     acceleration: float
@@ -52,6 +56,7 @@ class TrendOut(Schema):
 
 class ResearchFilter(Schema):
     """Query filters for market research listing."""
+
     industry: str | None = None
     date_from: date | None = None
     date_to: date | None = None
@@ -61,6 +66,7 @@ class ResearchFilter(Schema):
 
 class CompetitiveLandscapeOut(Schema):
     """Output for competitive landscape aggregation."""
+
     competitor_count: int
     competitors: list[dict[str, Any]]
     platform_coverage: dict[str, int]

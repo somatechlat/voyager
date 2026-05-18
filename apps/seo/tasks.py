@@ -16,8 +16,7 @@ from django.utils import timezone
 from apps.seo.models.keyword import Keyword
 from apps.seo.models.rank import SERPTracking
 from apps.seo.models.report import SEOReport
-from apps.seo.services.keywords import research_keywords
-from apps.seo.services.rank_tracking import collect_ranking, get_ranking_distribution
+from apps.seo.services.rank_tracking import collect_ranking
 from apps.seo.services.reporting import generate_report
 
 logger = logging.getLogger(__name__)
@@ -64,7 +63,13 @@ def update_rankings(self) -> dict[str, Any]:
         "errors": errors,
         "timestamp": timezone.now().isoformat(),
     }
-    logger.info("Task completed: %s — keywords_checked=%d updated=%d errors=%d", self.name, len(trackings), updated, errors)
+    logger.info(
+        "Task completed: %s — keywords_checked=%d updated=%d errors=%d",
+        self.name,
+        len(trackings),
+        updated,
+        errors,
+    )
     return result
 
 

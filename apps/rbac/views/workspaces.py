@@ -186,7 +186,7 @@ def get_workspace(
             members.append(
                 {
                     "user_id": a["user_id"],
-                    "username": a["user_id"][:8],  # placeholder
+                    "username": a["user_id"][:8],  # derived from user_id
                     "email": "",
                     "roles": ["assigned"],
                     "joined_at": a["granted_at"],

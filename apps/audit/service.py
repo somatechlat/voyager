@@ -70,7 +70,27 @@ def log_audit_event(
         )
         record_hash = hashlib.sha256(record_data.encode()).hexdigest()
 
-        # TODO: Write to AuditLogEntry model or send to async task
+        # Persist audit entry to database via the AuditLogEntry model.
+        try:
+            from apps.audit.models import AuditLogEntry
+
+            AuditLogEntry.objects.create(
+                tenant_id=tenant_id,
+                actor_id=actor_id,
+                actor_type=actor_type,
+                action=action,
+                resource_type=resource_type,
+                resource_id=resource_id,
+                outcome=outcome,
+                details=details or {},
+                ip_address=ip_address,
+                user_agent=user_agent,
+                request_id=request_id,
+                record_hash=record_hash,
+            )
+        except Exception:
+            logger.warning("Failed to persist audit entry to database", exc_info=True)
+
         logger.info(
             "AUDIT: tenant=%s actor=%s action=%s resource=%s outcome=%s hash=%s",
             tenant_id,

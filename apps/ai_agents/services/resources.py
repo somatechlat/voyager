@@ -68,17 +68,29 @@ class ResourceManager:
                 limits.throttle_factor = FACTOR_CRITICAL
                 limits.save(update_fields=["throttle_factor"])
                 logger.warning("Agent %s critically low on %s", agent_id, resource_name)
-                return {"action": "throttled_severe", "resource": resource_name, "throttle_factor": FACTOR_CRITICAL}
+                return {
+                    "action": "throttled_severe",
+                    "resource": resource_name,
+                    "throttle_factor": FACTOR_CRITICAL,
+                }
 
             elif utilization >= THROTTLE_MODERATE:
                 limits.throttle_factor = FACTOR_MODERATE
                 limits.save(update_fields=["throttle_factor"])
-                return {"action": "throttled_moderate", "resource": resource_name, "throttle_factor": FACTOR_MODERATE}
+                return {
+                    "action": "throttled_moderate",
+                    "resource": resource_name,
+                    "throttle_factor": FACTOR_MODERATE,
+                }
 
             elif utilization >= THROTTLE_LIGHT:
                 limits.throttle_factor = FACTOR_LIGHT
                 limits.save(update_fields=["throttle_factor"])
-                return {"action": "throttled_light", "resource": resource_name, "throttle_factor": FACTOR_LIGHT}
+                return {
+                    "action": "throttled_light",
+                    "resource": resource_name,
+                    "throttle_factor": FACTOR_LIGHT,
+                }
 
         limits.throttle_factor = FACTOR_FULL
         limits.save(update_fields=["throttle_factor"])
@@ -110,9 +122,7 @@ class ResourceManager:
         limits.used_api_calls += api_calls
         limits.used_memory_mb += memory_mb
         limits.used_cost_today = float(limits.used_cost_today) + cost
-        limits.save(
-            update_fields=["used_api_calls", "used_memory_mb", "used_cost_today"]
-        )
+        limits.save(update_fields=["used_api_calls", "used_memory_mb", "used_cost_today"])
 
         return {
             "used_api_calls": limits.used_api_calls,
@@ -146,9 +156,7 @@ class ResourceManager:
         )
 
         # Reset agent statuses from suspended to idle
-        AIAgent.objects.filter(status=AIAgent.Status.SUSPENDED).update(
-            status=AIAgent.Status.IDLE
-        )
+        AIAgent.objects.filter(status=AIAgent.Status.SUSPENDED).update(status=AIAgent.Status.IDLE)
 
         logger.info("Reset daily counters for %d agents", count)
         return {"reset_count": count}
@@ -176,20 +184,29 @@ class ResourceManager:
                 "api_calls": {
                     "used": limits.used_api_calls,
                     "max": limits.max_api_calls,
-                    "utilization": round(limits.used_api_calls / limits.max_api_calls, 4)
-                    if limits.max_api_calls > 0 else 0.0,
+                    "utilization": (
+                        round(limits.used_api_calls / limits.max_api_calls, 4)
+                        if limits.max_api_calls > 0
+                        else 0.0
+                    ),
                 },
                 "memory": {
                     "used": limits.used_memory_mb,
                     "max": limits.max_memory_mb,
-                    "utilization": round(limits.used_memory_mb / limits.max_memory_mb, 4)
-                    if limits.max_memory_mb > 0 else 0.0,
+                    "utilization": (
+                        round(limits.used_memory_mb / limits.max_memory_mb, 4)
+                        if limits.max_memory_mb > 0
+                        else 0.0
+                    ),
                 },
                 "cost": {
                     "used": float(limits.used_cost_today),
                     "max": float(limits.max_cost_per_day),
-                    "utilization": round(float(limits.used_cost_today) / float(limits.max_cost_per_day), 4)
-                    if float(limits.max_cost_per_day) > 0 else 0.0,
+                    "utilization": (
+                        round(float(limits.used_cost_today) / float(limits.max_cost_per_day), 4)
+                        if float(limits.max_cost_per_day) > 0
+                        else 0.0
+                    ),
                 },
             },
             "throttle_factor": float(limits.throttle_factor),

@@ -12,7 +12,6 @@ from ninja import Query, Router
 
 from apps.strategy.models import AudiencePersona, PersonaCampaignLink
 from apps.strategy.serializers.personas import (
-    AggregatedTargetingOut,
     PersonaCampaignLinkIn,
     PersonaCampaignLinkOut,
     PersonaFilter,
@@ -134,10 +133,14 @@ def link_persona_to_campaign(
 def get_persona_campaigns(request, persona_id: str):
     """Get all campaigns linked to a persona."""
     tenant_id = _get_tenant_id(request)
-    links = PersonaCampaignLink.objects.filter(
-        persona_id=persona_id,
-        persona__tenant_id=tenant_id,
-    ).select_related("persona").order_by("-weight")
+    links = (
+        PersonaCampaignLink.objects.filter(
+            persona_id=persona_id,
+            persona__tenant_id=tenant_id,
+        )
+        .select_related("persona")
+        .order_by("-weight")
+    )
     return {
         "persona_id": persona_id,
         "campaigns": [

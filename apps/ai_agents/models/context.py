@@ -37,9 +37,7 @@ class AgentContext(models.Model):
     tenant_id = models.CharField(
         max_length=128, db_index=True, help_text="Tenant identifier for multi-tenancy isolation"
     )
-    task_type = models.CharField(
-        max_length=50, help_text="The type of task being executed"
-    )
+    task_type = models.CharField(max_length=50, help_text="The type of task being executed")
     brand_context = models.JSONField(
         default=dict, blank=True, help_text="Brand guidelines snapshot"
     )

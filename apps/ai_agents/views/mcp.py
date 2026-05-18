@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from django.http import HttpRequest
 
 from apps.ai_agents.models.mcp import MCPToolCall
@@ -18,9 +16,7 @@ from apps.ai_agents.serializers import (
 from apps.ai_agents.services.mcp_tools import MCPToolService
 
 
-def register_tool(
-    request: HttpRequest, payload: RegisterToolRequest
-) -> MCPToolCall:
+def register_tool(request: HttpRequest, payload: RegisterToolRequest) -> MCPToolCall:
     """Register a new MCP tool for an agent."""
     tenant_id = request.headers.get("X-Tenant-ID", "")
     agent_id = request.GET.get("agent_id", "0")
@@ -41,9 +37,7 @@ def register_tool(
     )
 
 
-def list_tools(
-    request: HttpRequest, agent_id: int = 0
-) -> list[MCPToolSchema]:
+def list_tools(request: HttpRequest, agent_id: int = 0) -> list[MCPToolSchema]:
     """List registered MCP tools for a tenant."""
     tenant_id = request.headers.get("X-Tenant-ID", "")
     tools = MCPToolService.list_tools(

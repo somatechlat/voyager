@@ -36,8 +36,6 @@ EVENT_ICONS = {
 class ActivityServiceError(Exception):
     """Raised when an activity service operation fails."""
 
-    pass
-
 
 class ActivityService:
     """Service layer for activity feed operations."""
@@ -243,9 +241,7 @@ class ActivityService:
         }
 
     @staticmethod
-    def get_recent_activity(
-        tenant_id: str, hours: int = 24, page_size: int = 50
-    ) -> dict[str, Any]:
+    def get_recent_activity(tenant_id: str, hours: int = 24, page_size: int = 50) -> dict[str, Any]:
         """Get recent activity from the last N hours.
 
         Args:
@@ -289,15 +285,11 @@ class ActivityService:
         total = qs.count()
 
         action_counts = dict(
-            qs.values("action_type").annotate(count=Count("id")).values_list(
-                "action_type", "count"
-            )
+            qs.values("action_type").annotate(count=Count("id")).values_list("action_type", "count")
         )
 
         actor_counts = dict(
-            qs.values("actor_id").annotate(count=Count("id")).values_list(
-                "actor_id", "count"
-            )
+            qs.values("actor_id").annotate(count=Count("id")).values_list("actor_id", "count")
         )
 
         daily_counts = dict(

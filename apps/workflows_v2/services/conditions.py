@@ -9,7 +9,8 @@ from __future__ import annotations
 import ast
 import logging
 import operator
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -180,8 +181,7 @@ def _eval_node(node: ast.AST, context: dict[str, Any]) -> Any:
 
     if isinstance(node, ast.Dict):
         return {
-            _eval_node(k, context): _eval_node(v, context)
-            for k, v in zip(node.keys, node.values)
+            _eval_node(k, context): _eval_node(v, context) for k, v in zip(node.keys, node.values)
         }
 
     raise ValueError(f"Unsupported expression node: {type(node).__name__}")

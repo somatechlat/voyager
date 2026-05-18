@@ -107,9 +107,8 @@ def get_campaign_recipients(
                 tenant_id=campaign.tenant_id,
                 id=campaign.segment_id_ref,
             )
-            if (
-                segment.segment_type == AudienceSegment.Type.STATIC
-                and segment.rules.get("subscriber_ids")
+            if segment.segment_type == AudienceSegment.Type.STATIC and segment.rules.get(
+                "subscriber_ids"
             ):
                 queryset = queryset.filter(
                     id__in=segment.rules["subscriber_ids"],

@@ -16,6 +16,7 @@ from apps.email_marketing.models.subscriber import EmailSubscriber
 # Trigger processing
 # ---------------------------------------------------------------------------
 
+
 def process_trigger(
     trigger_type: str,
     trigger_config: dict[str, Any],
@@ -211,6 +212,7 @@ def _trigger_page_visit(
 # Step evaluation
 # ---------------------------------------------------------------------------
 
+
 def evaluate_sequence_step(
     step: dict[str, Any],
     subscriber: EmailSubscriber,
@@ -264,7 +266,11 @@ def evaluate_sequence_step(
             "step_id": step_id,
             "goal_achieved": achieved,
             "exit": achieved and step.get("exit_on_achieve", False),
-            "next_step": None if (achieved and step.get("exit_on_achieve")) else _find_next_step_id(step, sequence_state),
+            "next_step": (
+                None
+                if (achieved and step.get("exit_on_achieve"))
+                else _find_next_step_id(step, sequence_state)
+            ),
         }
     return {"action": "unknown", "step_id": step_id, "next_step": None}
 
@@ -321,7 +327,9 @@ def check_condition(
             return subscriber.status != value
     if field.startswith("custom."):
         custom_key = field.replace("custom.", "")
-        custom_value = subscriber.custom_fields.get(custom_key) if subscriber.custom_fields else None
+        custom_value = (
+            subscriber.custom_fields.get(custom_key) if subscriber.custom_fields else None
+        )
         if operator == "eq":
             return custom_value == value
         if operator == "has":

@@ -10,12 +10,9 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from django.db.models import Sum
-
 from apps.billing.models.invoice import Invoice
 from apps.billing.models.profitability import ProfitabilityReport
 from apps.billing.models.time_entry import TimeEntry
-
 
 DIMENSIONS = [
     "client",
@@ -43,9 +40,7 @@ def calculate_gross_margin(revenue: Decimal, total_costs: Decimal) -> Decimal:
     return Decimal(str(round(((revenue - total_costs) / revenue) * 100, 2)))
 
 
-def calculate_trend(
-    monthly_values: list[dict[str, Any]]
-) -> dict[str, Any]:
+def calculate_trend(monthly_values: list[dict[str, Any]]) -> dict[str, Any]:
     """Calculate month-over-month trend.
 
     Args:
@@ -113,11 +108,7 @@ def compute_client_profitability(
     total_cost = labor_cost
     gross_profit = revenue - total_cost
     gross_margin = calculate_gross_margin(revenue, total_cost)
-    effective_rate = (
-        Decimal(str(round(revenue / hours_logged, 2)))
-        if hours_logged > 0
-        else None
-    )
+    effective_rate = Decimal(str(round(revenue / hours_logged, 2))) if hours_logged > 0 else None
     report, _created = ProfitabilityReport.objects.update_or_create(
         tenant_id=tenant_id,
         dimension=dimension,

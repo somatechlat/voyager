@@ -6,7 +6,6 @@ API endpoints for expense tracking, receipt OCR, and approval workflow.
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router
@@ -120,9 +119,7 @@ def process_ocr(request, ocr_text: str):
     return result
 
 
-@router.post(
-    "/expenses/{int:expense_id}/approve", response=ExpenseApprovalSchema, tags=["Billing"]
-)
+@router.post("/expenses/{int:expense_id}/approve", response=ExpenseApprovalSchema, tags=["Billing"])
 def approve_expense_endpoint(request, expense_id: int, notes: str = ""):
     """Approve an expense."""
     tenant_id = getattr(request, "tenant_id", "")
@@ -132,9 +129,7 @@ def approve_expense_endpoint(request, expense_id: int, notes: str = ""):
     return result
 
 
-@router.post(
-    "/expenses/{int:expense_id}/reject", response=ExpenseApprovalSchema, tags=["Billing"]
-)
+@router.post("/expenses/{int:expense_id}/reject", response=ExpenseApprovalSchema, tags=["Billing"])
 def reject_expense_endpoint(request, expense_id: int, reason: str = ""):
     """Reject an expense."""
     tenant_id = getattr(request, "tenant_id", "")
@@ -144,9 +139,7 @@ def reject_expense_endpoint(request, expense_id: int, reason: str = ""):
     return result
 
 
-@router.get(
-    "/expenses/{int:expense_id}/billable-amount", response=dict, tags=["Billing"]
-)
+@router.get("/expenses/{int:expense_id}/billable-amount", response=dict, tags=["Billing"])
 def get_billable_amount(request, expense_id: int):
     """Get the billable amount for an expense."""
     tenant_id = getattr(request, "tenant_id", "")

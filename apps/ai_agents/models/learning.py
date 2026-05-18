@@ -52,12 +52,8 @@ class AgentLearningLoop(models.Model):
     prompt_adjustments = models.JSONField(
         default=dict, blank=True, help_text="System prompt changes applied"
     )
-    ab_test_enabled = models.BooleanField(
-        default=False, help_text="Whether A/B testing is active"
-    )
-    ab_test_config = models.JSONField(
-        default=dict, blank=True, help_text="A/B test configuration"
-    )
+    ab_test_enabled = models.BooleanField(default=False, help_text="Whether A/B testing is active")
+    ab_test_config = models.JSONField(default=dict, blank=True, help_text="A/B test configuration")
     strategy_score = models.DecimalField(
         max_digits=4,
         decimal_places=3,

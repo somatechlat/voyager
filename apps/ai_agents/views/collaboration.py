@@ -77,9 +77,7 @@ def complete_collaboration(
     )
 
 
-def get_collaboration_messages(
-    request: HttpRequest, collaboration_id: int
-) -> list[dict[str, Any]]:
+def get_collaboration_messages(request: HttpRequest, collaboration_id: int) -> list[dict[str, Any]]:
     """Get the message log for a collaboration."""
     tenant_id = request.headers.get("X-Tenant-ID", "")
     return CollaborationService.get_collaboration_messages(

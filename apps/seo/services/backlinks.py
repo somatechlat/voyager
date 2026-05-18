@@ -10,8 +10,6 @@ import logging
 from collections import Counter
 from typing import Any
 
-from django.db.models import Count, Q
-
 from apps.seo.models.backlink import Backlink
 
 logger = logging.getLogger(__name__)
@@ -207,12 +205,8 @@ def analyze_backlink_profile(
     link_types = Counter(bl.link_type for bl in backlinks)
     anchors = Counter(bl.anchor_text for bl in backlinks if bl.anchor_text)
 
-    da_values = [
-        float(bl.domain_authority) for bl in backlinks if bl.domain_authority is not None
-    ]
-    pa_values = [
-        float(bl.page_authority) for bl in backlinks if bl.page_authority is not None
-    ]
+    da_values = [float(bl.domain_authority) for bl in backlinks if bl.domain_authority is not None]
+    pa_values = [float(bl.page_authority) for bl in backlinks if bl.page_authority is not None]
 
     avg_da = round(sum(da_values) / len(da_values), 2) if da_values else 0.0
     avg_pa = round(sum(pa_values) / len(pa_values), 2) if pa_values else 0.0
@@ -226,12 +220,14 @@ def analyze_backlink_profile(
             / max(len(domain_links), 1),
             2,
         )
-        domain_breakdown.append({
-            "domain": domain,
-            "backlink_count": count,
-            "domain_authority": avg_dom_da,
-            "toxic_count": sum(1 for bl in domain_links if bl.is_toxic),
-        })
+        domain_breakdown.append(
+            {
+                "domain": domain,
+                "backlink_count": count,
+                "domain_authority": avg_dom_da,
+                "toxic_count": sum(1 for bl in domain_links if bl.is_toxic),
+            }
+        )
 
     return {
         "total_backlinks": total,
@@ -244,9 +240,7 @@ def analyze_backlink_profile(
         "toxic_percentage": round(len(toxic) / total * 100, 2) if total else 0,
         "avg_domain_authority": avg_da,
         "avg_page_authority": avg_pa,
-        "avg_toxicity_score": round(
-            sum(float(bl.toxicity_score) for bl in backlinks) / total, 2
-        ),
+        "avg_toxicity_score": round(sum(float(bl.toxicity_score) for bl in backlinks) / total, 2),
         "anchor_distribution": dict(anchors.most_common(20)),
         "domain_distribution": domain_breakdown,
         "toxic_links": [

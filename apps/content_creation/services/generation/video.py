@@ -88,10 +88,12 @@ def _parse_script_into_scenes(script: str) -> list[dict[str, Any]]:
     for i, para in enumerate(paragraphs, start=1):
         words = len(para.split())
         duration_sec = max(3, int(words / 2.5))  # ~150 WPM
-        scenes.append({
-            "scene_number": i,
-            "text": para[:300],
-            "word_count": words,
-            "estimated_duration_sec": duration_sec,
-        })
+        scenes.append(
+            {
+                "scene_number": i,
+                "text": para[:300],
+                "word_count": words,
+                "estimated_duration_sec": duration_sec,
+            }
+        )
     return scenes

@@ -138,7 +138,8 @@ class CronParser:
             for hour in sorted(parsed["hour"]):
                 for minute in sorted(parsed["minute"]):
                     dt = datetime.combine(
-                        day_ptr, datetime.min.time().replace(hour=hour, minute=minute),
+                        day_ptr,
+                        datetime.min.time().replace(hour=hour, minute=minute),
                     )
                     if start.tzinfo:
                         dt = dt.replace(tzinfo=start.tzinfo)
@@ -179,7 +180,6 @@ def generate_recurring_instances(
     Returns:
         List of instance dicts with scheduled_at, content, etc.
     """
-    from ..models import PublishQueue
 
     if not start:
         start = timezone.now()
@@ -209,15 +209,17 @@ def generate_recurring_instances(
         instance_number += 1
         content = series.select_content_variant(instance_number)
 
-        instances.append({
-            "scheduled_at": occ,
-            "content": content,
-            "series_id": str(series.id),
-            "instance_number": instance_number,
-            "platform": series.platform,
-            "account_id": str(series.account_id),
-            "publish_type": series.publish_type,
-        })
+        instances.append(
+            {
+                "scheduled_at": occ,
+                "content": content,
+                "series_id": str(series.id),
+                "instance_number": instance_number,
+                "platform": series.platform,
+                "account_id": str(series.account_id),
+                "publish_type": series.publish_type,
+            }
+        )
 
     return instances
 
@@ -262,6 +264,7 @@ def create_scheduled_posts_from_instances(
         )
         # Create calendar entry
         from ..models import ContentCalendar
+
         ContentCalendar.objects.create(
             tenant_id=series.tenant_id,
             scheduled_post=post,
@@ -283,7 +286,8 @@ def create_scheduled_posts_from_instances(
 
     logger.info(
         "Created %d scheduled posts from series %s",
-        len(created), series.id,
+        len(created),
+        series.id,
     )
     return created
 
@@ -309,7 +313,9 @@ def process_all_recurring(
             instances = generate_recurring_instances(series)
             if instances:
                 created = create_scheduled_posts_from_instances(
-                    series, instances, series.created_by,
+                    series,
+                    instances,
+                    series.created_by,
                 )
                 total_created += len(created)
         except Exception:

@@ -51,20 +51,24 @@ def _extract_headers(text: str) -> list[dict[str, Any]]:
         match = re.match(pattern, line.strip())
         if match:
             if current_body:
-                sections.append({
-                    "header": current_header,
-                    "body": "\n".join(current_body).strip(),
-                })
+                sections.append(
+                    {
+                        "header": current_header,
+                        "body": "\n".join(current_body).strip(),
+                    }
+                )
             current_header = match.group(2)
             current_body = []
         else:
             current_body.append(line)
 
     if current_body or not sections:
-        sections.append({
-            "header": current_header,
-            "body": "\n".join(current_body).strip(),
-        })
+        sections.append(
+            {
+                "header": current_header,
+                "body": "\n".join(current_body).strip(),
+            }
+        )
     return sections
 
 
@@ -86,11 +90,13 @@ def _blog_to_twitter_thread(text: str) -> list[dict[str, Any]]:
         header = section["header"]
         body = section["body"][:200]  # truncated body
         tweet_text = f"{header}\n\n{body}"[:260]
-        tweets.append({
-            "tweet_number": i,
-            "text": tweet_text,
-            "character_count": len(tweet_text),
-        })
+        tweets.append(
+            {
+                "tweet_number": i,
+                "text": tweet_text,
+                "character_count": len(tweet_text),
+            }
+        )
     return tweets
 
 
@@ -114,7 +120,7 @@ def _blog_to_linkedin(text: str) -> dict[str, Any]:
     hook = "Here are my key insights on this topic:\n\n"
     body = "\n".join(key_points)
     cta = "\n\nWhat are your thoughts? Share in the comments below."
-    transformed = (hook + body + cta)[:PLATFORM_LIMITS.get("linkedin", 3000)]
+    transformed = (hook + body + cta)[: PLATFORM_LIMITS.get("linkedin", 3000)]
 
     return {
         "transformed_text": transformed,
@@ -139,13 +145,15 @@ def _blog_to_instagram_carousel(text: str) -> list[dict[str, Any]]:
     for i, section in enumerate(sections[:10], start=1):
         body = section["body"][:150]
         slide_text = f"{section['header']}\n\n{body}"
-        slides.append({
-            "slide_number": i,
-            "title": section["header"],
-            "body": body,
-            "text": slide_text,
-            "character_count": len(slide_text),
-        })
+        slides.append(
+            {
+                "slide_number": i,
+                "title": section["header"],
+                "body": body,
+                "text": slide_text,
+                "character_count": len(slide_text),
+            }
+        )
     return slides
 
 
@@ -198,7 +206,7 @@ def _newsletter_to_social(text: str) -> dict[str, Any]:
         summary = insight.split(".")[0][:100]
         lines.append(f"{i}. {summary}")
     lines.append("\nWhich one resonates most with you?")
-    transformed = "\n\n".join(lines)[:PLATFORM_LIMITS.get("instagram", 2200)]
+    transformed = "\n\n".join(lines)[: PLATFORM_LIMITS.get("instagram", 2200)]
     return {
         "transformed_text": transformed,
         "character_count": len(transformed),
@@ -224,7 +232,7 @@ def _podcast_to_newsletter(text: str) -> dict[str, Any]:
         if first:
             lines.append(f"• {first}")
     lines.append("\n---\nListen to the full episode for more insights.")
-    transformed = "\n\n".join(lines)[:PLATFORM_LIMITS.get("email", 10000)]
+    transformed = "\n\n".join(lines)[: PLATFORM_LIMITS.get("email", 10000)]
     return {
         "transformed_text": transformed,
         "character_count": len(transformed),
@@ -277,9 +285,7 @@ def repurpose_content(
         result = handler(source_text)
         if isinstance(result, list):
             # e.g. thread or carousel
-            transformed = "\n\n---\n\n".join(
-                item.get("text", str(item)) for item in result
-            )
+            transformed = "\n\n---\n\n".join(item.get("text", str(item)) for item in result)
             return {
                 "source_format": source_format,
                 "target_format": target_format,

@@ -34,7 +34,9 @@ def fetch_metric_aggregate(
 
         ch = connections.get("clickhouse")
         platform_filter = filters.get("platform", "")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         if platform_filter:
             where += f" AND platform = '{platform_filter}'"
 
@@ -66,7 +68,9 @@ def fetch_metric_series(
 
         ch = connections.get("clickhouse")
         platform_filter = filters.get("platform", "")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         if platform_filter:
             where += f" AND platform = '{platform_filter}'"
 
@@ -103,7 +107,9 @@ def fetch_metric_by_dimension(
 
         ch = connections.get("clickhouse")
         platform_filter = filters.get("platform", "")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         if platform_filter:
             where += f" AND platform = '{platform_filter}'"
 
@@ -140,7 +146,9 @@ def fetch_metric_table(
 
         ch = connections.get("clickhouse")
         platform_filter = filters.get("platform", "")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         if platform_filter:
             where += f" AND platform = '{platform_filter}'"
 
@@ -177,7 +185,9 @@ def fetch_metric_heatmap(
 
         ch = connections.get("clickhouse")
         platform_filter = filters.get("platform", "")
-        where = f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        where = (
+            f"tenant_id = '{tenant_id}' AND event_date BETWEEN '{start.date()}' AND '{end.date()}'"
+        )
         if platform_filter:
             where += f" AND platform = '{platform_filter}'"
 

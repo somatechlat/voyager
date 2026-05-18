@@ -21,18 +21,114 @@ logger = logging.getLogger(__name__)
 
 # Common stop words to exclude from LSI analysis
 _STOP_WORDS = {
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "must", "shall", "can", "need", "dare",
-    "ought", "used", "to", "of", "in", "for", "on", "with", "at", "by",
-    "from", "as", "into", "through", "during", "before", "after", "above",
-    "below", "between", "out", "off", "over", "under", "again", "further",
-    "then", "once", "here", "there", "when", "where", "why", "how", "all",
-    "each", "few", "more", "most", "other", "some", "such", "no", "nor",
-    "not", "only", "own", "same", "so", "than", "too", "very", "just",
-    "and", "but", "if", "or", "because", "until", "while", "this", "that",
-    "these", "those", "i", "me", "my", "we", "our", "you", "your", "he",
-    "him", "his", "she", "her", "it", "its", "they", "them", "their",
+    "the",
+    "a",
+    "an",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "must",
+    "shall",
+    "can",
+    "need",
+    "dare",
+    "ought",
+    "used",
+    "to",
+    "of",
+    "in",
+    "for",
+    "on",
+    "with",
+    "at",
+    "by",
+    "from",
+    "as",
+    "into",
+    "through",
+    "during",
+    "before",
+    "after",
+    "above",
+    "below",
+    "between",
+    "out",
+    "off",
+    "over",
+    "under",
+    "again",
+    "further",
+    "then",
+    "once",
+    "here",
+    "there",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "each",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "no",
+    "nor",
+    "not",
+    "only",
+    "own",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+    "just",
+    "and",
+    "but",
+    "if",
+    "or",
+    "because",
+    "until",
+    "while",
+    "this",
+    "that",
+    "these",
+    "those",
+    "i",
+    "me",
+    "my",
+    "we",
+    "our",
+    "you",
+    "your",
+    "he",
+    "him",
+    "his",
+    "she",
+    "her",
+    "it",
+    "its",
+    "they",
+    "them",
+    "their",
 }
 
 
@@ -170,17 +266,11 @@ def extract_lsi_keywords(text: str, top_n: int = 30) -> list[dict[str, Any]]:
     bigrams = Counter(f"{words[i]} {words[i + 1]}" for i in range(len(words) - 1))
 
     # Trigrams
-    trigrams = Counter(
-        f"{words[i]} {words[i + 1]} {words[i + 2]}"
-        for i in range(len(words) - 2)
-    )
+    trigrams = Counter(f"{words[i]} {words[i + 1]} {words[i + 2]}" for i in range(len(words) - 2))
 
     # Combine and filter
     combined = bigrams + trigrams
-    return [
-        {"term": term, "frequency": freq}
-        for term, freq in combined.most_common(top_n)
-    ]
+    return [{"term": term, "frequency": freq} for term, freq in combined.most_common(top_n)]
 
 
 def extract_entities(text: str) -> list[dict[str, Any]]:
@@ -305,10 +395,15 @@ def optimize_content(
 
     # Competitor analysis
     comp_word_counts = [count_words(cc) for cc in competitor_content]
-    comp_avg_words = round(sum(comp_word_counts) / len(comp_word_counts), 2) if comp_word_counts else None
+    comp_avg_words = (
+        round(sum(comp_word_counts) / len(comp_word_counts), 2) if comp_word_counts else None
+    )
     comp_readability = (
-        round(sum(flesch_reading_ease(cc) for cc in competitor_content) / len(competitor_content), 2)
-        if competitor_content else None
+        round(
+            sum(flesch_reading_ease(cc) for cc in competitor_content) / len(competitor_content), 2
+        )
+        if competitor_content
+        else None
     )
 
     # Competitor topics
@@ -316,8 +411,7 @@ def optimize_content(
     for cc in competitor_content:
         all_comp_topics.extend(t["name"] for t in extract_entities(cc))
     common_comp_topics = [
-        {"topic": t, "frequency": c}
-        for t, c in Counter(all_comp_topics).most_common(20)
+        {"topic": t, "frequency": c} for t, c in Counter(all_comp_topics).most_common(20)
     ]
     missing_topics = find_missing_topics(topics, all_comp_topics)
 
@@ -334,48 +428,60 @@ def optimize_content(
     density_score = 100.0 - abs(1.5 - (sum(density.values()) / max(len(density), 1))) * 20
     density_score = max(0.0, min(100.0, density_score))
     length_score = min(100.0, (word_count / 1500.0) * 100.0) if word_count < 1500 else 100.0
-    content_score = round((readability_score * 0.25 + density_score * 0.30 + length_score * 0.25 + 20.0), 2)
+    content_score = round(
+        (readability_score * 0.25 + density_score * 0.30 + length_score * 0.25 + 20.0), 2
+    )
     content_score = min(100.0, content_score)
 
     # Generate recommendations
     recommendations: list[dict[str, Any]] = []
     if comp_avg_words and word_count < comp_avg_words * 0.8:
-        recommendations.append({
-            "type": "increase_length",
-            "current": word_count,
-            "target": math.ceil(comp_avg_words * 1.1),
-            "priority": "high",
-        })
+        recommendations.append(
+            {
+                "type": "increase_length",
+                "current": word_count,
+                "target": math.ceil(comp_avg_words * 1.1),
+                "priority": "high",
+            }
+        )
     for mt in missing_topics[:10]:
-        recommendations.append({
-            "type": "add_topic",
-            "topic": mt["topic"],
-            "frequency": mt["competitor_frequency"],
-            "priority": "high" if mt["competitor_frequency"] >= 4 else "medium",
-        })
+        recommendations.append(
+            {
+                "type": "add_topic",
+                "topic": mt["topic"],
+                "frequency": mt["competitor_frequency"],
+                "priority": "high" if mt["competitor_frequency"] >= 4 else "medium",
+            }
+        )
     for kw in target_keywords:
         kp = placement.get(kw, {})
         if not kp.get("found"):
-            recommendations.append({
-                "type": "add_keyword",
-                "keyword": kw,
-                "suggestion": f'Include "{kw}" in the first 100 words',
-                "priority": "high",
-            })
+            recommendations.append(
+                {
+                    "type": "add_keyword",
+                    "keyword": kw,
+                    "suggestion": f'Include "{kw}" in the first 100 words',
+                    "priority": "high",
+                }
+            )
         elif kp.get("relative_position", 0) > 0.5:
-            recommendations.append({
-                "type": "move_keyword_earlier",
-                "keyword": kw,
-                "priority": "medium",
-            })
+            recommendations.append(
+                {
+                    "type": "move_keyword_earlier",
+                    "keyword": kw,
+                    "priority": "medium",
+                }
+            )
     if fre < 60:
-        recommendations.append({
-            "type": "improve_readability",
-            "current": round(fre, 2),
-            "target": 60,
-            "tips": ["Shorter sentences", "Simpler words", "More subheadings"],
-            "priority": "medium",
-        })
+        recommendations.append(
+            {
+                "type": "improve_readability",
+                "current": round(fre, 2),
+                "target": 60,
+                "tips": ["Shorter sentences", "Simpler words", "More subheadings"],
+                "priority": "medium",
+            }
+        )
 
     # Sort recommendations by priority
     priority_order = {"high": 0, "medium": 1, "low": 2}

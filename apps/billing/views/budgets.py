@@ -5,15 +5,11 @@ API endpoints for budget management, consumption tracking, and forecasting.
 
 from __future__ import annotations
 
-from datetime import date
-from typing import Any
-
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from apps.billing.models.project_budget import ProjectBudget
 from apps.billing.serializers import (
-    BudgetConsumptionSchema,
     BudgetCreateSchema,
     BudgetForecastSchema,
     BudgetListSchema,
@@ -100,17 +96,13 @@ def delete_budget(request, budget_id: int):
 
 
 @router.post("/budgets/{int:budget_id}/consume", response=dict, tags=["Billing"])
-def consume_budget(
-    request, budget_id: int, amount: float, hours: float = 0
-):
+def consume_budget(request, budget_id: int, amount: float, hours: float = 0):
     """Record consumption against a budget."""
     tenant_id = getattr(request, "tenant_id", "")
     budget = get_object_or_404(ProjectBudget, tenant_id=tenant_id, pk=budget_id)
     from decimal import Decimal
 
-    result = update_budget_consumption(
-        budget, Decimal(str(amount)), Decimal(str(hours))
-    )
+    result = update_budget_consumption(budget, Decimal(str(amount)), Decimal(str(hours)))
     return result
 
 

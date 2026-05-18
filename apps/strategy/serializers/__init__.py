@@ -6,16 +6,13 @@ content strategy, editorial calendar, OKR tracking, and market research.
 
 from __future__ import annotations
 
-from .personas import (
-    AggregatedTargetingOut,
-    ChannelRankingIn,
-    DemographicsIn,
-    PersonaCampaignLinkIn,
-    PersonaCampaignLinkOut,
-    PersonaFilter,
-    PersonaIn,
-    PersonaOut,
-    PsychographicsIn,
+from .calendar import (
+    CalendarEntryIn,
+    CalendarEntryOut,
+    CalendarFilter,
+    PipelineSummaryOut,
+    StatusTransitionIn,
+    WorkloadOut,
 )
 from .competitors import (
     CompetitorContentIn,
@@ -28,24 +25,6 @@ from .competitors import (
     SWOTOut,
     ThemeOut,
 )
-from .strategy import (
-    ContentStrategyIn,
-    ContentStrategyOut,
-    FormatMixIn,
-    FormatMixOut,
-    GoalMappingOut,
-    StrategyFilter,
-    TopicClusterIn,
-    TopicClusterOut,
-)
-from .calendar import (
-    CalendarEntryIn,
-    CalendarEntryOut,
-    CalendarFilter,
-    PipelineSummaryOut,
-    StatusTransitionIn,
-    WorkloadOut,
-)
 from .okr import (
     ConfidenceSummaryOut,
     KeyResultIn,
@@ -57,6 +36,17 @@ from .okr import (
     ProgressOut,
     ProgressUpdateIn,
 )
+from .personas import (
+    AggregatedTargetingOut,
+    ChannelRankingIn,
+    DemographicsIn,
+    PersonaCampaignLinkIn,
+    PersonaCampaignLinkOut,
+    PersonaFilter,
+    PersonaIn,
+    PersonaOut,
+    PsychographicsIn,
+)
 from .research import (
     CompetitiveLandscapeOut,
     MarketResearchIn,
@@ -64,6 +54,16 @@ from .research import (
     ResearchFilter,
     TrendDetectionIn,
     TrendOut,
+)
+from .strategy import (
+    ContentStrategyIn,
+    ContentStrategyOut,
+    FormatMixIn,
+    FormatMixOut,
+    GoalMappingOut,
+    StrategyFilter,
+    TopicClusterIn,
+    TopicClusterOut,
 )
 
 __all__ = [

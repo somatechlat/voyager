@@ -10,21 +10,21 @@ from ninja import Router
 from apps.rbac.auth import VoyagerKeycloakBearer
 from apps.workflows_v2.models.workflow import Workflow, WorkflowVersion
 from apps.workflows_v2.serializers import (
-    WorkflowCreateSchema,
-    WorkflowUpdateSchema,
-    WorkflowOutSchema,
-    WorkflowListSchema,
-    PublishVersionSchema,
-    VersionOutSchema,
-    VersionDiffSchema,
-    ValidationOutSchema,
     ErrorSchema,
+    PublishVersionSchema,
+    ValidationOutSchema,
+    VersionDiffSchema,
+    VersionOutSchema,
+    WorkflowCreateSchema,
+    WorkflowListSchema,
+    WorkflowOutSchema,
+    WorkflowUpdateSchema,
 )
 from apps.workflows_v2.services.builder import (
-    validate_workflow,
-    simulate_workflow,
-    publish_version,
     compare_versions,
+    publish_version,
+    simulate_workflow,
+    validate_workflow,
 )
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -44,9 +44,7 @@ def _get_user(request) -> str:
 def list_workflows(request) -> list[Workflow]:
     """List workflows for the current tenant."""
     tenant_id = _get_tenant(request)
-    return list(
-        Workflow.objects.filter(tenant_id=tenant_id).order_by("-updated_at")
-    )
+    return list(Workflow.objects.filter(tenant_id=tenant_id).order_by("-updated_at"))
 
 
 @router.post("", response=WorkflowOutSchema, tags=["Workflows"])
@@ -73,9 +71,7 @@ def get_workflow(request, workflow_id: int) -> Workflow:
 
 
 @router.put("/{workflow_id}", response=WorkflowOutSchema, tags=["Workflows"])
-def update_workflow(
-    request, workflow_id: int, payload: WorkflowUpdateSchema
-) -> Workflow:
+def update_workflow(request, workflow_id: int, payload: WorkflowUpdateSchema) -> Workflow:
     """Update a workflow."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
@@ -91,7 +87,9 @@ def update_workflow(
     if payload.trigger_config is not None:
         workflow.trigger_config = payload.trigger_config
 
-    workflow.save(update_fields=["name", "description", "status", "config", "trigger_config", "updated_at"])
+    workflow.save(
+        update_fields=["name", "description", "status", "config", "trigger_config", "updated_at"]
+    )
     return workflow
 
 

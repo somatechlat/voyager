@@ -11,13 +11,11 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from celery import shared_task
-from django.db.models import Q
 
 from apps.clients.models.client import Client
 from apps.clients.models.communication import CommunicationLog
 from apps.clients.models.project import Project, ProjectMilestone
 from apps.clients.services import (
-    ClientService,
     CommunicationService,
     ProfitabilityService,
 )

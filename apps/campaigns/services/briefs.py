@@ -50,7 +50,9 @@ def _extract_objective(objective: str) -> dict[str, Any]:
     return objective_map.get(objective, objective_map[Campaign.Objective.AWARENESS])
 
 
-def _select_personas(objective: str, audience_data: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+def _select_personas(
+    objective: str, audience_data: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
     """Select top 3 audience personas for the campaign.
 
     Args:
@@ -188,24 +190,44 @@ def _suggest_budget(
     # Default allocation weights by objective
     weights: dict[str, dict[str, float]] = {
         Campaign.Objective.AWARENESS: {
-            "paid_social": 0.25, "video": 0.20, "display": 0.15,
-            "organic_social": 0.15, "influencer": 0.15, "paid_search": 0.05,
-            "seo": 0.03, "email": 0.02,
+            "paid_social": 0.25,
+            "video": 0.20,
+            "display": 0.15,
+            "organic_social": 0.15,
+            "influencer": 0.15,
+            "paid_search": 0.05,
+            "seo": 0.03,
+            "email": 0.02,
         },
         Campaign.Objective.ENGAGEMENT: {
-            "paid_social": 0.25, "organic_social": 0.20, "video": 0.15,
-            "influencer": 0.15, "email": 0.10, "paid_search": 0.05,
-            "display": 0.05, "seo": 0.05,
+            "paid_social": 0.25,
+            "organic_social": 0.20,
+            "video": 0.15,
+            "influencer": 0.15,
+            "email": 0.10,
+            "paid_search": 0.05,
+            "display": 0.05,
+            "seo": 0.05,
         },
         Campaign.Objective.CONVERSION: {
-            "paid_search": 0.25, "paid_social": 0.20, "email": 0.15,
-            "display": 0.15, "video": 0.10, "seo": 0.08,
-            "organic_social": 0.05, "influencer": 0.02,
+            "paid_search": 0.25,
+            "paid_social": 0.20,
+            "email": 0.15,
+            "display": 0.15,
+            "video": 0.10,
+            "seo": 0.08,
+            "organic_social": 0.05,
+            "influencer": 0.02,
         },
         Campaign.Objective.RETENTION: {
-            "email": 0.30, "organic_social": 0.20, "paid_social": 0.15,
-            "seo": 0.15, "paid_search": 0.10, "video": 0.05,
-            "display": 0.03, "influencer": 0.02,
+            "email": 0.30,
+            "organic_social": 0.20,
+            "paid_social": 0.15,
+            "seo": 0.15,
+            "paid_search": 0.10,
+            "video": 0.05,
+            "display": 0.03,
+            "influencer": 0.02,
         },
     }
 
@@ -309,10 +331,10 @@ def generate_brief(campaign: Campaign) -> CampaignBrief:
         for i, ch in enumerate(top_channels)
     )
 
-    timeline_text = "\n".join(
-        f"- {phase['phase']}: {phase['days']} days"
-        for phase in timeline["phases"]
-    ) + f"\n\nTotal Estimated Duration: {timeline['total_days']} days"
+    timeline_text = (
+        "\n".join(f"- {phase['phase']}: {phase['days']} days" for phase in timeline["phases"])
+        + f"\n\nTotal Estimated Duration: {timeline['total_days']} days"
+    )
 
     budget_text = (
         f"Total Budget: ${budget_suggestion['total_budget']:,.2f} "

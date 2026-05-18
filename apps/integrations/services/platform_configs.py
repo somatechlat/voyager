@@ -35,7 +35,12 @@ PLATFORM_CONFIG: dict[str, dict[str, Any]] = {
         "auth_endpoint": "https://www.linkedin.com/oauth/v2/authorization",
         "token_endpoint": "https://www.linkedin.com/oauth/v2/accessToken",
         "scope_separator": " ",
-        "default_scopes": ["r_basicprofile", "r_organization_social", "w_organization_social", "r_liteprofile"],
+        "default_scopes": [
+            "r_basicprofile",
+            "r_organization_social",
+            "w_organization_social",
+            "r_liteprofile",
+        ],
         "uses_refresh": True,
     },
     "tiktok": {

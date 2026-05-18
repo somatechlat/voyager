@@ -11,8 +11,8 @@ from typing import Any
 
 from django.utils import timezone
 
-from apps.workflows_v2.models.human_loop import HumanApprovalNode
 from apps.workflows_v2.models.execution import WorkflowExecution
+from apps.workflows_v2.models.human_loop import HumanApprovalNode
 
 logger = logging.getLogger(__name__)
 

@@ -261,10 +261,26 @@ def get_drill_paths() -> dict[str, list[str]]:
 def get_comparison_modes() -> list[dict[str, str]]:
     """Return available comparison modes."""
     return [
-        {"key": "previous_period", "name": "Previous Period", "formula": "((current - previous) / previous) * 100"},
-        {"key": "year_over_year", "name": "Year over Year", "formula": "((current - lastYear) / lastYear) * 100"},
-        {"key": "against_target", "name": "Against Target", "formula": "((actual - target) / target) * 100"},
-        {"key": "benchmark", "name": "Benchmark", "formula": "((actual - benchmark) / benchmark) * 100"},
+        {
+            "key": "previous_period",
+            "name": "Previous Period",
+            "formula": "((current - previous) / previous) * 100",
+        },
+        {
+            "key": "year_over_year",
+            "name": "Year over Year",
+            "formula": "((current - lastYear) / lastYear) * 100",
+        },
+        {
+            "key": "against_target",
+            "name": "Against Target",
+            "formula": "((actual - target) / target) * 100",
+        },
+        {
+            "key": "benchmark",
+            "name": "Benchmark",
+            "formula": "((actual - benchmark) / benchmark) * 100",
+        },
     ]
 
 

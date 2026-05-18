@@ -79,15 +79,9 @@ class SocialComment(UUIDModel, TenantModel, TimeStampedModel):
     author_platform_id = models.CharField(max_length=255, blank=True, db_index=True)
     author_avatar = models.URLField(blank=True)
     text = models.TextField(blank=True)
-    sentiment = models.CharField(
-        max_length=20, choices=SENTIMENTS, blank=True, db_index=True
-    )
-    sentiment_score = models.DecimalField(
-        max_digits=4, decimal_places=3, null=True, blank=True
-    )
-    spam_score = models.DecimalField(
-        max_digits=3, decimal_places=2, null=True, blank=True
-    )
+    sentiment = models.CharField(max_length=20, choices=SENTIMENTS, blank=True, db_index=True)
+    sentiment_score = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True)
+    spam_score = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
     spam_reasons = models.JSONField(default=list, blank=True)
     is_spam = models.BooleanField(default=False, db_index=True)
     is_hidden = models.BooleanField(default=False, db_index=True)

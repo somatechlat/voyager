@@ -28,9 +28,7 @@ class ProfitabilityReport(TimestampedModel):
         FINAL = "final", "Final"
         ARCHIVED = "archived", "Archived"
 
-    tenant_id = models.CharField(
-        max_length=128, db_index=True, help_text="Tenant identifier"
-    )
+    tenant_id = models.CharField(max_length=128, db_index=True, help_text="Tenant identifier")
     dimension = models.CharField(
         max_length=20,
         choices=Dimension.choices,
@@ -40,15 +38,9 @@ class ProfitabilityReport(TimestampedModel):
     dimension_id = models.CharField(
         max_length=128, db_index=True, help_text="ID of the entity being analyzed"
     )
-    dimension_name = models.CharField(
-        max_length=255, help_text="Human-readable name"
-    )
-    period_start = models.DateField(
-        db_index=True, help_text="Start of reporting period"
-    )
-    period_end = models.DateField(
-        db_index=True, help_text="End of reporting period"
-    )
+    dimension_name = models.CharField(max_length=255, help_text="Human-readable name")
+    period_start = models.DateField(db_index=True, help_text="Start of reporting period")
+    period_end = models.DateField(db_index=True, help_text="End of reporting period")
     revenue = models.DecimalField(
         max_digits=14, decimal_places=2, default=0, help_text="Total revenue"
     )
@@ -90,12 +82,8 @@ class ProfitabilityReport(TimestampedModel):
         null=True,
         help_text="Difference from benchmark",
     )
-    breakdown = models.JSONField(
-        blank=True, default=dict, help_text="Detailed P&L breakdown"
-    )
-    trend_data = models.JSONField(
-        blank=True, default=dict, help_text="Month-over-month trend"
-    )
+    breakdown = models.JSONField(blank=True, default=dict, help_text="Detailed P&L breakdown")
+    trend_data = models.JSONField(blank=True, default=dict, help_text="Month-over-month trend")
     hours_billed = models.DecimalField(
         max_digits=8, decimal_places=2, default=0, help_text="Total hours billed"
     )
@@ -147,6 +135,4 @@ class ProfitabilityReport(TimestampedModel):
         ]
 
     def __str__(self) -> str:
-        return (
-            f"{self.dimension_name} ({self.period_start} to {self.period_end})"
-        )
+        return f"{self.dimension_name} ({self.period_start} to {self.period_end})"

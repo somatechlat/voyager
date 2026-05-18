@@ -147,10 +147,7 @@ def _call_google(
 
     gemini_model = model.replace("gemini-pro", "gemini-1.5-pro")
     try:
-        url = (
-            f"{_GOOGLE_BASE}/models/{gemini_model}:generateContent"
-            f"?key={GOOGLE_API_KEY}"
-        )
+        url = f"{_GOOGLE_BASE}/models/{gemini_model}:generateContent" f"?key={GOOGLE_API_KEY}"
         resp = httpx.post(
             url,
             headers={"Content-Type": "application/json"},
@@ -158,9 +155,7 @@ def _call_google(
                 "contents": [
                     {
                         "role": "user",
-                        "parts": [
-                            {"text": f"{system_prompt}\n\n{user_prompt}"}
-                        ],
+                        "parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}],
                     }
                 ],
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096},

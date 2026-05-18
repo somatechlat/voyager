@@ -7,10 +7,9 @@ when content exceeds daily platform limits.
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
 from typing import Any
 
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 
 from ..models import PublishQueue, ScheduledPost
@@ -59,7 +58,8 @@ class QueueManager:
         return PublishQueue.get_pending()
 
     def check_overflow(
-        self, post: ScheduledPost,
+        self,
+        post: ScheduledPost,
     ) -> dict[str, Any]:
         """Check if a post would overflow frequency limits.
 
@@ -71,15 +71,23 @@ class QueueManager:
         """
         platform = post.platform
         account_id = str(post.account_id)
-        limits = PLATFORM_DEFAULTS.get(platform, {"maxPerDay": 3, "maxPerWeek": 14, "minInterval": 120})
+        limits = PLATFORM_DEFAULTS.get(
+            platform, {"maxPerDay": 3, "maxPerWeek": 14, "minInterval": 120}
+        )
 
         daily_count = get_daily_post_count(
-            self.tenant_id, platform, account_id, post.scheduled_at,
+            self.tenant_id,
+            platform,
+            account_id,
+            post.scheduled_at,
         )
 
         if daily_count >= limits["maxPerDay"]:
             next_slot = get_next_available_slot(
-                self.tenant_id, platform, account_id, post.scheduled_at,
+                self.tenant_id,
+                platform,
+                account_id,
+                post.scheduled_at,
             )
             return {
                 "overflow": True,
@@ -107,11 +115,15 @@ class QueueManager:
             entry.mark_overflowed(str(result["reason"]))
             logger.info(
                 "Post %s overflowed: %s (daily %s/%s)",
-                post.id, result["reason"], result["current_daily"], result["max_daily"],
+                post.id,
+                result["reason"],
+                result["current_daily"],
+                result["max_daily"],
             )
             # Auto-spillover: schedule for next available slot
             if result["next_available_slot"]:
                 from datetime import datetime as dt
+
                 next_slot = dt.fromisoformat(result["next_available_slot"])
                 post.scheduled_at = next_slot
                 post.save(update_fields=["scheduled_at"])
@@ -143,6 +155,7 @@ class QueueManager:
 
                 # Publish
                 from .publisher import publish_to_platforms
+
                 result = publish_to_platforms(post)
                 if result["success"]:
                     entry.mark_processed()
@@ -170,5 +183,7 @@ class QueueManager:
             "total": qs.count(),
             "pending": qs.filter(processed_at__isnull=True).count(),
             "processed": qs.filter(processed_at__isnull=False).count(),
-            "overflowed": qs.filter(overflow_reason__isnull=False).exclude(overflow_reason="").count(),
+            "overflowed": qs.filter(overflow_reason__isnull=False)
+            .exclude(overflow_reason="")
+            .count(),
         }

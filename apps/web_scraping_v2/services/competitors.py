@@ -7,7 +7,6 @@ and screenshots to identify competitor page modifications.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from typing import Any
 
@@ -190,9 +189,7 @@ class CompetitorAnalyzer:
 
         # Check for previous snapshot
         previous_snapshot = (
-            CompetitorSnapshot.objects.filter(competitor=competitor)
-            .order_by("-scraped_at")
-            .first()
+            CompetitorSnapshot.objects.filter(competitor=competitor).order_by("-scraped_at").first()
         )
 
         if not previous_snapshot:

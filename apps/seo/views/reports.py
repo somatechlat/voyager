@@ -120,9 +120,7 @@ def get_report(request, report_id: str) -> ReportDetailResponse:
 
 
 @router.patch("/reports/{report_id}/schedule", response=ReportResponse, tags=["SEO Reports"])
-def schedule_report(
-    request, report_id: str, data: ReportScheduleRequest
-) -> ReportResponse:
+def schedule_report(request, report_id: str, data: ReportScheduleRequest) -> ReportResponse:
     """Configure report scheduling.
 
     Enable or disable recurring report generation with

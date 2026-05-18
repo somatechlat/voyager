@@ -12,7 +12,6 @@ from typing import Any
 
 from apps.workflows_v2.models.template import WorkflowTemplate
 from apps.workflows_v2.models.workflow import Workflow
-from apps.workflows_v2.services.builder import validate_workflow
 
 logger = logging.getLogger(__name__)
 

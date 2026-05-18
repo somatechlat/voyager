@@ -7,7 +7,6 @@ webhook processing, and dunning management.
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any
 
 from django.shortcuts import get_object_or_404
 from ninja import Router
@@ -15,7 +14,6 @@ from ninja import Router
 from apps.billing.models.invoice import Invoice
 from apps.billing.models.payment import Payment
 from apps.billing.serializers import (
-    PaymentCreateSchema,
     PaymentListSchema,
     PaymentRefundSchema,
     PaymentSchema,
@@ -87,9 +85,7 @@ def confirm_payment_endpoint(request, payment_id: int):
     return confirm_payment(payment)
 
 
-@router.post(
-    "/payments/{int:payment_id}/refund", response=dict, tags=["Billing"]
-)
+@router.post("/payments/{int:payment_id}/refund", response=dict, tags=["Billing"])
 def refund_payment(request, payment_id: int, data: PaymentRefundSchema):
     """Process a refund for a payment."""
     tenant_id = getattr(request, "tenant_id", "")
@@ -109,9 +105,7 @@ def stripe_webhook(request, data: StripeWebhookSchema):
     return result
 
 
-@router.get(
-    "/invoices/{int:invoice_id}/dunning", response=dict | None, tags=["Billing"]
-)
+@router.get("/invoices/{int:invoice_id}/dunning", response=dict | None, tags=["Billing"])
 def get_dunning_action(request, invoice_id: int):
     """Evaluate and execute dunning for an overdue invoice."""
     tenant_id = getattr(request, "tenant_id", "")

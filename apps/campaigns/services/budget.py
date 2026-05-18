@@ -10,7 +10,7 @@ import logging
 from datetime import date
 from typing import Any
 
-from apps.campaigns.models import Campaign, CampaignBudget, CampaignChannel
+from apps.campaigns.models import Campaign, CampaignBudget
 
 logger = logging.getLogger(__name__)
 
@@ -93,9 +93,11 @@ def calculate_pacing(campaign: Campaign) -> dict[str, Any]:
     if campaign.pacing_type == Campaign.PacingType.PERFORMANCE:
         return _calculate_performance_pacing(campaign, remaining, days_remaining)
 
-    return {"daily_budget": round(remaining / max(1, days_remaining), 2),
-            "pacing_type": campaign.pacing_type,
-            "days_remaining": days_remaining}
+    return {
+        "daily_budget": round(remaining / max(1, days_remaining), 2),
+        "pacing_type": campaign.pacing_type,
+        "days_remaining": days_remaining,
+    }
 
 
 def _calculate_performance_pacing(
@@ -196,8 +198,7 @@ def check_budget_alerts(campaign: Campaign) -> list[dict[str, Any]]:
                 {
                     "level": threshold,
                     "message": (
-                        f'Campaign "{campaign.name}" has spent '
-                        f"{spend_pct:.1f}% of budget"
+                        f'Campaign "{campaign.name}" has spent ' f"{spend_pct:.1f}% of budget"
                     ),
                     "severity": severity,
                 }

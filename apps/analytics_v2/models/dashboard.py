@@ -13,7 +13,6 @@ from django.db import models
 
 from apps.rbac.models import TenantScopedMixin
 
-
 WIDGET_TYPE_CHOICES = [
     ("kpi_card", "KPI Card"),
     ("line_chart", "Line Chart"),

@@ -22,4 +22,6 @@ class RbacConfig(AppConfig):
         signal handlers for automatic permission cache invalidation
         and role change propagation.
         """
-        pass
+        import logging
+
+        logging.getLogger(__name__).debug("RBAC app initialized")

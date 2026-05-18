@@ -94,9 +94,7 @@ def activity_stats(
     """Get aggregated activity statistics."""
     user = request.auth
     tenant_id = getattr(user, "tenant_id", "default")
-    stats = ActivityService.get_stats(
-        tenant_id=tenant_id, date_from=date_from, date_to=date_to
-    )
+    stats = ActivityService.get_stats(tenant_id=tenant_id, date_from=date_from, date_to=date_to)
     return ActivityStatsSchema(**stats)
 
 

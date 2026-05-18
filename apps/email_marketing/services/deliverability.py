@@ -78,7 +78,7 @@ def classify_bounce(
                 "resubscribe_allowed": True,
                 "retry_after": None,
             }
-        backoff_seconds = (2 ** retry_count) * 3600
+        backoff_seconds = (2**retry_count) * 3600
         return {
             "type": "soft_temporary",
             "reason": reason,
@@ -100,7 +100,7 @@ def classify_bounce(
             "reason": f"Temporary failure ({clean_code})",
             "action": "retry",
             "resubscribe_allowed": True,
-            "retry_after": (2 ** retry_count) * 3600,
+            "retry_after": (2**retry_count) * 3600,
         }
     return {
         "type": "unknown",
@@ -114,6 +114,7 @@ def classify_bounce(
 # ---------------------------------------------------------------------------
 # Reputation scoring
 # ---------------------------------------------------------------------------
+
 
 def calculate_reputation_score(metrics: dict[str, float]) -> dict[str, Any]:
     """Calculate sender reputation score from email metrics.
@@ -151,9 +152,14 @@ def calculate_reputation_score(metrics: dict[str, float]) -> dict[str, Any]:
         "blacklist_status": {"value": blacklisted, "weight": 0.10, "score": bl_score},
     }
     overall = round(
-        sum(f["score"] * f["weight"] for f in factors.values()), 2,
+        sum(f["score"] * f["weight"] for f in factors.values()),
+        2,
     )
-    grade = "A" if overall >= 90 else "B" if overall >= 75 else "C" if overall >= 60 else "D" if overall >= 40 else "F"
+    grade = (
+        "A"
+        if overall >= 90
+        else "B" if overall >= 75 else "C" if overall >= 60 else "D" if overall >= 40 else "F"
+    )
     recommendations = generate_recommendations(factors)
     return {
         "score": overall,
@@ -176,7 +182,9 @@ def generate_recommendations(factors: dict[str, Any]) -> list[str]:
     if factors["bounce_rate"]["score"] < 70:
         recs.append("Clean your email list: remove invalid addresses and implement double opt-in.")
     if factors["spam_complaint_rate"]["score"] < 70:
-        recs.append("Review email content and frequency: ensure clear unsubscribe and relevant content.")
+        recs.append(
+            "Review email content and frequency: ensure clear unsubscribe and relevant content."
+        )
     if factors["open_rate"]["score"] < 70:
         recs.append("Improve subject lines: test personalization and urgency to boost open rates.")
     if factors["click_rate"]["score"] < 70:
@@ -193,6 +201,7 @@ def generate_recommendations(factors: dict[str, Any]) -> list[str]:
 # ---------------------------------------------------------------------------
 # Authentication checking
 # ---------------------------------------------------------------------------
+
 
 def check_authentication(domain: str) -> dict[str, Any]:
     """Check email authentication records for a domain.

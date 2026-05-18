@@ -6,7 +6,6 @@ implements polite scraping with rate limiting.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import random
 import time
@@ -195,9 +194,7 @@ class PlaywrightScraper:
             PermissionError: If robots.txt disallows the URL.
         """
         if sync_playwright is None:
-            raise RuntimeError(
-                "Playwright is not installed. Install with: pip install playwright"
-            )
+            raise RuntimeError("Playwright is not installed. Install with: pip install playwright")
 
         if not _check_robots_txt(url):
             raise PermissionError(f"robots.txt disallows scraping: {url}")
@@ -250,11 +247,7 @@ class PlaywrightScraper:
                 # Metadata
                 result["metadata"] = {
                     "status_code": response.status if response else 0,
-                    "content_type": (
-                        response.headers.get("content-type", "")
-                        if response
-                        else ""
-                    ),
+                    "content_type": (response.headers.get("content-type", "") if response else ""),
                     "title": page.title(),
                     "user_agent": user_agent,
                     "final_url": page.url,

@@ -40,10 +40,14 @@ def queue_status(request) -> dict[str, Any]:
 def queue_pending(request) -> list[dict[str, Any]]:
     """Get pending queue entries."""
     tenant_id = getattr(request, "tenant_id", "default")
-    entries = PublishQueue.objects.filter(
-        scheduled_post__tenant_id=tenant_id,
-        processed_at__isnull=True,
-    ).select_related("scheduled_post").order_by("queue_priority", "next_retry_at")[:50]
+    entries = (
+        PublishQueue.objects.filter(
+            scheduled_post__tenant_id=tenant_id,
+            processed_at__isnull=True,
+        )
+        .select_related("scheduled_post")
+        .order_by("queue_priority", "next_retry_at")[:50]
+    )
 
     return [_entry_to_dict(e) for e in entries]
 

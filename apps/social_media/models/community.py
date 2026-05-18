@@ -59,18 +59,10 @@ class CommunityMember(UUIDModel, TenantModel, TimeStampedModel):
     bio = models.TextField(blank=True)
     followers = models.PositiveIntegerField(default=0)
     following = models.PositiveIntegerField(default=0)
-    engagement_score = models.DecimalField(
-        max_digits=8, decimal_places=2, default=0, db_index=True
-    )
-    influence_score = models.DecimalField(
-        max_digits=8, decimal_places=2, default=0
-    )
-    loyalty_score = models.DecimalField(
-        max_digits=8, decimal_places=2, default=0
-    )
-    vip_score = models.DecimalField(
-        max_digits=8, decimal_places=2, default=0, db_index=True
-    )
+    engagement_score = models.DecimalField(max_digits=8, decimal_places=2, default=0, db_index=True)
+    influence_score = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    loyalty_score = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    vip_score = models.DecimalField(max_digits=8, decimal_places=2, default=0, db_index=True)
     tier = models.CharField(max_length=20, choices=TIERS, default="passive", db_index=True)
     first_seen_at = models.DateTimeField(auto_now_add=True)
     last_active_at = models.DateTimeField(auto_now=True)

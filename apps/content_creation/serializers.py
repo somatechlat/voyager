@@ -14,7 +14,6 @@ from uuid import UUID
 from ninja import Schema
 from pydantic import Field
 
-
 # ---------------------------------------------------------------------------
 # Base schemas
 # ---------------------------------------------------------------------------

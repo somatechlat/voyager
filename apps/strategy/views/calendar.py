@@ -94,9 +94,7 @@ def list_entries(request, filters: Query[CalendarFilter]):
         qs = qs.filter(publish_date__gte=filters.date_from)
     elif filters.date_to:
         qs = qs.filter(publish_date__lte=filters.date_to)
-    qs = qs.order_by("publish_date", "priority")[
-        filters.offset : filters.offset + filters.limit
-    ]
+    qs = qs.order_by("publish_date", "priority")[filters.offset : filters.offset + filters.limit]
     return [_entry_to_dict(e) for e in qs]
 
 
@@ -134,6 +132,7 @@ def delete_entry(request, entry_id: str):
 # Calendar View (color-coded)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/calendar-view")
 def calendar_view(
     request,
@@ -160,6 +159,7 @@ def calendar_view(
 # Workload
 # ---------------------------------------------------------------------------
 
+
 @router.get("/calendar/workload/{assignee_id}", response=WorkloadOut)
 def get_workload(
     request,
@@ -180,6 +180,7 @@ def get_workload(
 # ---------------------------------------------------------------------------
 # Pipeline Management
 # ---------------------------------------------------------------------------
+
 
 @router.post("/calendar/{entry_id}/transition")
 def transition_status(
@@ -207,6 +208,7 @@ def pipeline_summary(request):
 # ---------------------------------------------------------------------------
 # Content Type Colors
 # ---------------------------------------------------------------------------
+
 
 @router.get("/calendar/content-types")
 def content_types(request):

@@ -108,10 +108,7 @@ def get_profile_summary(request) -> dict[str, Any]:
     total = Backlink.objects.filter(tenant_id=tenant_id).count()
     toxic = Backlink.objects.filter(tenant_id=tenant_id, is_toxic=True).count()
     domains = (
-        Backlink.objects.filter(tenant_id=tenant_id)
-        .values("referring_domain")
-        .distinct()
-        .count()
+        Backlink.objects.filter(tenant_id=tenant_id).values("referring_domain").distinct().count()
     )
     return {
         "total_backlinks": total,

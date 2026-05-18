@@ -12,8 +12,6 @@ import math
 from datetime import datetime, timedelta
 from typing import Any
 
-from apps.analytics_v2.services.dashboards import _fetch_metric_series
-
 logger = logging.getLogger(__name__)
 
 # Anomaly type classification thresholds
@@ -106,18 +104,24 @@ def _detect_zscore(
     for i, (d, v) in enumerate(zip(dates, values)):
         z_score = (v - mean) / std
         if abs(z_score) > threshold:
-            severity = "critical" if abs(z_score) > threshold + 1 else "warning" if abs(z_score) > threshold else "info"
+            severity = (
+                "critical"
+                if abs(z_score) > threshold + 1
+                else "warning" if abs(z_score) > threshold else "info"
+            )
             anomaly_type = _classify_anomaly(values, i)
-            anomalies.append({
-                "date": d,
-                "value": round(v, 4),
-                "expected_value": round(mean, 4),
-                "z_score": round(z_score, 4),
-                "deviation": round(abs(v - mean), 4),
-                "severity": severity,
-                "anomaly_type": anomaly_type,
-                "method": "zscore",
-            })
+            anomalies.append(
+                {
+                    "date": d,
+                    "value": round(v, 4),
+                    "expected_value": round(mean, 4),
+                    "z_score": round(z_score, 4),
+                    "deviation": round(abs(v - mean), 4),
+                    "severity": severity,
+                    "anomaly_type": anomaly_type,
+                    "method": "zscore",
+                }
+            )
 
     return anomalies
 
@@ -150,16 +154,18 @@ def _detect_iqr(
         if v < lower or v > upper:
             deviation = abs(v - lower) if v < lower else abs(v - upper)
             severity = "critical" if deviation > iqr else "warning"
-            anomalies.append({
-                "date": d,
-                "value": round(v, 4),
-                "expected_value": round((q1 + q3) / 2, 4),
-                "deviation": round(deviation, 4),
-                "severity": severity,
-                "anomaly_type": _classify_anomaly(values, i),
-                "method": "iqr",
-                "bounds": {"lower": round(lower, 4), "upper": round(upper, 4)},
-            })
+            anomalies.append(
+                {
+                    "date": d,
+                    "value": round(v, 4),
+                    "expected_value": round((q1 + q3) / 2, 4),
+                    "deviation": round(deviation, 4),
+                    "severity": severity,
+                    "anomaly_type": _classify_anomaly(values, i),
+                    "method": "iqr",
+                    "bounds": {"lower": round(lower, 4), "upper": round(upper, 4)},
+                }
+            )
 
     return anomalies
 
@@ -219,18 +225,20 @@ def _detect_seasonal(
         z_r = (residuals[i] - mean_r) / std_r
         if abs(z_r) > threshold:
             severity = "critical" if abs(z_r) > threshold + 1 else "warning"
-            anomalies.append({
-                "date": d,
-                "value": round(v, 4),
-                "expected_value": round(trend + (seasonal[i] - trend), 4),
-                "residual": round(residuals[i], 4),
-                "z_score": round(z_r, 4),
-                "deviation": round(abs(residuals[i]), 4),
-                "severity": severity,
-                "anomaly_type": _classify_anomaly(values, i),
-                "method": "seasonal_decomposition",
-                "period": period,
-            })
+            anomalies.append(
+                {
+                    "date": d,
+                    "value": round(v, 4),
+                    "expected_value": round(trend + (seasonal[i] - trend), 4),
+                    "residual": round(residuals[i], 4),
+                    "z_score": round(z_r, 4),
+                    "deviation": round(abs(residuals[i]), 4),
+                    "severity": severity,
+                    "anomaly_type": _classify_anomaly(values, i),
+                    "method": "seasonal_decomposition",
+                    "period": period,
+                }
+            )
 
     return anomalies
 
@@ -264,16 +272,18 @@ def _detect_mad(
         modified_z = 0.6745 * (v - median) / mad
         if abs(modified_z) > threshold:
             severity = "critical" if abs(modified_z) > threshold + 1 else "warning"
-            anomalies.append({
-                "date": d,
-                "value": round(v, 4),
-                "expected_value": round(median, 4),
-                "modified_z_score": round(modified_z, 4),
-                "deviation": round(abs(v - median), 4),
-                "severity": severity,
-                "anomaly_type": _classify_anomaly(values, i),
-                "method": "mad",
-            })
+            anomalies.append(
+                {
+                    "date": d,
+                    "value": round(v, 4),
+                    "expected_value": round(median, 4),
+                    "modified_z_score": round(modified_z, 4),
+                    "deviation": round(abs(v - median), 4),
+                    "severity": severity,
+                    "anomaly_type": _classify_anomaly(values, i),
+                    "method": "mad",
+                }
+            )
 
     return anomalies
 
@@ -304,7 +314,7 @@ def _detect_ewma(
 
     for i in range(1, len(values)):
         residual = values[i - 1] - ewma
-        ewma_var = alpha * (residual ** 2) + (1 - alpha) * ewma_var
+        ewma_var = alpha * (residual**2) + (1 - alpha) * ewma_var
         ewma = alpha * values[i - 1] + (1 - alpha) * ewma
         ewma_series.append(ewma)
 
@@ -313,17 +323,19 @@ def _detect_ewma(
             z = (values[i] - ewma) / std
             if abs(z) > threshold:
                 severity = "critical" if abs(z) > threshold + 1 else "warning"
-                anomalies.append({
-                    "date": dates[i],
-                    "value": round(values[i], 4),
-                    "expected_value": round(ewma, 4),
-                    "ewma": round(ewma, 4),
-                    "z_score": round(z, 4),
-                    "deviation": round(abs(values[i] - ewma), 4),
-                    "severity": severity,
-                    "anomaly_type": _classify_anomaly(values, i),
-                    "method": "ewma",
-                })
+                anomalies.append(
+                    {
+                        "date": dates[i],
+                        "value": round(values[i], 4),
+                        "expected_value": round(ewma, 4),
+                        "ewma": round(ewma, 4),
+                        "z_score": round(z, 4),
+                        "deviation": round(abs(values[i] - ewma), 4),
+                        "severity": severity,
+                        "anomaly_type": _classify_anomaly(values, i),
+                        "method": "ewma",
+                    }
+                )
 
     return anomalies
 
@@ -379,7 +391,7 @@ def _classify_anomaly(values: list[float], index: int) -> str:
                 return "drop"
 
     # Check for trend change using 14-day slope
-    trend_window = values[max(0, index - 14):index]
+    trend_window = values[max(0, index - 14) : index]
     if len(trend_window) >= 2:
         recent_trend = _linear_slope(trend_window)
         if recent_trend != 0:

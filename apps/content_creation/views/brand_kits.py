@@ -10,7 +10,7 @@ DELETE /api/v1/content/brand-kits/{id}     — delete brand kit
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from django.shortcuts import get_object_or_404
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 router = Router(tags=["Brand Kits"])
 
 
-@router.get("/brand-kits", response=List[BrandKitOut])
+@router.get("/brand-kits", response=list[BrandKitOut])
 def list_brand_kits(request) -> list[BrandKit]:
     """List all brand kits for the current tenant."""
     tenant_id = get_tenant_id(request)

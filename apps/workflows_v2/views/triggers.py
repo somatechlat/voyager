@@ -8,19 +8,19 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 
 from apps.rbac.auth import VoyagerKeycloakBearer
-from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.models.trigger import WorkflowTrigger
+from apps.workflows_v2.models.workflow import Workflow
 from apps.workflows_v2.serializers import (
-    TriggerCreateSchema,
-    TriggerUpdateSchema,
-    TriggerOutSchema,
     ErrorSchema,
+    TriggerCreateSchema,
+    TriggerOutSchema,
+    TriggerUpdateSchema,
 )
 from apps.workflows_v2.services.trigger_engine import (
-    register_trigger,
     deactivate_trigger,
     evaluate_trigger,
     handle_webhook_trigger,
+    register_trigger,
 )
 
 router = Router(auth=VoyagerKeycloakBearer())
@@ -45,9 +45,7 @@ def list_triggers(request, workflow_id: int) -> list[WorkflowTrigger]:
 
 
 @router.post("/{workflow_id}/triggers", response=TriggerOutSchema, tags=["Triggers"])
-def create_trigger(
-    request, workflow_id: int, payload: TriggerCreateSchema
-) -> WorkflowTrigger:
+def create_trigger(request, workflow_id: int, payload: TriggerCreateSchema) -> WorkflowTrigger:
     """Create a new trigger for a workflow."""
     tenant_id = _get_tenant(request)
     user_id = _get_user(request)
@@ -105,9 +103,7 @@ def update_trigger(
     response={200: dict, 404: ErrorSchema},
     tags=["Triggers"],
 )
-def remove_trigger(
-    request, workflow_id: int, trigger_id: int
-) -> dict[str, Any]:
+def remove_trigger(request, workflow_id: int, trigger_id: int) -> dict[str, Any]:
     """Delete a trigger."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)
@@ -121,9 +117,7 @@ def remove_trigger(
     response=TriggerOutSchema,
     tags=["Triggers"],
 )
-def deactivate_trigger_view(
-    request, workflow_id: int, trigger_id: int
-) -> WorkflowTrigger:
+def deactivate_trigger_view(request, workflow_id: int, trigger_id: int) -> WorkflowTrigger:
     """Deactivate a trigger."""
     tenant_id = _get_tenant(request)
     workflow = get_object_or_404(Workflow, id=workflow_id, tenant_id=tenant_id)

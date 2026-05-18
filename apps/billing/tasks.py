@@ -7,7 +7,7 @@ timesheet processing, and profitability reporting.
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 from celery import shared_task
@@ -26,9 +26,7 @@ def generate_invoices(self) -> dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
     try:
-        from apps.billing.models.invoice import Invoice
         from apps.billing.models.retainer import Retainer
-        from apps.billing.models.time_entry import TimeEntry
         from apps.billing.services.invoicing import create_invoice
 
         today = date.today()
@@ -55,7 +53,9 @@ def generate_invoices(self) -> dict[str, Any]:
                 total_amount += float(inv.total)
                 ret.last_invoiced_month = month_start
                 ret.total_amount_invoiced += inv.total
-                ret.save(update_fields=["last_invoiced_month", "total_amount_invoiced", "updated_at"])
+                ret.save(
+                    update_fields=["last_invoiced_month", "total_amount_invoiced", "updated_at"]
+                )
             except Exception:
                 logger.exception("Failed to generate retainer invoice for %s", ret.pk)
 
@@ -81,7 +81,6 @@ def process_recurring_payments(self) -> dict[str, Any]:
     logger.info("Task started: %s", self.name)
     try:
         from apps.billing.models.invoice import Invoice
-        from apps.billing.models.payment import Payment
         from apps.billing.services.payments import create_payment_intent
 
         overdue = Invoice.objects.filter(
@@ -143,9 +142,7 @@ def check_budget_alerts(self) -> dict[str, Any]:
         from apps.billing.models.project_budget import ProjectBudget
         from apps.billing.services.budgeting import evaluate_budget_alert
 
-        budgets = ProjectBudget.objects.exclude(
-            alert_level=ProjectBudget.AlertLevel.CRITICAL
-        )
+        budgets = ProjectBudget.objects.exclude(alert_level=ProjectBudget.AlertLevel.CRITICAL)
         budgets_checked = 0
         alerts_triggered = 0
         for budget in budgets:
@@ -201,7 +198,6 @@ def compute_profitability_reports(self) -> dict[str, Any]:
     """
     logger.info("Task started: %s", self.name)
     try:
-        from apps.clients.models import Client  # type: ignore[attr-defined]
         from apps.billing.services.profitability import compute_client_profitability
 
         today = date.today()
@@ -217,6 +213,7 @@ def compute_profitability_reports(self) -> dict[str, Any]:
 
         # Use string-based approach to avoid import issues
         from django.db import connection
+
         with connection.cursor() as cursor:
             cursor.execute(
                 "SELECT DISTINCT tenant_id FROM voyager_client WHERE status = %s",

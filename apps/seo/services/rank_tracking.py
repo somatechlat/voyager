@@ -55,17 +55,17 @@ def detect_serp_features(
     features: list[dict[str, Any]] = []
     for feature in _SERP_FEATURES:
         if serp_data.get(feature) or feature in str(serp_data):
-            features.append({
-                "type": feature,
-                "position": serp_data.get(f"{feature}_position"),
-                "present": True,
-            })
+            features.append(
+                {
+                    "type": feature,
+                    "position": serp_data.get(f"{feature}_position"),
+                    "present": True,
+                }
+            )
     return features
 
 
-def calculate_position_change(
-    current: int | None, previous: int | None
-) -> int:
+def calculate_position_change(current: int | None, previous: int | None) -> int:
     """Calculate position change.
 
     Positive = improved (moved up), negative = dropped.
@@ -82,9 +82,7 @@ def calculate_position_change(
     return previous - current
 
 
-def should_alert(
-    position_change: int, threshold: str
-) -> tuple[bool, str]:
+def should_alert(position_change: int, threshold: str) -> tuple[bool, str]:
     """Determine if ranking change warrants an alert.
 
     Args:
@@ -181,7 +179,9 @@ def collect_ranking(
     keyword.previous_position = previous
     keyword.position_change = change
     keyword.tracked_at = timezone.now()
-    keyword.save(update_fields=["current_position", "previous_position", "position_change", "tracked_at"])
+    keyword.save(
+        update_fields=["current_position", "previous_position", "position_change", "tracked_at"]
+    )
 
     # Check alerts
     needs_alert, alert_type = should_alert(change, tracking.alert_threshold)
@@ -211,9 +211,7 @@ def collect_ranking(
     return result
 
 
-def get_ranking_trend(
-    tracking: SERPTracking, days: int = 30
-) -> list[dict[str, Any]]:
+def get_ranking_trend(tracking: SERPTracking, days: int = 30) -> list[dict[str, Any]]:
     """Get ranking trend for a tracked keyword.
 
     Args:

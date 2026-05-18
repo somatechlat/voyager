@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import os
 import re
-import tempfile
 import time
 from io import BytesIO
 from typing import Any
@@ -439,6 +438,3 @@ class OCRProcessor:
             )
 
         return tables
-
-
-

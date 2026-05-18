@@ -133,9 +133,13 @@ class PersonaService:
         Returns:
             List of persona dicts with weight and name.
         """
-        links = PersonaCampaignLink.objects.filter(
-            campaign_id=campaign_id,
-        ).select_related("persona").order_by("-weight")
+        links = (
+            PersonaCampaignLink.objects.filter(
+                campaign_id=campaign_id,
+            )
+            .select_related("persona")
+            .order_by("-weight")
+        )
         return [
             {
                 "persona_id": str(link.persona.id),
@@ -157,7 +161,8 @@ class PersonaService:
             Aggregated targeting profile.
         """
         personas = AudiencePersona.objects.filter(
-            id__in=persona_ids, is_active=True,
+            id__in=persona_ids,
+            is_active=True,
         )
         if not personas:
             return {}

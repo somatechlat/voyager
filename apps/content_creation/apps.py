@@ -8,4 +8,5 @@ class ContentCreationConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.content_creation"
+    label = "content_creation"
     verbose_name = "Content Creation"

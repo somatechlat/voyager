@@ -1,21 +1,9 @@
+"""Governance v2 API.
+
+Endpoints for compliance and governance — brand safety scanning,
+compliance rule management, GDPR consent and DSR handling,
+approval workflows, and data residency. All endpoints are
+registered in ``apps.governance_v2.views`` and re-exported here.
 """
-Governance v2 API.
 
-Endpoints for compliance and governance — approval workflows,
-brand safety checks, regulatory compliance, data retention policies,
-content moderation, access reviews.
-"""
-
-from __future__ import annotations
-
-from ninja import Router
-
-from apps.rbac.auth import VoyagerKeycloakBearer
-
-router = Router(auth=VoyagerKeycloakBearer())
-
-
-@router.get("/health", tags=["Governance"])
-def module_health(request):
-    """Governance module health check."""
-    return {"status": "ok", "module": "governance_v2"}
+from apps.governance_v2.views import router  # noqa: F401

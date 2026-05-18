@@ -9,7 +9,7 @@ from __future__ import annotations
 from django.db import models
 from django.utils import timezone
 
-from .base import TimeStampedModel, UUIDModel
+from apps.core.models import TimeStampedModel, UUIDModel
 
 
 class PublishQueue(UUIDModel, TimeStampedModel):

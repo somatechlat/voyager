@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from django.db import models
 from django.utils import timezone as tz
 
-from .base import TenantModel, TimeStampedModel, UUIDModel
+from apps.core.models import UUIDModel, TimeStampedModel, TenantModel
 
 
 class ContentCalendar(UUIDModel, TimeStampedModel, TenantModel):

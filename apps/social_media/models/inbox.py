@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from django.db import models
 
-from .base import TenantModel, TimeStampedModel, UUIDModel
+from apps.core.models import UUIDModel, TimeStampedModel, TenantModel
 
 
 class InboxMessage(UUIDModel, TenantModel, TimeStampedModel):

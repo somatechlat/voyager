@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from django.db import models
 
-from .base import TenantModel, UUIDModel
+from apps.core.models import UUIDModel, TenantModel
 
 
 class ABTest(UUIDModel, TenantModel):

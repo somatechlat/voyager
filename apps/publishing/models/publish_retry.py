@@ -11,7 +11,7 @@ from typing import Any
 
 from django.db import models
 
-from .base import TimeStampedModel, UUIDModel
+from apps.core.models import TimeStampedModel, UUIDModel
 
 
 class PublishRetry(UUIDModel, TimeStampedModel):

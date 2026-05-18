@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from django.db import models
 
-from .base import TimestampedModel
+from apps.core.models import TimeStampedModel
 
 
 class Retainer(TimestampedModel):

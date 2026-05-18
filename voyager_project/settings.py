@@ -130,6 +130,13 @@ INSTALLED_APPS = [
     "apps.workflows_v2",
     "apps.integrations",
     "apps.governance_v2",
+    # Voyant Data Intelligence apps
+    "apps.voyant_data",
+    "apps.voyant_analysis",
+    "apps.voyant_sql",
+    "apps.voyant_search",
+    "apps.voyant_ingestion",
+    "apps.voyant_scraper",
 ]
 
 # --- Middleware Configuration ---

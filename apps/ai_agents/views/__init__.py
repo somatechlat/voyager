@@ -2,7 +2,7 @@
 
 Registers all AI agent endpoints from submodules: agent CRUD,
 memory management, context assembly, collaboration, MCP tools,
-learning loops, and resource monitoring.
+learning loops, resource monitoring, and campaign workflows.
 """
 
 from ninja import Router
@@ -11,6 +11,13 @@ from apps.ai_agents.serializers.agents import (
     AgentListResponse,
     AgentSchema,
     RunAgentResponse,
+)
+from apps.ai_agents.serializers.campaign_workflow import (
+    CampaignWorkflowRequest,
+    CampaignWorkflowResponse,
+    GenerateContentRequest,
+    GenerateContentResponse,
+    WorkflowStatusResponse,
 )
 from apps.ai_agents.serializers.collaboration import (
     ActiveCollaborationsResponse,
@@ -53,6 +60,12 @@ from .agents import (
     list_agents,
     run_agent,
     update_agent,
+)
+from .campaign_workflow import (
+    cancel_workflow,
+    generate_content,
+    get_workflow_status,
+    run_campaign_workflow,
 )
 from .collaboration import (
     complete_collaboration,
@@ -224,3 +237,24 @@ router.post(
     response=ResetResourcesResponse,
     tags=["Resources"],
 )(reset_daily_counters)
+
+# Campaign workflow endpoints (UC-001)
+router.post(
+    "/campaign-workflow/{client_id}/{campaign_id}",
+    response=CampaignWorkflowResponse,
+    tags=["Campaign Workflow"],
+)(run_campaign_workflow)
+router.post(
+    "/campaign-workflow/generate",
+    response=GenerateContentResponse,
+    tags=["Campaign Workflow"],
+)(generate_content)
+router.get(
+    "/campaign-workflow/status/{run_id}",
+    response=WorkflowStatusResponse,
+    tags=["Campaign Workflow"],
+)(get_workflow_status)
+router.post(
+    "/campaign-workflow/cancel/{run_id}",
+    tags=["Campaign Workflow"],
+)(cancel_workflow)

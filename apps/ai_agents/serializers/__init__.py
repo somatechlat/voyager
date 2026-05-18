@@ -3,6 +3,21 @@
 Re-exports all schemas from submodules for convenience.
 """
 
+from .campaign_workflow import (
+    BrandKitSchema,
+    CampaignWorkflowListItem,
+    CampaignWorkflowRequest,
+    CampaignWorkflowResponse,
+    CreativeOutputSchema,
+    GenerateContentRequest,
+    GenerateContentResponse,
+    ImageResultSchema,
+    LLMResultSchema,
+    ResearchDataSchema,
+    WorkflowStatusResponse,
+    WorkflowStatusSchema,
+)
+
 from .agents import (
     AgentConfigSchema,
     AgentCreateSchema,
@@ -64,6 +79,18 @@ from .resources import (
 
 __all__ = [
     "ABTestConfigRequest",
+    "BrandKitSchema",
+    "CampaignWorkflowListItem",
+    "CampaignWorkflowRequest",
+    "CampaignWorkflowResponse",
+    "CreativeOutputSchema",
+    "GenerateContentRequest",
+    "GenerateContentResponse",
+    "ImageResultSchema",
+    "LLMResultSchema",
+    "ResearchDataSchema",
+    "WorkflowStatusResponse",
+    "WorkflowStatusSchema",
     "ABTestResultRequest",
     "ABTestStatusResponse",
     "ActiveCollaborationsResponse",

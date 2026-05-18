@@ -66,7 +66,7 @@ class VoyantClient:
         if tables is not None:
             payload["tables"] = tables
         response = await self._client.post(
-            f"{self.base_url}/api/v1/jobs/ingest",
+            f"{self.base_url}/v1/jobs/ingest",
             json=payload,
             headers={
                 "Authorization": f"Bearer {token}",
@@ -85,7 +85,7 @@ class VoyantClient:
         Maps to ``GET /api/v1/jobs/{job_id}``.
         """
         response = await self._client.get(
-            f"{self.base_url}/api/v1/jobs/{job_id}",
+            f"{self.base_url}/v1/jobs/{job_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -97,7 +97,7 @@ class VoyantClient:
         Maps to ``POST /api/v1/jobs/{job_id}/cancel``.
         """
         response = await self._client.post(
-            f"{self.base_url}/api/v1/jobs/{job_id}/cancel",
+            f"{self.base_url}/v1/jobs/{job_id}/cancel",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -133,7 +133,7 @@ class VoyantClient:
             if key in dataset:
                 payload[key] = dataset[key]
         response = await self._client.post(
-            f"{self.base_url}/api/v1/analyze",
+            f"{self.base_url}/v1/analyze",
             json=payload,
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -169,7 +169,7 @@ class VoyantClient:
         if parameters is not None:
             payload["parameters"] = parameters
         response = await self._client.post(
-            f"{self.base_url}/api/v1/sql/query",
+            f"{self.base_url}/v1/sql/query",
             json=payload,
             headers={
                 "Authorization": f"Bearer {token}",
@@ -193,7 +193,7 @@ class VoyantClient:
         if schema is not None:
             params["schema"] = schema
         response = await self._client.get(
-            f"{self.base_url}/api/v1/sql/tables",
+            f"{self.base_url}/v1/sql/tables",
             params=params,
             headers={
                 "Authorization": f"Bearer {token}",
@@ -229,7 +229,7 @@ class VoyantClient:
         if filters is not None:
             payload["filters"] = filters
         response = await self._client.post(
-            f"{self.base_url}/api/v1/search/query",
+            f"{self.base_url}/v1/search/query",
             json=payload,
             headers={
                 "Authorization": f"Bearer {token}",
@@ -256,7 +256,7 @@ class VoyantClient:
         if item_id is not None:
             payload["item_id"] = item_id
         response = await self._client.post(
-            f"{self.base_url}/api/v1/search/index",
+            f"{self.base_url}/v1/search/index",
             json=payload,
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -269,7 +269,7 @@ class VoyantClient:
         Maps to ``DELETE /api/v1/search/{item_id}``.
         """
         response = await self._client.delete(
-            f"{self.base_url}/api/v1/search/{item_id}",
+            f"{self.base_url}/v1/search/{item_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -295,7 +295,7 @@ class VoyantClient:
         if options is not None:
             payload["options"] = options
         response = await self._client.post(
-            f"{self.base_url}/api/v1/scrape/start",
+            f"{self.base_url}/v1/scrape/start",
             json=payload,
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -321,7 +321,7 @@ class VoyantClient:
         if options is not None:
             payload["options"] = options
         response = await self._client.post(
-            f"{self.base_url}/api/v1/scrape/start",
+            f"{self.base_url}/v1/scrape/start",
             json=payload,
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -336,7 +336,7 @@ class VoyantClient:
         Maps to ``GET /api/v1/scrape/status/{job_id}``.
         """
         response = await self._client.get(
-            f"{self.base_url}/api/v1/scrape/status/{job_id}",
+            f"{self.base_url}/v1/scrape/status/{job_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -348,7 +348,7 @@ class VoyantClient:
         Maps to ``GET /api/v1/scrape/result/{job_id}``.
         """
         response = await self._client.get(
-            f"{self.base_url}/api/v1/scrape/result/{job_id}",
+            f"{self.base_url}/v1/scrape/result/{job_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -365,7 +365,7 @@ class VoyantClient:
         Maps to ``POST /api/v1/scrape/extract``.
         """
         response = await self._client.post(
-            f"{self.base_url}/api/v1/scrape/extract",
+            f"{self.base_url}/v1/scrape/extract",
             json={"html": html, "selectors": selectors},
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -389,7 +389,7 @@ class VoyantClient:
         :returns: Dict with ``text`` and optional ``confidence``.
         """
         response = await self._client.post(
-            f"{self.base_url}/api/v1/scrape/ocr",
+            f"{self.base_url}/v1/scrape/ocr",
             json={"image_url": image_url, "language": language},
             headers={"Authorization": f"Bearer {token}"},
         )
@@ -404,7 +404,7 @@ class VoyantClient:
         Maps to ``GET /api/v1/sources``.
         """
         response = await self._client.get(
-            f"{self.base_url}/api/v1/sources",
+            f"{self.base_url}/v1/sources",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
@@ -416,7 +416,7 @@ class VoyantClient:
         Maps to ``GET /api/v1/sources/{source_id}``.
         """
         response = await self._client.get(
-            f"{self.base_url}/api/v1/sources/{source_id}",
+            f"{self.base_url}/v1/sources/{source_id}",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()

@@ -22,6 +22,7 @@ Always close the client on shutdown::
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -311,6 +312,66 @@ class VortexClient:
         response = await self._client.get(f"{self.base_url}/metrics")
         response.raise_for_status()
         return response.text
+
+    # ─────────────────────────────────────────────────────────────
+    # WebSocket — real-time run progress
+    # ─────────────────────────────────────────────────────────────
+
+    async def subscribe_progress(
+        self,
+        run_id: str,
+        token: str,
+        callback: Any,
+    ) -> None:
+        """Subscribe to WebSocket progress updates for a run.
+
+        Maps to ``GET /ws``.  Opens a WebSocket connection and yields
+        ``RunProgress`` messages until the run reaches a terminal state
+        (``completed``, ``failed``, or ``cancelled``).
+
+        :param run_id: UUID of the run to monitor.
+        :param token: Bearer JWT token (sent via ``Authorization`` header
+            during the HTTP upgrade handshake).
+        :param callback: Async callable receiving ``RunProgress`` dicts::
+
+                async def on_progress(msg: dict) -> None:
+                    print(f"Node {msg['node_id']}: {msg['status']} "
+                          f"({msg['progress_percent']:.1f}%)")
+
+        :raises RuntimeError: If ``websockets`` is not installed.
+        :raises httpx.HTTPStatusError: On 4xx/5xx from the WS endpoint.
+        """
+        try:
+            import websockets
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError(
+                "WebSocket support requires the 'websockets' package.  "
+                "Install it with:  pip install websockets"
+            ) from exc
+
+        ws_url = self.base_url.replace("http://", "ws://").replace(
+            "https://", "wss://")
+        ws_uri = f"{ws_url}/ws"
+
+        logger.info("WS subscribe: run=%s uri=%s", run_id, ws_uri)
+
+        async with websockets.connect(
+            ws_uri,
+            extra_headers={"Authorization": f"Bearer {token}"},
+        ) as ws:
+            # Subscribe to a specific run
+            await ws.send(f'{{"type": "subscribe", "run_id": "{run_id}"}}')
+
+            async for message in ws:
+                msg: dict[str, Any] = json.loads(message)
+                msg_type = msg.get("type")
+
+                if msg_type in ("RunProgress", "RunComplete", "RunError"):
+                    await callback(msg)
+
+                if msg_type in ("RunComplete", "RunError"):
+                    logger.info("WS terminal: run=%s type=%s", run_id, msg_type)
+                    break
 
     # ─────────────────────────────────────────────────────────────
     # Lifecycle

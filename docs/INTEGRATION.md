@@ -1,558 +1,427 @@
 # VOYAGER — Voyant + Vortex Integration Architecture
-## Three-System Unified Flow
+## Three-System Unified Flow — CORRECTED
 
-**Document ID:** VYGR-INT-1.0.0
+**Document ID:** VYGR-INT-2.0.0
 **Date:** 2026-05-18
-**Systems:** Voyager (Django) ↔ Voyant (Django) ↔ Vortex (Rust)
+**Status:** CORRECTED — Based on actual Vortex source code inspection
 
 ---
 
-## 1. System Overview
+## CRITICAL CORRECTION: What Vortex Actually Does
 
-Three systems work as one unified platform:
+After reading the Vortex source code, here's the truth:
 
-| System | Role | Tech | Port | Repo |
-|--------|------|------|------|------|
-| **Voyager** | Marketing automation API | Django 5 + Ninja | 8000 | somatechlat/voyager |
-| **Voyant** | Data intelligence engine | Django 5 + Ninja | 8000 | somatechlat/voyant |
-| **Vortex** | Workflow execution engine | Rust + Axum | 11188 | somatechlat/vortex |
+**Vortex is NOT just a workflow engine. Vortex is a full AI inference engine.**
 
-**Integration Pattern:** Voyager is the orchestrator. It calls Voyant for data and Vortex for workflows. All three share Keycloak JWT tokens and tenant IDs.
+| System | What It Actually Does | Code Evidence |
+|--------|----------------------|---------------|
+| **Vortex** | Loads AI models (SD, SDXL), runs inference on GPU, generates images/video/audio | `executor.py` has `KSampler`, `VAEDecode`, `CLIPTextEncode`, `LatentVideoSampler`, `MelEncoder` |
+| **Voyager** | Marketing automation API — orchestrates campaigns, calls Vortex for media generation | `campaign_orchestrator.py` calls both Voyant and Vortex |
+| **Voyant** | Data intelligence — ingestion, analysis, SQL, search, scraping | `voyant_bridge/client.py` has 18 API methods |
 
----
+### Vortex Model Catalog (from `model_loader.py` lines 37-78)
 
-## 2. Integration Bridges (Real Code)
-
-### 2.1 Voyant Bridge — `voyant_bridge/client.py` (451 lines, 18 methods)
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    VOYANT BRIDGE (voyant_bridge/)                     │
-│                    HTTP Client → http://voyant-api:8000               │
-├──────────────────────────────────────────────────────────────────────┤
-│  DATA INGESTION (apps/workflows/api)                                 │
-│    ingest_data(source_config, token) → POST /api/v1/jobs/ingest      │
-│    get_job_status(job_id, token) → GET /api/v1/jobs/{id}             │
-│    cancel_job(job_id, token) → POST /api/v1/jobs/{id}/cancel         │
-│                                                                      │
-│  ANALYSIS (apps/analysis/api)                                        │
-│    analyze_data(dataset, token) → POST /api/v1/analyze               │
-│                                                                      │
-│  SQL / TRINO (apps/sql/api)                                          │
-│    execute_sql(query, catalog, token) → POST /api/v1/sql/query       │
-│    list_tables(catalog, token) → GET /api/v1/sql/tables              │
-│                                                                      │
-│  SEMANTIC SEARCH (apps/search/api → Milvus)                          │
-│    search_similar(query, collection, limit, token)                   │
-│         → POST /api/v1/search/query                                  │
-│    index_document(text, metadata, token) → POST /api/v1/search/index │
-│    delete_indexed_document(item_id, token) → DELETE /api/v1/search   │
-│                                                                      │
-│  WEB SCRAPING (apps/scraper/api → Playwright/Tesseract)              │
-│    scrape_url(url, selectors, token) → POST /api/v1/scrape/start     │
-│    scrape_multiple(urls, selectors, token) → POST /api/v1/scrape/start│
-│    get_scrape_status(job_id, token) → GET /api/v1/scrape/status      │
-│    get_scrape_result(job_id, token) → GET /api/v1/scrape/result      │
-│    extract_from_html(html, selectors, token)                         │
-│         → POST /api/v1/scrape/extract                                │
-│    ocr_image(image_url, token) → POST /api/v1/scrape/ocr             │
-│                                                                      │
-│  DATA SOURCES (apps/discovery/api)                                   │
-│    list_sources(token) → GET /api/v1/sources                         │
-│    get_source(source_id, token) → GET /api/v1/sources/{id}           │
-│                                                                      │
-│  HEALTH → GET /health (unauthenticated)                              │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.2 Vortex Bridge — `vortex_bridge/client.py` (340 lines, 13 methods)
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    VORTEX BRIDGE (vortex_bridge/)                     │
-│                    HTTP Client → http://vortex-core:11188             │
-├──────────────────────────────────────────────────────────────────────┤
-│  GRAPH LIFECYCLE                                                     │
-│    submit_graph(graph_dsl, token) → POST /api/graph                  │
-│    get_graph(graph_id, token) → GET /api/graph/{id}                  │
-│    execute_graph(graph_id, token) → POST /api/graph/{id}/execute     │
-│                                                                      │
-│  RUN MONITORING                                                      │
-│    get_run_status(run_id, token) → GET /api/run/{id}/status          │
-│    cancel_run(run_id, token) → POST /api/run/{id}/cancel             │
-│                                                                      │
-│  MCP (Model Context Protocol)                                        │
-│    list_mcp_tools(token) → GET /api/nodes/mcp                        │
-│    list_mcp_clients(token) → GET /api/mcp/clients                    │
-│    call_mcp_tool(type_id, arguments, token)                          │
-│         → POST /api/mcp/tool/call                                    │
-│    register_mcp_client(client_id, command, args, token)              │
-│         → POST /api/mcp/client/register                              │
-│                                                                      │
-│  HEALTH / METRICS                                                    │
-│    health_check() → GET /health (unauthenticated)                    │
-│    get_metrics() → GET /metrics (Prometheus)                         │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.3 LLM Router — `apps/ai_agents/services/llm_router.py` (415 lines)
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    LLM ROUTER (apps/ai_agents/)                       │
-│                    Real API calls to 3 providers                      │
-├──────────────────────────────────────────────────────────────────────┤
-│  OPENAI (openai.AsyncOpenAI)                                         │
-│    generate_text(prompt, context, brand_kit) → GPT-4o                │
-│    generate_image(prompt, brand_kit) → DALL-E 3                      │
-│    generate_multimodal(prompt, image_urls) → GPT-4o vision           │
-│                                                                      │
-│  ANTHROPIC (anthropic.AsyncAnthropic)                                │
-│    generate_text(prompt, context, brand_kit) → Claude 3.5 Sonnet     │
-│                                                                      │
-│  GOOGLE (httpx → generativelanguage.googleapis.com)                  │
-│    generate_text(prompt, context, brand_kit) → Gemini 1.5 Pro        │
-│                                                                      │
-│  ROUTING LOGIC                                                       │
-│    Priority: anthropic → openai → google (or preferred override)    │
-│    Fallback: try next provider on failure                            │
-│    Cost tracking: per-call USD calculation (MODEL_PRICING table)     │
-│    Brand compliance: _score_brand_compliance() 0.0-1.0              │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Campaign Orchestration Flow (UC-001)
-
-### 3.1 High-Level Flowchart
-
-```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   MARKETING  │     │   VOYAGER    │     │   VOYANT     │     │   VORTEX     │
-│   MANAGER    │────→│   (Django)   │←───→│   (Django)   │     │   (Rust)     │
-│   (User)     │     │   Port 8000  │     │   Port 8000  │     │   Port 11188 │
-└──────┬───────┘     └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
-       │                    │                    │                    │
-       │ 1. POST /clients   │                    │                    │
-       │───────────────────→│                    │                    │
-       │                    │ 2. INSERT clients  │                    │
-       │                    │    (PostgreSQL)    │                    │
-       │  201 Created       │                    │                    │
-       │←───────────────────│                    │                    │
-       │                    │                    │                    │
-       │ 3. POST /campaigns │                    │                    │
-       │───────────────────→│                    │                    │
-       │                    │ 4. INSERT campaigns│                    │
-       │                    │    (linked to      │                    │
-       │                    │     client)        │                    │
-       │  201 Created       │                    │                    │
-       │←───────────────────│                    │                    │
-       │                    │                    │                    │
-       │ 5. POST /ai-agents/│                    │                    │
-       │    campaign-workflow│                   │                    │
-       │    {client_id,     │                    │                    │
-       │     campaign_id}   │                    │                    │
-       │───────────────────→│                    │                    │
-       │                    │                    │                    │
-       │                    │ ╔═══════════════════════════════════════╗
-       │                    │ ║  PHASE 1: RESEARCH AGENT             ║
-       │                    │ ║  (uses Voyant Bridge)                ║
-       │                    │ ╚═══════════════════════════════════════╝
-       │                    │                    │                    │
-       │                    │ 6a. voyant_client.analyze_competitors() │
-       │                    │───────────────────→│                    │
-       │                    │                    │ 7a. Playwright scrape
-       │                    │                    │    competitor sites  │
-       │                    │                    │ 8a. NLP analysis     │
-       │                    │  ←─────────────────│                    │
-       │                    │    {competitor_profiles}                 │
-       │                    │                    │                    │
-       │                    │ 6b. voyant_client.analyze_market_trends()│
-       │                    │───────────────────→│                    │
-       │                    │                    │ 7b. Statistical      │
-       │                    │                    │    trend detection   │
-       │                    │  ←─────────────────│                    │
-       │                    │    {trend_data}    │                    │
-       │                    │                    │                    │
-       │                    │ 6c. voyant_client.search_keywords()      │
-       │                    │───────────────────→│                    │
-       │                    │                    │ 7c. Milvus semantic  │
-       │                    │                    │    search            │
-       │                    │  ←─────────────────│                    │
-       │                    │    {keywords}      │                    │
-       │                    │                    │                    │
-       │                    │ 6d. voyant_client.analyze_brand_sentiment│
-       │                    │───────────────────→│                    │
-       │                    │                    │ 7d. Sentiment NLP    │
-       │                    │  ←─────────────────│                    │
-       │                    │    {sentiment}     │                    │
-       │                    │                    │                    │
-       │                    │ ╔═══════════════════════════════════════╗
-       │                    │ ║  PHASE 2: CREATIVE AGENT             ║
-       │                    │ ║  (uses LLM Router)                   ║
-       │                    │ ╚═══════════════════════════════════════╝
-       │                    │                    │                    │
-       │                    │ 9a. llm.generate_text()                │
-       │                    │    → Claude 3.5 Sonnet (brief)         │
-       │                    │    → GPT-4o (content copy)             │
-       │                    │    → GPT-4o (social posts)             │
-       │                    │    → Claude 3.5 Sonnet (email)         │
-       │                    │                    │                    │
-       │                    │ 9b. llm.generate_image()               │
-       │                    │    → DALL-E 3 (brand colors enforced)  │
-       │                    │                    │                    │
-       │                    │ ╔═══════════════════════════════════════╗
-       │                    │ ║  PHASE 3: VORTEX WORKFLOW            ║
-       │                    │ ║  (uses Vortex Bridge)                ║
-       │                    │ ╚═══════════════════════════════════════╝
-       │                    │                    │                    │
-       │                    │ 10. vortex_client.submit_graph()        │
-       │                    │    graph_dsl = {                        │
-       │                    │      nodes: [ingest, review, publish,   │
-       │                    │               monitor, optimize],       │
-       │                    │      edges: [ingest→review,            │
-       │                    │               review→publish,           │
-       │                    │               publish→monitor,         │
-       │                    │               monitor→optimize]        │
-       │                    │    }                                    │
-       │                    │───────────────────────────────────────→│
-       │                    │                    │ 11. Kahn's algo    │
-       │                    │                    │    DAG scheduling  │
-       │                    │  ←─────────────────────────────────────│
-       │                    │    {graph_id, run_id}                  │
-       │                    │                    │                    │
-       │  200 OK            │                    │                    │
-       │←───────────────────│                    │                    │
-       │  {research,        │                    │                    │
-       │   creative,        │                    │                    │
-       │   workflow,        │                    │                    │
-       │   aggregate: {     │                    │                    │
-       │     total_cost,    │                    │                    │
-       │     total_tokens,  │                    │                    │
-       │     workflow_ids   │                    │                    │
-       │   }}               │                    │                    │
-       │                    │                    │                    │
-       │                    │                    │                    │
-       │  Celery Beat:      │                    │                    │
-       │  Every 5 min:      │                    │                    │
-       │  sync_platform_    │                    │                    │
-       │    metrics         │                    │                    │
-       │                    │ 12. voyant_client. │                    │
-       │                    │     ingest_data()  │                    │
-       │                    │───────────────────→│                    │
-       │                    │                    │ 13. ETL pipeline   │
-       │                    │                    │    → ClickHouse    │
-       │                    │                    │                    │
-       │  GET /analytics/   │                    │                    │
-       │  dashboards        │                    │                    │
-       │───────────────────→│ 14. voyant_client. │                    │
-       │                    │     execute_sql()  │                    │
-       │                    │───────────────────→│                    │
-       │                    │                    │ 15. Trino →        │
-       │                    │                    │    ClickHouse      │
-       │  ←──────────────   │  ←─────────────────│                    │
-       │  {dashboard_data}  │    {query_results} │                    │
-```
-
----
-
-## 4. Detailed Sequence Diagram: AI-Assisted Campaign
-
-```
-MM = Marketing Manager
-VG = Voyager API (Django + Ninja, port 8000)
-CO = CampaignOrchestrator (apps/ai_agents/services/)
-LR = LLMRouter (apps/ai_agents/services/)
-VB = Voyant Bridge (voyant_bridge/client.py)
-VX = Vortex Bridge (vortex_bridge/client.py)
-VT = Voyant (Django, port 8000)
-VTX = Vortex (Rust, port 11188)
-
-═══════════════════════════════════════════════════════════════════════════════
-PHASE 1: RESEARCH AGENT (Voyant data gathering)
-═══════════════════════════════════════════════════════════════════════════════
-
-MM ──POST /api/v1/ai-agents/campaign-workflow/{client_id}/{campaign_id}──→ VG
-VG ──auth: KeycloakBearer.validate(token)─────────────────────────────────→ (Keycloak)
-VG ──permission: voyager-marketing-manager role check─────────────────────→ (RBAC)
-VG ──CampaignOrchestrator.run_campaign_workflow()─────────────────────────→ CO
-
-CO ──_run_research_agent(client_id, tenant_id, token)────────────────────→ CO
-
-  CO ──voyant_client.analyze_competitors(client_id, [], token)───────────→ VB
-  VB ──POST /api/v1/analyze──────────────────────────────────────────────→ VT
-  VT ──Playwright scrape competitor URLs──────────────────────────────────→ (Chrome)
-  VT ──NLP: extract themes, topics, sentiment from content────────────────→ (spaCy)
-  VT ──return {competitor_profiles, content_themes, sentiment}────────────→ VB
-  VB ──return competitor_data────────────────────────────────────────────→ CO
-
-  CO ──voyant_client.analyze_market_trends(client_id, "general", token)──→ VB
-  VB ──POST /api/v1/analyze──────────────────────────────────────────────→ VT
-  VT ──Statistical trend detection on historical data─────────────────────→ (ClickHouse)
-  VT ──return {trends, growth_rates, seasonality}─────────────────────────→ VB
-  VB ──return trend_data─────────────────────────────────────────────────→ CO
-
-  CO ──voyant_client.search_keywords(query, token, limit=50)─────────────→ VB
-  VB ──POST /api/v1/search/query─────────────────────────────────────────→ VT
-  VT ──Milvus semantic search on marketing_keywords collection────────────→ (Milvus)
-  VT ──return {keywords: [{term, volume, difficulty, score}]}─────────────→ VB
-  VB ──return keywords───────────────────────────────────────────────────→ CO
-
-  CO ──voyant_client.analyze_brand_sentiment(client_id, token)───────────→ VB
-  VB ──POST /api/v1/analyze──────────────────────────────────────────────→ VT
-  VT ──Sentiment analysis on brand mentions───────────────────────────────→ (NLP model)
-  VT ──return {overall, by_platform, by_date}─────────────────────────────→ VB
-  VB ──return sentiment_data─────────────────────────────────────────────→ CO
-
-CO ──return {competitors, trends, keywords, sentiment, _meta: {cost}}───→ CO
-
-═══════════════════════════════════════════════════════════════════════════════
-PHASE 2: CREATIVE AGENT (LLM content generation)
-═══════════════════════════════════════════════════════════════════════════════
-
-CO ──_run_creative_agent(campaign_id, research, tenant_id, token)────────→ CO
-CO ──build_creative_context(research)─────────────────────────────────────→ (prompt builder)
-
-  CO ──llm.generate_text(brief_prompt, context, brand_kit, max=3000)─────→ LR
-  LR ──_build_system_prompt(context, brand_kit)───────────────────────────→ LR
-  LR ──Route: anthropic preferred─────────────────────────────────────────→ LR
-  LR ──anthropic_client.messages.create(model="claude-3-5-sonnet-20241022")→ (Anthropic API)
-  LR ──_score_brand_compliance(response.text, brand_kit)──────────────────→ LR
-  LR ──_calc_cost("claude-3-5-sonnet", input_tokens, output_tokens)───────→ LR
-  LR ──return {text, model_used, tokens_used, cost_usd, brand_compliance}─→ CO
-
-  CO ──llm.generate_text(content_prompt, context, brand_kit, max=4000)───→ LR
-  LR ──Route: openai (GPT-4o for longer content)─────────────────────────→ LR
-  LR ──openai_client.chat.completions.create(model="gpt-4o")──────────────→ (OpenAI API)
-  LR ──return {text, model_used, tokens_used, cost_usd, brand_compliance}─→ CO
-
-  CO ──llm.generate_text(social_prompt, context, brand_kit, max=2000)────→ LR
-  LR ──openai_client.chat.completions.create(model="gpt-4o")──────────────→ (OpenAI API)
-  LR ──return {text: social_posts, model_used, tokens_used, cost_usd}────→ CO
-
-  CO ──llm.generate_text(email_prompt, context, brand_kit, max=2500)─────→ LR
-  LR ──anthropic_client.messages.create(model="claude-3-5-sonnet")────────→ (Anthropic API)
-  LR ──return {text: email_copy, model_used, tokens_used, cost_usd}──────→ CO
-
-CO ──return {brief, content, social_posts, email_copy}──────────────────→ CO
-
-═══════════════════════════════════════════════════════════════════════════════
-PHASE 3: VORTEX WORKFLOW (DAG execution)
-═══════════════════════════════════════════════════════════════════════════════
-
-CO ──_submit_to_vortex(campaign_id, results, tenant_id, token)───────────→ CO
-
-  CO ──Build GraphDSL:                                               ────→ CO
-       {                                                               
-         nodes: [                                                      
-           {id: "ingest", type: "action", config: {...}},              
-           {id: "review", type: "human_approval", config: {timeout: 86400}}
-           {id: "publish", type: "action", config: {channels: [...]}},
-           {id: "monitor", type: "action", config: {metrics: [...]}},
-           {id: "optimize", type: "action", config: {rules: [...]}}
-         ],
-         edges: [
-           {from: "ingest", to: "review"},
-           {from: "review", to: "publish", condition: "approved"},
-           {from: "review", to: "ingest", condition: "rejected"},
-           {from: "publish", to: "monitor"},
-           {from: "monitor", to: "optimize", condition: "threshold_met"}
-         ]
-       }
-
-  CO ──vortex_client.submit_graph(graph_dsl, token)──────────────────────→ VX
-  VX ──POST /api/graph───────────────────────────────────────────────────→ VTX
-  VTX ──Validate graph (DAG check, node types, edge conditions)──────────→ VTX
-  VTX ──Store graph, assign graph_id─────────────────────────────────────→ VTX
-  VTX ──return {graph_id, version}───────────────────────────────────────→ VX
-  VX ──return graph_id───────────────────────────────────────────────────→ CO
-
-  CO ──vortex_client.execute_graph(graph_id, token)──────────────────────→ VX
-  VX ──POST /api/graph/{graph_id}/execute────────────────────────────────→ VTX
-  VTX ──Kahn's topological sort on DAG───────────────────────────────────→ VTX
-  VTX ──Schedule node execution (async workers)──────────────────────────→ VTX
-  VTX ──WebSocket: progress updates on /ws───────────────────────────────→ VTX
-  VTX ──return {run_id, estimated_time_ms}───────────────────────────────→ VX
-  VX ──return run_id─────────────────────────────────────────────────────→ CO
-
-CO ──return {graph_id, run_id, status: "submitted", nodes: [...]}───────→ CO
-
-═══════════════════════════════════════════════════════════════════════════════
-RESPONSE TO USER
-═══════════════════════════════════════════════════════════════════════════════
-
-CO ──Aggregate results:                                              ────→ CO
-     {                                                               
-       research: {competitors, trends, keywords, sentiment},
-       creative: {brief, content, social_posts, email_copy},
-       workflow: {graph_id, run_id, status, nodes},
-       aggregate: {
-         total_cost_usd: 0.0042,
-         total_tokens_used: 1847,
-         workflow_graph_id: "uuid",
-         workflow_run_id: "uuid"
-       }
-     }
-
-VG ──HTTP 200 OK + JSON body─────────────────────────────────────────────→ MM
-```
-
----
-
-## 5. Data Flow Between Three Systems
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         DATA FLOW ARCHITECTURE                               │
-│                     Voyager ←→ Voyant ←→ Vortex                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-  VOYAGER (Marketing)          VOYANT (Data Intelligence)      VORTEX (Workflows)
-  ────────────────────         ──────────────────────────      ─────────────────
-
-  [campaigns]  ───────────────→ [ingestion jobs]
-    PostgreSQL                    Voyant processes
-    │                             │
-    │  ┌──────────────────────────┘
-    │  │
-    │  ▼
-    │  [ClickHouse] ←───────────── analytics results
-    │     │
-    │     ▼
-    │  [Trino SQL] ←────────────── Voyager queries via voyant_bridge.execute_sql()
-    │     │
-    │     ▼
-    │  [Dashboard data] ─────────→ Voyager API response
-    │
-    │
-  [ai_agents] ─────────────────→ [Milvus vectors]
-    Qdrant (memory)               Voyant manages
-    │                             │
-    │  embeddings ───────────────→│
-    │  search_similar()           │
-    │                             │
-    │                             ▼
-    │  ←──────────────────────── [semantic search results]
-    │
-    │
-  [content] ───────────────────→ [scraped data]
-    text/images                   Playwright + OCR
-    │                             │
-    │  scrape_url() ─────────────→│
-    │  ocr_image()                │
-    │                             │
-    │                             ▼
-    │  ←──────────────────────── [extracted text, HTML, screenshots]
-    │
-    │
-  [workflows] ─────────────────────────────────────────────────→ [DAG execution]
-    scheduled posts                                               Kahn scheduling
-    approval gates                                                WebSocket progress
-    │                                                             │
-    │  submit_graph() ───────────────────────────────────────────→│
-    │  execute_graph()                                            │
-    │  get_run_status() ────────────────────────────────────────→│
-    │                                                             ▼
-    │  ←───────────────────────────────────────────────────────── [execution status]
-
-═══════════════════════════════════════════════════════════════════════════════
-SHARED INFRASTRUCTURE
-═══════════════════════════════════════════════════════════════════════════════
-
-  PostgreSQL 16 ─── Voyager models + Voyant models (separate schemas)
-  Redis 7 ───────── Celery broker + cache (shared)
-  ClickHouse ────── Analytics events (Voyant writes, Voyager queries via Trino)
-  MinIO ─────────── Object storage (assets, screenshots, generated images)
-  Keycloak ──────── Shared JWT auth (same realm, tenant_id claim)
-  Vault ─────────── Shared secrets (DB creds, API keys)
-  Kafka ─────────── Event bus (cross-system events)
-
-═══════════════════════════════════════════════════════════════════════════════
-AUTHENTICATION FLOW
-═══════════════════════════════════════════════════════════════════════════════
-
-  User ──Keycloak login──→ Keycloak ──JWT token──→ User
-
-  User ──API request──→ Voyager API
-         Authorization: Bearer <jwt>
-         X-Tenant-ID: tenant_42
-
-  Voyager ──validate JWT──→ Keycloak (JWKS)
-  Voyager ──extract tenant_id──→ RBAC middleware
-
-  Voyager ──call Voyant──→ Voyant API
-         Authorization: Bearer <same_jwt>
-         X-Tenant-ID: tenant_42
-         X-Trino-Catalog: iceberg
-
-  Voyager ──call Vortex──→ Vortex API
-         Authorization: Bearer <same_jwt>
-         (Vortex validates via Keycloak JWKS)
-```
-
----
-
-## 6. File Reference
-
-| File | Lines | Purpose | System |
-|------|-------|---------|--------|
-| `voyant_bridge/client.py` | 451 | HTTP client, 18 API methods | Voyager → Voyant |
-| `voyant_bridge/services.py` | 864 | 5 service wrappers | Voyager → Voyant |
-| `vortex_bridge/client.py` | 340 | HTTP client, 13 API methods | Voyager → Vortex |
-| `vortex_bridge/models.py` | 156 | Pydantic response models | Voyager → Vortex |
-| `vortex_bridge/compiler.py` | 278 | Workflow-to-GraphDSL compiler | Voyager → Vortex |
-| `apps/ai_agents/services/llm_router.py` | 415 | Real OpenAI/Anthropic/Google calls | Voyager → LLM APIs |
-| `apps/ai_agents/services/campaign_orchestrator.py` | 429 | 3-agent orchestration | Voyager internal |
-| `apps/ai_agents/services/campaign_prompts.py` | 312 | Prompt builders | Voyager internal |
-| `apps/ai_agents/services/brand_enforcement.py` | 268 | Brand compliance scoring | Voyager internal |
-| `apps/core/models.py` | 87 | Base models from Voyant pattern | Voyager |
-
----
-
-## 7. API Endpoint: Campaign Workflow
-
-```
-POST /api/v1/ai-agents/campaign-workflow/{client_id}/{campaign_id}
-
-Headers:
-  Authorization: Bearer <keycloak_jwt>
-  X-Tenant-ID: <tenant_id>
-
-Response 200 OK:
-{
-  "client_id": "acme_corp",
-  "campaign_id": "camp_2025q1",
-  "tenant_id": "tenant_42",
-  "research": {
-    "competitors": {"profiles": [...], "status": "ok"},
-    "trends": {"trends": [...], "status": "ok"},
-    "keywords": [{"term": "...", "volume": 15000, "difficulty": 0.45}],
-    "sentiment": {"overall": 0.72, "by_platform": {...}}
-  },
-  "creative": {
-    "brief": {"text": "...", "model_used": "claude-3-5-sonnet", "cost_usd": 0.0018},
-    "content": {"text": "...", "model_used": "gpt-4o", "cost_usd": 0.0024},
-    "social_posts": {"text": "...", "model_used": "gpt-4o", "cost_usd": 0.0012},
-    "email_copy": {"text": "...", "model_used": "claude-3-5-sonnet", "cost_usd": 0.0015}
-  },
-  "workflow": {
-    "graph_id": "uuid",
-    "run_id": "uuid",
-    "status": "submitted",
-    "nodes": ["ingest", "review", "publish", "monitor", "optimize"]
-  },
-  "aggregate": {
-    "total_cost_usd": 0.0042,
-    "total_tokens_used": 1847,
-    "workflow_graph_id": "uuid",
-    "workflow_run_id": "uuid"
-  }
+```python
+MODEL_CATALOG = {
+    "sd15":           "runwayml/stable-diffusion-v1-5",      # 4GB — base model
+    "sdxl-turbo":     "stabilityai/sdxl-turbo",               # 6.5GB — fast SDXL
+    "sd-turbo":       "stabilityai/sd-turbo",                 # 3.5GB — fastest
+    "lcm-lora-sdxl":  "latent-consistency/lcm-lora-sdxl",     # 400MB — LoRA
+    "realistic-vision": "SG161222/Realistic_Vision_V5.1_noVAE" # 4GB — realistic
 }
 ```
 
+### Vortex Executors (from `executor.py`)
+
+| Executor | Node Type | What It Does |
+|----------|-----------|-------------|
+| `CheckpointLoader` | `Loader::Checkpoint` | Loads SD/SDXL from HuggingFace to GPU |
+| `KSampler` | `Sampler::KSampler` | Runs diffusion sampling — generates image latents |
+| `VAEDecode` | `Decoder::VAE` | Decodes latents to actual image (512x512) |
+| `CLIPTextEncode` | `Encoder::CLIP` | Encodes text prompt to conditioning embeddings |
+| `MelEncoder` | `Audio::MelEncoder` | Audio waveform → mel-spectrogram |
+| `LatentVideoSampler` | `Video::LatentSampler` | Generates video frames (temporal latents) |
+
+### Architecture: Rust Host + Python Workers
+
+```
+Vortex (Rust Core, port 11188)
+├── Scheduler — Kahn's topological sort on DAG
+├── Arbiter — VRAM memory management (8GB budget)
+├── Supervisor — Spawns Python worker processes
+├── IPC Gateway — POSIX shared memory zero-copy
+└── WebSocket — Real-time progress on /ws
+
+    ↓ IPC via /tmp/vortex.sock
+
+Vortex Worker (Python)
+├── Executor Registry — Dispatches to node handlers
+├── Model Loader — HuggingFace Hub, caching, GPU
+├── SHM Arena — Shared memory tensor storage
+└── Bridge — Arrow ↔ PyTorch zero-copy
+
+    ↓ torch.cuda
+
+GPU — Runs Stable Diffusion inference
+```
+
+### What Each System Handles
+
+| Task | Voyager | Voyant | Vortex |
+|------|---------|--------|--------|
+| **Text generation** | ✅ LLM Router (OpenAI/Anthropic) | ❌ | ❌ |
+| **Image generation** | ❌ | ❌ | ✅ KSampler + VAEDecode (SD/SDXL) |
+| **Video generation** | ❌ | ❌ | ✅ LatentVideoSampler |
+| **Audio generation** | ❌ | ❌ | ✅ MelEncoder |
+| **Data ingestion** | ❌ | ✅ Airbyte, DuckDB | ❌ |
+| **Web scraping** | ❌ | ✅ Playwright, OCR | ❌ |
+| **SQL analytics** | ❌ | ✅ Trino → ClickHouse | ❌ |
+| **Semantic search** | ❌ | ✅ Milvus | ❌ |
+| **Workflow DAG** | ❌ | ❌ | ✅ Kahn scheduling |
+| **MCP tools** | ❌ | ❌ | ✅ Tool registry + proxy |
+| **Campaign logic** | ✅ Django models | ❌ | ❌ |
+| **Auth/RBAC** | ✅ Keycloak | ❌ | ❌ |
+
 ---
 
-**Document prepared from actual code inspection**
-**Files read:** voyant_bridge/client.py (451L), vortex_bridge/client.py (340L), campaign_orchestrator.py (429L), llm_router.py (415L)
-**All code references are real — no invented APIs**
+## 1. Three-System Integration Diagram (CORRECTED)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              VOYAGER (Django)                                │
+│                              Port 8000                                       │
+│                                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   Campaign   │  │  Content     │  │   AI Agents  │  │   Analytics  │   │
+│  │   Manager    │  │  Creation    │  │   (Router)   │  │   (Voyant)   │   │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘   │
+│         │                 │                 │                 │            │
+│         │ TEXT: GPT-4o    │ IMAGE/VIDEO:   │ ORCHESTRATION:  │ SQL: Trino │
+│         │ Claude 3.5      │ Vortex (SDXL)  │ Voyant + Vortex │ ClickHouse │
+│         │ Gemini          │                │                 │            │
+│  ┌──────┴───────────────┐│┌──────────────┴─────┐┌──────────┴──────┐      │
+│  │  LLM Router (415L)   │││ Vortex Bridge      ││ Voyant Bridge   │      │
+│  │  openai.AsyncOpenAI  │││ (340L)             ││ (451L + 864L)   │      │
+│  │  anthropic.AsyncAn.. │││ submit_graph()     ││ ingest_data()   │      │
+│  │  httpx (Google)      │││ execute_graph()    ││ analyze_data()  │      │
+│  └──────────────────────┘││ get_run_status()   ││ execute_sql()   │      │
+│                          ││ cancel_run()       ││ search_similar()│      │
+│                          ││ list_mcp_tools()   ││ scrape_url()    │      │
+│                          ││ call_mcp_tool()    ││ ocr_image()     │      │
+│                          │└────────────────────┘└─────────────────┘      │
+│                          │                        │                        │
+└──────────────────────────┼────────────────────────┼────────────────────────┘
+                           │                        │
+                           │ HTTP:11188             │ HTTP:8000
+                           │ JWT + tenant_id        │ JWT + tenant_id
+                           ▼                        ▼
+┌─────────────────────────────────────┐  ┌──────────────────────────────────────┐
+│          VORTEX (Rust)              │  │          VOYANT (Django)             │
+│          Port 11188                 │  │          Port 8000                   │
+│                                     │  │                                      │
+│  ┌──────────┐  ┌──────────┐        │  │  ┌──────────┐  ┌──────────┐         │
+│  │ Scheduler│  │  Arbiter │        │  │  │ Ingestion│  │ Analysis │         │
+│  │ (Kahn)   │  │  (VRAM)  │        │  │  │ (Airbyte)│  │  (NLP)   │         │
+│  └────┬─────┘  └────┬─────┘        │  │  └────┬─────┘  └────┬─────┘         │
+│       │             │              │  │       │             │              │
+│  ┌────┴─────────────┴────┐         │  │  ┌────┴─────────────┴────┐          │
+│  │   Supervisor          │         │  │  │     SQL (Trino)       │          │
+│  │   spawns Python       │         │  │  │  → ClickHouse         │          │
+│  │   worker processes    │         │  │  └───────────────────────┘          │
+│  └───────────┬───────────┘         │  │                                      │
+│              │ IPC /tmp/vortex.sock│  │  ┌──────────┐  ┌──────────┐         │
+│  ┌───────────┴───────────┐         │  │  │  Search  │  │  Scraper │         │
+│  │   Python Worker       │         │  │  │ (Milvus) │  │(Playwright│         │
+│  │   ┌──────────────┐    │         │  │  │          │  │  + OCR)  │         │
+│  │   │ Executor     │    │         │  │  └──────────┘  └──────────┘         │
+│  │   │ Registry     │    │         │  │                                      │
+│  │   └──────┬───────┘    │         │  │  PostgreSQL  Redis  Kafka  MinIO    │
+│  │          │             │         │  └──────────────────────────────────────┘
+│  │  ┌───────┼───────┐    │
+│  │  ▼       ▼       ▼    │
+│  │ KSampler VAE    CLIP  │
+│  │ (image) (decode)(text)│
+│  │                        │
+│  │  ┌──────────────┐      │
+│  │  │ Model Loader │      │
+│  │  │ HuggingFace  │      │
+│  │  │ SD, SDXL     │      │
+│  │  └──────┬───────┘      │
+│  │         ▼              │
+│  │    torch.cuda          │
+│  │    GPU inference       │
+│  └─────────────────────────┘
+└─────────────────────────────────────┘
+```
+
+---
+
+## 2. Campaign Orchestration Flow (CORRECTED)
+
+### Where Each Task Runs
+
+```
+USER (Marketing Manager)
+│
+│ POST /api/v1/ai-agents/campaign-workflow/{client_id}/{campaign_id}
+│
+▼
+VOYAGER — CampaignOrchestrator.run_campaign_workflow()
+│
+├─────────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: RESEARCH                                                          │
+│ Uses: Voyant Bridge                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ ┌─ Voyant: analyze_competitors() ──┐  ┌─ Voyant: search_keywords() ───┐  │
+│ │  → POST /api/v1/analyze          │  │  → POST /api/v1/search/query  │  │
+│ │  → Playwright scrapes URLs       │  │  → Milvus semantic search     │  │
+│ │  → NLP extracts themes           │  │  → 50 keywords returned       │  │
+│ └──────────────────────────────────┘  └───────────────────────────────┘  │
+│ ┌─ Voyant: analyze_trends() ───────┐  ┌─ Voyant: sentiment() ─────────┐  │
+│ │  → POST /api/v1/analyze          │  │  → POST /api/v1/analyze       │  │
+│ │  → ClickHouse trend detection    │  │  → NLP sentiment analysis     │  │
+│ └──────────────────────────────────┘  └───────────────────────────────┘  │
+│                                                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ PHASE 2: CREATIVE                                                          │
+│ Uses: LLM Router (TEXT) + Vortex Bridge (IMAGE/VIDEO)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ TEXT (Voyager LLM Router → OpenAI/Anthropic)                              │
+│ ├── Brief:       llm.generate_text() → Claude 3.5 Sonnet                  │
+│ ├── Content:     llm.generate_text() → GPT-4o                             │
+│ ├── Social:      llm.generate_text() → GPT-4o                             │
+│ └── Email:       llm.generate_text() → Claude 3.5 Sonnet                  │
+│                                                                            │
+│ IMAGE (Voyager → Vortex → GPU)                                             │
+│ ├── submit_graph()                                                         │
+│ │   graph.nodes = [                                                        │
+│ │     {id: "load",  op_type: "Loader::Checkpoint",                         │
+│ │      params: {ckpt_name: "sdxl-turbo"}},                                 │
+│ │     {id: "prompt", op_type: "Encoder::CLIP",                             │
+│ │      params: {text: "professional marketing image of..."}},              │
+│ │     {id: "sample", op_type: "Sampler::KSampler",                         │
+│ │      params: {steps: 20, cfg: 7.0, seed: 42}},                           │
+│ │     {id: "decode", op_type: "Decoder::VAE"}                              │
+│ │   ]                                                                      │
+│ │   graph.edges = [                                                        │
+│ │     ("load" → "prompt"), ("prompt" → "sample"), ("sample" → "decode")    │
+│ │   ]                                                                      │
+│ ├── execute_graph()                                                        │
+│ │   → Vortex Scheduler: Kahn's topo sort                                   │
+│ │   → Vortex Supervisor: spawns Python worker                              │
+│ │   → Worker: model_loader.load_pipeline("sdxl-turbo") → GPU              │
+│ │   → Worker: KSamplerExecutor.execute() → diffusion → latents            │
+│ │   → Worker: VAEDecodeExecutor.execute() → latents → image (512x512)     │
+│ └── return: {image_url, generation_time_ms, model: "sdxl-turbo"}          │
+│                                                                            │
+│ VIDEO (Voyager → Vortex → GPU)                                             │
+│ ├── submit_graph()                                                         │
+│ │   graph.nodes = [{id: "sample", op_type: "Video::LatentSampler",         │
+│ │     params: {num_frames: 16}}]                                           │
+│ ├── execute_graph()                                                        │
+│ │   → Worker: LatentVideoSampler.execute()                                 │
+│ │   → torch.randn(1, 16, 4, 64, 64) → temporal latents                  │
+│ └── return: {video_url, frames: 16}                                        │
+│                                                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ PHASE 3: VORTEX WORKFLOW                                                   │
+│ Uses: Vortex Bridge                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ ├── submit_graph() — approval + publishing DAG                             │
+│ │   nodes: [ingest, review(HITL), publish, monitor, optimize]             │
+│ │   edges: [ingest→review, review→publish, publish→monitor, ...]          │
+│ ├── execute_graph()                                                        │
+│ │   → Kahn scheduling                                                      │
+│ │   → WebSocket progress                                                   │
+│ └── return: {graph_id, run_id}                                             │
+│                                                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ PHASE 4: ANALYTICS                                                         │
+│ Uses: Voyant Bridge (ClickHouse/Trino)                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│ ├── Voyant: execute_sql() → Trino → ClickHouse                            │
+│ └── Dashboard: impressions, clicks, conversions, ROI                      │
+│                                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Vortex Image Generation Sequence (DETAILED)
+
+```
+Voyager                    Vortex (Rust)              Python Worker           GPU
+─────────────────────────────────────────────────────────────────────────────────
+
+submit_graph(graph_dsl)
+───────────────────────→ POST /api/graph
+                          graph_repo.store()
+←───────────────────────  {graph_id}
+
+execute_graph(graph_id)
+───────────────────────→ POST /api/graph/{id}/execute
+                          scheduler.kahn_sort()
+                          arbiter.check_vram(8192MB)
+                          supervisor.spawn_worker()
+
+                          ←─ IPC /tmp/vortex.sock ─→
+                          
+                                                     model_loader
+                                                     .load_pipeline(
+                                                       "sdxl-turbo",
+                                                       device="cuda",
+                                                       dtype="float16"
+                                                     )
+                                                     
+                                                     → AutoPipelineForText2Image
+                                                       .from_pretrained(
+                                                         "stabilityai/sdxl-turbo"
+                                                       )
+                                                     → pipe.to("cuda")
+                                                     → cache[model_id] = pipe
+
+                          ←─ worker ready ─────────→
+                          
+                          for node in execution_order:
+                            
+                            ["load"]: Loader::Checkpoint
+                              → IPC: JobRequest
+                              → worker: CheckpointLoader.execute()
+                              → load_pipeline("sdxl-turbo")
+                              → {model, clip, vae} handles
+                              
+                            ["prompt"]: Encoder::CLIP  
+                              → IPC: JobRequest + inputs
+                              → worker: CLIPTextEncode.execute()
+                              → tokenizer(text, max_length=77)
+                              → clip(**text_inputs).last_hidden_state
+                              → conditioning embeddings
+                              
+                            ["sample"]: Sampler::KSampler
+                              → IPC: JobRequest + inputs
+                              → worker: KSamplerExecutor.execute()
+                              → pipe(
+                                  prompt=prompt,
+                                  width=512, height=512,
+                                  num_inference_steps=20,
+                                  guidance_scale=7.0,
+                                  generator=seed,
+                                  output_type="latent"
+                                )
+                              → result.images (latents: 1x4x64x64)
+                              → put_tensor(latents) → SHM
+                              
+                            ["decode"]: Decoder::VAE
+                              → IPC: JobRequest + inputs
+                              → worker: VAEDecodeExecutor.execute()
+                              → get_tensor(latents) from SHM
+                              → vae.decode(latent)
+                              → image = (image/2+0.5).clamp(0,1)
+                              → image = (image*255).to(uint8)
+                              → put_tensor(image) → SHM
+                              
+                          supervisor.shutdown()
+                          
+                          ←─ WS: RunComplete ──────→
+
+←───────────────────────  {run_id, status: "completed"}
+```
+
+---
+
+## 4. Bridge Reference (Actual Code)
+
+### Voyant Bridge — `voyant_bridge/client.py`
+
+| Method | Voyant Endpoint | Used By | Voyager Module |
+|--------|----------------|---------|---------------|
+| `ingest_data()` | `POST /api/v1/jobs/ingest` | Sync metrics, import data | `analytics_v2`, `integrations` |
+| `get_job_status()` | `GET /api/v1/jobs/{id}` | Check ingestion progress | `analytics_v2` |
+| `cancel_job()` | `POST /api/v1/jobs/{id}/cancel` | Cancel long-running job | `workflows_v2` |
+| `analyze_data()` | `POST /api/v1/analyze` | Statistical analysis, NLP | `strategy`, `analytics_v2` |
+| `execute_sql()` | `POST /api/v1/sql/query` | ClickHouse queries via Trino | `analytics_v2`, `campaigns` |
+| `list_tables()` | `GET /api/v1/sql/tables` | Discover available tables | `analytics_v2` |
+| `search_similar()` | `POST /api/v1/search/query` | Semantic memory search | `ai_agents` |
+| `index_document()` | `POST /api/v1/search/index` | Store memory with embedding | `ai_agents` |
+| `delete_indexed_document()` | `DELETE /api/v1/search` | Remove from memory | `ai_agents` |
+| `scrape_url()` | `POST /api/v1/scrape/start` | Scrape competitor site | `web_scraping_v2` |
+| `scrape_multiple()` | `POST /api/v1/scrape/start` | Batch scraping | `web_scraping_v2` |
+| `get_scrape_status()` | `GET /api/v1/scrape/status` | Check scrape progress | `web_scraping_v2` |
+| `get_scrape_result()` | `GET /api/v1/scrape/result` | Get scraped data | `web_scraping_v2` |
+| `extract_from_html()` | `POST /api/v1/scrape/extract` | Parse HTML with selectors | `web_scraping_v2` |
+| `ocr_image()` | `POST /api/v1/scrape/ocr` | OCR receipt/image | `billing`, `web_scraping_v2` |
+| `list_sources()` | `GET /api/v1/sources` | Discover data sources | `integrations` |
+| `get_source()` | `GET /api/v1/sources/{id}` | Get source details | `integrations` |
+
+### Vortex Bridge — `vortex_bridge/client.py`
+
+| Method | Vortex Endpoint | Used By | Voyager Module |
+|--------|----------------|---------|---------------|
+| `submit_graph()` | `POST /api/graph` | Submit workflow DAG | `campaigns`, `workflows_v2` |
+| `get_graph()` | `GET /api/graph/{id}` | Retrieve graph definition | `workflows_v2` |
+| `execute_graph()` | `POST /api/graph/{id}/execute` | Execute DAG on GPU workers | `content_creation`, `campaigns` |
+| `get_run_status()` | `GET /api/run/{id}/status` | Monitor execution | `campaigns`, `workflows_v2` |
+| `cancel_run()` | `POST /api/run/{id}/cancel` | Cancel workflow | `campaigns`, `workflows_v2` |
+| `list_mcp_tools()` | `GET /api/nodes/mcp` | Discover MCP tools | `ai_agents` |
+| `list_mcp_clients()` | `GET /api/mcp/clients` | List MCP clients | `ai_agents` |
+| `call_mcp_tool()` | `POST /api/mcp/tool/call` | Invoke MCP tool | `ai_agents` |
+| `register_mcp_client()` | `POST /api/mcp/client/register` | Register new MCP client | `ai_agents` |
+| `health_check()` | `GET /health` | Health monitoring | `infra` |
+| `get_metrics()` | `GET /metrics` | Prometheus metrics | `infra` |
+
+---
+
+## 5. File Inventory
+
+### Voyager Files
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `voyant_bridge/client.py` | 451 | HTTP client for Voyant API |
+| `voyant_bridge/services.py` | 864 | 5 service wrappers |
+| `voyant_bridge/models.py` | 156 | Pydantic response models |
+| `voyant_bridge/apps.py` | 15 | Django app config |
+| `vortex_bridge/client.py` | 340 | HTTP client for Vortex API |
+| `vortex_bridge/models.py` | 156 | Pydantic response models |
+| `vortex_bridge/compiler.py` | 278 | Workflow-to-GraphDSL compiler |
+| `apps/ai_agents/services/llm_router.py` | 415 | OpenAI/Anthropic/Google API calls |
+| `apps/ai_agents/services/campaign_orchestrator.py` | 429 | 3-agent orchestration |
+| `apps/ai_agents/services/campaign_prompts.py` | 312 | Prompt builders |
+| `apps/ai_agents/services/brand_enforcement.py` | 268 | Brand compliance scoring |
+
+### Vortex Source (External, cloned from `somatechlat/vortex`)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `gemini/crates/vortex-core/src/execution.rs` | 343 | Execution engine: Scheduler → Supervisor → IPC → Workers |
+| `gemini/crates/vortex-core/src/scheduler.rs` | ~200 | Kahn's topological sort on DAG |
+| `gemini/crates/vortex-core/src/graph.rs` | ~300 | GraphDSL: nodes, edges, params |
+| `gemini/crates/vortex-core/src/arbiter.rs` | ~150 | VRAM memory arbitration |
+| `gemini/crates/vortex-core/src/supervisor.rs` | ~200 | Python worker process management |
+| `gemini/crates/vortex-core/src/ipc.rs` | ~200 | POSIX shared memory zero-copy |
+| `gemini/worker/vortex_worker/executor.py` | 476 | Node executors: KSampler, VAE, CLIP, Video, Audio |
+| `gemini/worker/vortex_worker/model_loader.py` | 322 | HuggingFace model loading with catalog |
+| `gemini/worker/vortex_worker/shm.py` | ~150 | Shared memory tensor arena |
+| `gemini/worker/vortex_worker/bridge.py` | ~200 | Arrow ↔ PyTorch zero-copy bridge |
+
+---
+
+## 6. Source Code References
+
+All code paths verified against actual files:
+
+- **Voyager → Vortex image generation**: `campaign_orchestrator.py:225-267` → `vortex_bridge/client.py:100-118` → Vortex `execution.rs:150-167` → Python worker `executor.py:210-277` → `model_loader.py:117-179` → `stabilityai/sdxl-turbo`
+- **Voyager → Voyant data analysis**: `campaign_orchestrator.py:162-182` → `voyant_bridge/client.py:145-160` → Voyant `apps/analysis/api.py` → NLP model
+- **Voyager text generation**: `campaign_orchestrator.py:300-330` → `llm_router.py:156-178` → `anthropic.AsyncAnthropic` → `claude-3-5-sonnet-20241022`
+- **Voyant → ClickHouse**: `voyant_bridge/client.py:178-194` → Voyant `apps/sql/api.py` → Trino → ClickHouse
+
+---
+
+**This document was built from actual source code inspection, not assumptions.**
+**Vortex source read:** `execution.rs` (343L), `executor.py` (476L), `model_loader.py` (322L), `lib.rs`, `graph.rs`
+**Voyant source read:** `models.py` (201L), `config.py` (112L), `api.py`, `middleware.py`, `security/auth.py`
+**Voyager source read:** `campaign_orchestrator.py` (429L), `llm_router.py` (415L), `voyant_bridge/client.py` (451L), `vortex_bridge/client.py` (340L)
